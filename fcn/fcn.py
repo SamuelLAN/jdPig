@@ -251,7 +251,7 @@ class FCN(base.NN):
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
         with tf.name_scope('process_output'):
-            self.__output_mask = tf.cast(tf.round(self.__output), tf.uint8, name="output_mask")
+            self.__output_mask = tf.round(self.__output, name='output_mask')
 
     ''' 计算 loss '''
 
@@ -277,8 +277,8 @@ class FCN(base.NN):
     def __summary(self):
         with tf.name_scope('summary'):
             tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
-            tf.summary.image('mask', self.__mask * self.__image, max_outputs=2)             # mask (ground truth)
-            tf.summary.image('output_image', self.__output_mask * self.__image, max_outputs=2)   # 输出图片
+            tf.summary.image('mask', tf.cast(self.__mask * self.__image, tf.uint8), max_outputs=2)             # mask (ground truth)
+            tf.summary.image('output_image', tf.cast(self.__output_mask * self.__image, tf.uint8), max_outputs=2)   # 输出图片
 
     ''' 主函数 '''
 
@@ -322,6 +322,16 @@ class FCN(base.NN):
                 self.echo('\nepoch %d finish \t' % epoch)
 
                 self.add_summary_train(feed_dict, epoch)
+
+            if step == self.__steps - 1:
+                output_mask = self.sess.run(self.__output_mask, feed_dict=feed_dict)
+
+                tmp_mask = output_mask[0]
+                tmp_mask[tmp_mask > 0] = 255
+                from PIL import Image
+                tmp_mask_img = Image.fromarray(tmp_mask)
+                tmp_mask_img.show()
+
 
         self.close_summary()  # 关闭 TensorBoard
 
