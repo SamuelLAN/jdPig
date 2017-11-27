@@ -20,7 +20,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 10    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 5    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -250,6 +250,7 @@ class FCN(base.NN):
 
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
+        self.__output_mask = tf.round(self.__output, name="output_mask")
 
     ''' 计算 loss '''
 
@@ -276,7 +277,7 @@ class FCN(base.NN):
         with tf.name_scope('summary'):
             tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
             tf.summary.image('mask', self.__mask * self.__image, max_outputs=2)             # mask (ground truth)
-            tf.summary.image('output_image', self.__output * self.__image, max_outputs=2)   # 输出图片
+            tf.summary.image('output_image', self.__output_mask * self.__image, max_outputs=2)   # 输出图片
 
     ''' 主函数 '''
 
