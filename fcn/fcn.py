@@ -250,7 +250,8 @@ class FCN(base.NN):
 
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
-        self.__output_mask = tf.round(self.__output, name="output_mask")
+        with tf.name_scope('process_output'):
+            self.__output_mask = tf.cast(tf.round(self.__output), tf.uint8, name="output_mask")
 
     ''' 计算 loss '''
 
@@ -324,7 +325,7 @@ class FCN(base.NN):
 
         self.close_summary()  # 关闭 TensorBoard
 
-        self.restore_model()  # 恢复模型
+        # self.restore_model()  # 恢复模型
 
 
 o_fcn = FCN()
