@@ -61,6 +61,8 @@ class Download:
 
     @staticmethod
     def __checkFileNum():
+        if not os.path.isdir(Download.DATA_ROOT):
+            return False
         file_num = 0
         for file_name in os.listdir(Download.DATA_ROOT):
             if os.path.splitext(file_name)[1].lower() != '.jpg':
