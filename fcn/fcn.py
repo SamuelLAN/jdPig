@@ -20,7 +20,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 5    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 2    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -307,7 +307,7 @@ class FCN(base.NN):
         self.echo('\nepoch:')
         
         for step in range(self.__steps):
-            if step % 10 == 0:
+            if step % 2 == 0:
                 epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
                 step_progress = float(step) / self.__steps * 100.0
                 self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t' % (step, self.__iter_per_epoch, epoch_progress,
@@ -329,6 +329,8 @@ class FCN(base.NN):
                 tmp_mask = output_mask[0]
                 tmp_mask[tmp_mask > 0] = 255
                 from PIL import Image
+                import numpy as np
+                tmp_mask = np.cast['uint8'](tmp_mask)
                 tmp_mask_img = Image.fromarray(tmp_mask)
                 tmp_mask_img.show()
 

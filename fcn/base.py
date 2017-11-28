@@ -330,7 +330,7 @@ class NN:
     @staticmethod
     def __run_tensorboard_sync(path, port=6006):
         try:
-            NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
+            NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
         except Exception, ex:
             print ex
 
@@ -481,8 +481,7 @@ class NN:
         for i, config in enumerate(self.MODEL):
             _type = config['type'].lower()
             name = '%s_%d' % (_type, i + 1) if 'name' not in config else config['name']
-
-            self.echo('building %s layer ...' % name)
+            # self.echo('building %s layer ...' % name)
 
             # 卷积层
             if _type == 'conv':
