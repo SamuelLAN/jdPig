@@ -20,7 +20,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 1    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 5    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
