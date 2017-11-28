@@ -279,7 +279,7 @@ class FCN(base.NN):
 
             grads = optimizer.compute_gradients(loss, var_list=tf.trainable_variables())
             for grad, var in grads:
-                self.gradient_summary(var)
+                self.gradient_summary(grad, var)
             return optimizer.apply_gradients(grads)
 
             # return optimizer.minimize(loss, global_step=global_step)
