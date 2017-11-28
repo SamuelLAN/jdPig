@@ -202,7 +202,12 @@ class Data:
             end_index = self.__dataLen
 
         X, y = zip(*self.__data[start_index: end_index])
-        if not left_num or not loop:
+
+        if not loop:
+            self.__curIndex = end_index
+            return np.array(X), np.array(y)
+
+        if not left_num:
             self.__curIndex = end_index if end_index < self.__dataLen else 0
             return np.array(X), np.array(y)
 
@@ -225,6 +230,11 @@ class Data:
     ''' 获取数据集大小 '''
     def getSize(self):
         return self.__dataLen
+
+
+    ''' 重置当前 index 位置 '''
+    def resetCurIndex(self):
+        self.__curIndex = 0
 
 
     ''' 输出展示 '''

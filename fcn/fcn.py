@@ -301,20 +301,16 @@ class FCN(base.NN):
         times = int( math.ceil( float(data_set.getSize()) / self.BATCH_SIZE ) )
 
         mean_loss = 0
-        count = 0
-        batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
-        while type(batch_x) != type(None):
+        for i in range(times):
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
             loss = self.sess.run(self.__loss, feed_dict)
             mean_loss += loss
-            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
-            count += 1
 
-            progress = float(count) / times * 100
+            progress = float(i + 1) / times * 100
             self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
 
-        self.echo('\r measuring loss progress: %.2f%% | %d \t' % (100.0, times), False)
-        return mean_loss / count
+        return mean_loss / times
 
     ''' 主函数 '''
 
