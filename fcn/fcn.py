@@ -33,6 +33,8 @@ class FCN(base.NN):
     REGULAR_BETA = 0.01 # 正则化的 beta 参数
     KEEP_PROB = 0.85    # dropout 的 keep_prob
 
+    MAX_VAL_LOSS_INCR_TIMES = 100   # 校验集 val_loss 连续 100 次没有降低，则 early stop
+
     TENSORBOARD_SHOW_IMAGE = False  # 默认不将 image 显示到 TensorBoard，以免影响性能
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
@@ -232,19 +234,19 @@ class FCN(base.NN):
 
         # 随训练次数增多而衰减的学习率
         self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE
+            self.BASE_LEARNING_RATE, self.globalStep, self.__steps / 10, self.DECAY_RATE, staircase=True
         )
 
     ''' 加载数据 '''
 
     def load(self):
         self.__train_set = load.Data(0.0, 0.64, 'train')
-        # self.__val_set = load.Data(0.64, 0.8, 'validation')
-        # self.__test_set = load.Data(0.8, 1.0, 'test')
+        self.__val_set = load.Data(0.64, 0.8, 'validation')
+        self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_size = self.__train_set.getSize()
-        # self.__val_size = self.__val_set.getSize()
-        # self.__test_size = self.__test_set.getSize()
+        self.__val_size = self.__val_set.getSize()
+        self.__test_size = self.__test_set.getSize()
 
     ''' 模型 '''
 
@@ -286,6 +288,13 @@ class FCN(base.NN):
             tf.summary.image('truth_mask', tf.cast(mask * self.__image, tf.uint8), max_outputs=2)
             tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)
 
+    ''' 测量数据集的 loss '''
+
+    def __measure_loss(self, data_set, batch_size):
+        batch_x, batch_y = data_set.next_batch(batch_size)
+        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+        return self.sess.run([self.__loss], feed_dict)
+
     ''' 主函数 '''
 
     def run(self):
@@ -309,11 +318,14 @@ class FCN(base.NN):
 
         # TensorBoard merge summary
         self.merge_summary()
-        
+
+        best_val_loss = 999999          # 校验集 loss 最好的情况
+        increase_val_loss_times = 0     # 校验集 loss 连续上升次数
+
         self.echo('\nepoch:')
         
         for step in range(self.__steps):
-            if step % 2 == 0:
+            if step % 5 == 0:
                 epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
                 step_progress = float(step) / self.__steps * 100.0
                 self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t' % (step, self.__iter_per_epoch, epoch_progress,
@@ -327,9 +339,37 @@ class FCN(base.NN):
                 epoch = step // self.__iter_per_epoch
                 self.add_summary_train(feed_dict, epoch)
 
+                batch_val_x, batch_val_y = self.__val_set.next_batch(self.__val_size)
+                feed_dict = {self.__image: batch_val_x, self.__mask: batch_val_y, self.__keep_prob: 1.0}
+                val_loss = self.sess.run([self.__loss], feed_dict)
+
+                self.add_summary_val(feed_dict, epoch)
+
+                if best_val_loss > val_loss:
+                    best_val_loss = val_loss
+                    increase_val_loss_times = 0
+
+                    self.save_model()   # 保存模型
+
+                else:
+                    increase_val_loss_times += 1
+                    if increase_val_loss_times > self.MAX_VAL_LOSS_INCR_TIMES:
+                        break
+
         self.close_summary()  # 关闭 TensorBoard
 
-        # self.restore_model()  # 恢复模型
+        self.restore_model()  # 恢复模型
+
+        train_loss = self.__measure_loss(self.__train_set, self.__train_size)
+        val_loss = self.__measure_loss(self.__val_set, self.__val_size)
+        test_loss = self.__measure_loss(self.__test_set, self.__test_size)
+
+        self.echo('\ntrain loss: %.6f' % train_loss)
+        self.echo('validation loss: %.6f' % val_loss)
+        self.echo('test loss: %.6f' % test_loss)
+
+        self.echo('\ndone')
+
 
 
 o_fcn = FCN()
