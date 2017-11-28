@@ -20,7 +20,7 @@ import tensorflow as tf
 class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
-    BATCH_SIZE = 12     # 迭代的 epoch 次数
+    BATCH_SIZE = 5     # 迭代的 epoch 次数
     EPOCH_TIMES = 100    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
@@ -32,7 +32,7 @@ class FCN(base.NN):
     DECAY_RATE = 0.05           # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01         # 正则化的 beta 参数
-    KEEP_PROB = 0.05             # dropout 的 keep_prob
+    KEEP_PROB = 0.5             # dropout 的 keep_prob
 
     SHOW_PROGRESS_FREQUENCY = 2     # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
@@ -313,7 +313,7 @@ class FCN(base.NN):
             loss = self.sess.run(self.__loss, feed_dict)
             mean_loss += loss
 
-            progress = float(i + 1) / times * 100
+            # progress = float(i + 1) / times * 100
             # self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
 
         return mean_loss / times
