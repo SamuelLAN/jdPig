@@ -322,25 +322,35 @@ class FCN(base.NN):
                 self.add_summary_train(feed_dict, epoch)
 
             if step == self.__steps - 1:
-                output_mask = self.sess.run(self.__output_mask, feed_dict=feed_dict)
+                output, image, output_mask = self.sess.run([self.__output, self.__image, self.__output_mask], feed_dict=feed_dict)
+                # output_mask = self.sess.run(self.__output_mask, feed_dict=feed_dict)
 
-                print 'output_mask shape:'
-                print output_mask.shape
+                # print 'output_mask shape:'
+                # print output_mask.shape
 
-                tmp_mask = output_mask[0]
-                tmp_mask[tmp_mask > 0] = 255
-                from PIL import Image
-                import numpy as np
+                print '\n************ output *******************'
+                print output[0]
+                print ''
 
-                print 'tmp_mask:'
-                tmp_mask = np.cast['uint8'](tmp_mask)
-                tmp_mask = tmp_mask.reshape(tmp_mask.shape[:2])
+                print '\n************ output *******************'
+                print output_mask[0]
+                print ''
 
-                print tmp_mask.shape
-                print type(tmp_mask)
-
-                tmp_mask_img = Image.fromarray(tmp_mask)
-                tmp_mask_img.show()
+                # tmp_mask = output_mask[0]
+                # # tmp_mask
+                # # tmp_mask[tmp_mask > 0] = 255
+                # from PIL import Image
+                # import numpy as np
+                #
+                # print 'tmp_mask:'
+                # tmp_mask = np.cast['uint8'](tmp_mask)
+                # tmp_mask = tmp_mask.reshape(tmp_mask.shape[:2])
+                #
+                # print tmp_mask.shape
+                # print type(tmp_mask)
+                #
+                # tmp_mask_img = Image.fromarray(tmp_mask)
+                # tmp_mask_img.show()
 
 
         self.close_summary()  # 关闭 TensorBoard
