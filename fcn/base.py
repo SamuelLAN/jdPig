@@ -476,7 +476,7 @@ class NN:
         if is_train:    # 将图像输出到 TensorBoard
             self.image_summary(a, 1, 'input', 1)
 
-        self.echo('Start building model ...')
+        self.echo('\nStart building model ...')
 
         model_len = len(self.MODEL)
         for i, config in enumerate(self.MODEL):
