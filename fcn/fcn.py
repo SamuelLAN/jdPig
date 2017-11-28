@@ -348,22 +348,26 @@ class FCN(base.NN):
                 print 'output_mask shape:'
                 print output_mask.shape
 
-
-                # tmp_mask = output_mask[0]
                 # # tmp_mask
                 # # tmp_mask[tmp_mask > 0] = 255
-                # from PIL import Image
-                # import numpy as np
+                from PIL import Image
+                import numpy as np
+
+                tmp_image = image[0]
+                tmp_mask = np.expand_dims(output_mask[0], 2)
+
+                tmp_mask = tmp_mask * tmp_image
+
                 #
                 # print 'tmp_mask:'
-                # tmp_mask = np.cast['uint8'](tmp_mask)
+                tmp_mask = np.cast['uint8'](tmp_mask)
                 # tmp_mask = tmp_mask.reshape(tmp_mask.shape[:2])
                 #
                 # print tmp_mask.shape
                 # print type(tmp_mask)
                 #
-                # tmp_mask_img = Image.fromarray(tmp_mask)
-                # tmp_mask_img.show()
+                tmp_mask_img = Image.fromarray(tmp_mask)
+                tmp_mask_img.show()
 
 
         self.close_summary()  # 关闭 TensorBoard
