@@ -331,6 +331,13 @@ class FCN(base.NN):
                 from PIL import Image
                 import numpy as np
                 tmp_mask = np.cast['uint8'](tmp_mask)
+
+                print tmp_mask
+                print tmp_mask.shape
+                print type(tmp_mask)
+
+                exit()
+
                 tmp_mask_img = Image.fromarray(tmp_mask)
                 tmp_mask_img.show()
 
