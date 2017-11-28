@@ -28,13 +28,11 @@ class FCN(base.NN):
     NUM_CHANNEL = 3     # 输入图片为 3 通道，彩色
     NUM_CLASSES = 2     # 输出的类别
 
-    BASE_LEARNING_RATE = 0.01  # 初始 学习率
-    DECAY_RATE = 0.1
+    BASE_LEARNING_RATE = 0.01   # 初始 学习率
+    DECAY_RATE = 0.01           # 学习率 的 下降速率
 
-    # 学习率 的 下降速率
-
-    REGULAR_BETA = 0.01 # 正则化的 beta 参数
-    KEEP_PROB = 0.85    # dropout 的 keep_prob
+    REGULAR_BETA = 0.01         # 正则化的 beta 参数
+    KEEP_PROB = 0.5             # dropout 的 keep_prob
 
     SHOW_PROGRESS_FREQUENCY = 2     # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
@@ -326,7 +324,7 @@ class FCN(base.NN):
         self.get_loss()
 
         # 正则化
-        # self.__loss = self.regularize(self.__loss, self.REGULAR_BETA)
+        self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
         # 生成训练的 op
         train_op = self.get_train_op(self.__loss, self.__learning_rate, self.globalStep)
