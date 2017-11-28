@@ -221,7 +221,7 @@ class FCN(base.NN):
 
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
-        self.__mask = tf.placeholder(tf.float32, [None, None, None, 1], name='y')
+        self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
 
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
@@ -257,7 +257,7 @@ class FCN(base.NN):
     def get_loss(self):
         with tf.name_scope('loss'):
             logits = tf.to_float( tf.reshape(self.__output, [-1, self.NUM_CLASSES]), name='logits' )
-            labels = tf.to_float( tf.reshape(self.__mask, [-1, 1]), name='labels' )
+            labels = tf.to_float( tf.reshape(self.__mask, [-1, self.NUM_CLASSES]), name='labels' )
 
             self.__loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=logits,
@@ -277,10 +277,14 @@ class FCN(base.NN):
 
     def __summary(self):
         with tf.name_scope('summary'):
+            mask = tf.argmax(self.__mask, axis=3)
+
+            mask = tf.to_float(tf.expand_dims(mask, dim=3), name='truth_mask')
             output_mask = tf.to_float(tf.expand_dims(self.__output_mask, dim=3), name='output_mask')
-            tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
-            tf.summary.image('mask', tf.cast(self.__mask * self.__image, tf.uint8), max_outputs=2)             # mask (ground truth)
-            tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)   # 输出图片
+
+            tf.summary.image('input_image', self.__image, max_outputs=2)
+            tf.summary.image('truth_mask', tf.cast(mask * self.__image, tf.uint8), max_outputs=2)
+            tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)
 
     ''' 主函数 '''
 

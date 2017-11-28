@@ -3,8 +3,9 @@
 import os
 import sys
 
-import zipfile
+import copy
 import random
+import zipfile
 import numpy as np
 from PIL import Image
 from six.moves.urllib.request import urlretrieve
@@ -177,10 +178,14 @@ class Data:
     def __get_mask(file_name):
         mask = Image.open(os.path.join(Data.DATA_ROOT, file_name)).convert('L')
         mask = np.array(mask.resize( np.array(mask.size) / Data.IMAGE_SCALE ))
+
+        background = copy.deepcopy(mask)
+        background[background != 255] = 0
+        background[background == 255] = 1
+
         mask[mask == 255] = 0
         mask[mask > 0] = 1
-        mask = mask.reshape(list(mask.shape) + [1])
-        return mask
+        return np.array([background, mask]).transpose([1, 2, 0])
 
 
     ''' 获取下个 batch '''
