@@ -328,10 +328,10 @@ class FCN(base.NN):
             # 记录 loss 到 tensorboard
             self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
             tf.summary.scalar('mean_loss', self.__loss_placeholder)
-
-            # 记录 loss 到 tensorboard
-            self.__loss_placeholder_2 = tf.placeholder(tf.float32, name='loss_2')
-            tf.summary.scalar('mean_loss_2', self.__loss_placeholder_2)
+            #
+            # # 记录 loss 到 tensorboard
+            # self.__loss_placeholder_2 = tf.placeholder(tf.float32, name='loss_2')
+            # tf.summary.scalar('mean_loss_2', self.__loss_placeholder_2)
 
     ''' 测量数据集的 loss '''
 
@@ -468,7 +468,7 @@ class FCN(base.NN):
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
 
-                feed_dict[self.__loss_placeholder_2] = mean_loss / self.__iter_per_epoch
+                feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
                 mean_loss = 0
                 self.add_summary_train(feed_dict, epoch)
 
@@ -476,7 +476,7 @@ class FCN(base.NN):
                 mean_test_loss = self.__measure_loss_2(self.__test_set)
                 batch_test_x, batch_test_y = self.__test_set.next_batch(self.BATCH_SIZE)
                 feed_dict = {self.__image: batch_test_x, self.__mask:batch_test_y, self.__keep_prob: 1.0,
-                             self.__loss_placeholder_2: mean_test_loss}
+                             self.__loss_placeholder: mean_test_loss}
                 self.add_summary_val(feed_dict, epoch)
 
                 if best_test_loss > mean_test_loss:
