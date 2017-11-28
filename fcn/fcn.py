@@ -33,6 +33,8 @@ class FCN(base.NN):
     REGULAR_BETA = 0.01 # 正则化的 beta 参数
     KEEP_PROB = 0.85    # dropout 的 keep_prob
 
+    SHOW_PROGRESS_FREQUENCY = 2     # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
+
     MAX_VAL_LOSS_INCR_TIMES = 100   # 校验集 val_loss 连续 100 次没有降低，则 early stop
 
     TENSORBOARD_SHOW_IMAGE = False  # 默认不将 image 显示到 TensorBoard，以免影响性能
@@ -338,7 +340,7 @@ class FCN(base.NN):
         self.echo('\nepoch:')
         
         for step in range(self.__steps):
-            if step % 5 == 0:
+            if step % self.SHOW_PROGRESS_FREQUENCY == 0:
                 epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
                 step_progress = float(step) / self.__steps * 100.0
                 self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t' % (step, self.__iter_per_epoch, epoch_progress,
