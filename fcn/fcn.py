@@ -319,6 +319,36 @@ class FCN(base.NN):
 
         return mean_loss / times
 
+    def use_model(self):
+        # 生成模型
+        self.model()
+
+        # 初始化所有变量
+        self.init_variables()
+
+        # 恢复模型
+        self.restore_model()
+
+        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
+        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+        output_mask = self.sess.run(self.__output_mask, feed_dict)
+
+        import numpy as np
+        from PIL import Image
+        output_mask = np.expand_dims(output_mask, axis=3)
+
+        for i in range(3):
+            mask = output_mask[i]
+            image = batch_x[i]
+            new_image = np.cast['uint8'](mask * image)
+
+            o_image = Image.fromarray(np.cast['uint8'](image))
+            o_image.show()
+
+            o_new_image = Image.fromarray(new_image)
+            o_new_image.show()
+
+
     ''' 主函数 '''
 
     def run(self):
@@ -404,4 +434,4 @@ class FCN(base.NN):
 
 o_fcn = FCN()
 o_fcn.run()
-
+# o_fcn.use_model()
