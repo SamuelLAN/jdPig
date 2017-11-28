@@ -211,7 +211,6 @@ class FCN(base.NN):
             'shape': [NUM_CLASSES, VGG_MODEL['conv3_3'][0].shape[3]],
             'k_size': [16, 16],
             'stride': 8,
-            # 'output_shape': [12, 360, 640, NUM_CLASSES],  # 对应输入层的 shape
             'output_shape_x': [None, None, None, NUM_CLASSES],  # 对应输入层的 shape
         },
     ]
