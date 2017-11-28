@@ -358,7 +358,7 @@ class FCN(base.NN):
             mean_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
-                epoch = step // self.__iter_per_epoch
+                epoch = int(step // self.__iter_per_epoch)
 
                 feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
                 mean_loss = 0
