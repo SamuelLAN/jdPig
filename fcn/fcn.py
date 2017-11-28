@@ -32,7 +32,7 @@ class FCN(base.NN):
     DECAY_RATE = 0.05           # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01         # 正则化的 beta 参数
-    KEEP_PROB = 0.5             # dropout 的 keep_prob
+    KEEP_PROB = 0.05             # dropout 的 keep_prob
 
     SHOW_PROGRESS_FREQUENCY = 2     # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
