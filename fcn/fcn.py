@@ -22,6 +22,7 @@ class FCN(base.NN):
 
     BATCH_SIZE = 4     # 迭代的 epoch 次数
     EPOCH_TIMES = 100    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES_2 = 30    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -29,6 +30,7 @@ class FCN(base.NN):
     NUM_CLASSES = 2     # 输出的类别
 
     BASE_LEARNING_RATE = 0.01   # 初始 学习率
+    BASE_LEARNING_RATE_2 = 0.01   # 初始 学习率
     DECAY_RATE = 0.05           # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01         # 正则化的 beta 参数
@@ -223,6 +225,7 @@ class FCN(base.NN):
         # 常量
         self.__iter_per_epoch = int(self.__train_size // self.BATCH_SIZE)
         self.__steps = self.EPOCH_TIMES * self.__iter_per_epoch
+        self.__steps_2 = self.EPOCH_TIMES_2 * self.__iter_per_epoch
 
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
@@ -235,9 +238,15 @@ class FCN(base.NN):
         # self.__preY = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='preY')
         # self.__preSize = tf.placeholder(tf.float32, name='preSize')
 
+        self.globalStep_2 = self.get_global_step()  # 记录全局训练状态的 global step
+
         # 随训练次数增多而衰减的学习率
         self.__learning_rate = self.get_learning_rate(
             self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
+        )
+
+        self.__learning_rate_2 = self.get_learning_rate(
+            self.BASE_LEARNING_RATE_2, self.globalStep_2, self.__steps_2, self.DECAY_RATE, staircase=False
         )
 
     ''' 加载数据 '''
@@ -257,6 +266,15 @@ class FCN(base.NN):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
         self.__output_mask = tf.argmax(self.__output, axis=3, name="output_mask")
 
+        self.net = []  # 存放每层网络的 feature map
+        self.WList = []  # 存放权重矩阵的 list
+        self.bList = []  # 存放偏置量的 list
+
+        output_mask = tf.to_float(tf.expand_dims(self.__output_mask, dim=3), name='output_mask')
+        input_2 = output_mask * self.__image
+        self.__output_2 = self.deep_model(input_2, self.__keep_prob)
+        self.__output_mask_2 = tf.argmax(self.__output, axis=3, name="output_mask_2")
+
     ''' 计算 loss '''
 
     def get_loss(self):
@@ -267,6 +285,14 @@ class FCN(base.NN):
             self.__loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=labels, name='entropy')
+            )
+
+            logits = tf.to_float(tf.reshape(self.__output_2, [-1, self.NUM_CLASSES]), name='logits_2')
+            labels = tf.to_float(tf.reshape(self.__mask, [-1, self.NUM_CLASSES]), name='labels_2')
+
+            self.__loss_2 = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(logits=logits,
+                                                        labels=labels, name='entropy_2')
             )
 
     ''' 获取 train_op '''
@@ -291,15 +317,21 @@ class FCN(base.NN):
             # 转换 mask 和 output_mask 的 shape 成为 列向量
             mask = tf.to_float(tf.expand_dims(mask, dim=3), name='truth_mask')
             output_mask = tf.to_float(tf.expand_dims(self.__output_mask, dim=3), name='output_mask')
+            output_mask_2 = tf.to_float(tf.expand_dims(self.__output_mask_2, dim=3), name='output_mask')
 
             # 输出图片到 tensorboard
             tf.summary.image('input_image', self.__image, max_outputs=2)
             tf.summary.image('truth_mask', tf.cast(mask * self.__image, tf.uint8), max_outputs=2)
             tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)
+            tf.summary.image('output_image_2', tf.cast(output_mask_2 * self.__image, tf.uint8), max_outputs=2)
 
             # 记录 loss 到 tensorboard
             self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
             tf.summary.scalar('mean_loss', self.__loss_placeholder)
+
+            # 记录 loss 到 tensorboard
+            self.__loss_placeholder_2 = tf.placeholder(tf.float32, name='loss_2')
+            tf.summary.scalar('mean_loss_2', self.__loss_placeholder_2)
 
     ''' 测量数据集的 loss '''
 
@@ -311,6 +343,21 @@ class FCN(base.NN):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
             loss = self.sess.run(self.__loss, feed_dict)
+            mean_loss += loss
+
+            # progress = float(i + 1) / times * 100
+            # self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
+
+        return mean_loss / times
+
+    def __measure_loss_2(self, data_set):
+        times = int( math.ceil( float(data_set.get_size()) / self.BATCH_SIZE ) )
+
+        mean_loss = 0
+        for i in range(times):
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+            loss = self.sess.run(self.__loss_2, feed_dict)
             mean_loss += loss
 
             # progress = float(i + 1) / times * 100
@@ -332,6 +379,7 @@ class FCN(base.NN):
 
         # 生成训练的 op
         train_op = self.get_train_op(self.__loss, self.__learning_rate, self.globalStep)
+        train_op_2 = self.get_train_op(self.__loss_2, self.__learning_rate_2, self.globalStep_2)
 
         # tensorboard 相关记录
         self.__summary()
@@ -386,7 +434,7 @@ class FCN(base.NN):
                     if increase_val_loss_times > self.MAX_VAL_LOSS_INCR_TIMES:
                         break
 
-        self.close_summary()  # 关闭 TensorBoard
+        # self.close_summary()  # 关闭 TensorBoard
 
         self.restore_model()  # 恢复模型
 
@@ -397,6 +445,64 @@ class FCN(base.NN):
         self.echo('\ntrain mean loss: %.6f' % train_loss)
         self.echo('validation mean loss: %.6f' % val_loss)
         self.echo('test mean loss: %.6f' % test_loss)
+
+        # ***********************************************************************
+
+        best_test_loss = 999999  # 校验集 loss 最好的情况
+        increase_test_loss_times = 0  # 校验集 loss 连续上升次数
+        mean_loss = 0
+
+        for step in range(self.__steps_2):
+            if step % self.SHOW_PROGRESS_FREQUENCY == 0:
+                epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
+                step_progress = float(step) / self.__steps_2 * 100.0
+                self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
+                                                                       self.__steps_2, step_progress), False)
+
+            batch_x, batch_y = self.__val_set.next_batch(self.BATCH_SIZE)
+            feed_dict = {self.__image: batch_x, self.__mask:batch_y, self.__keep_prob: self.KEEP_PROB}
+            _, val_loss = self.sess.run([train_op_2, self.__loss_2], feed_dict)
+
+            mean_loss += val_loss
+
+            if step % self.__iter_per_epoch == 0 and step != 0:
+                epoch = int(step // self.__iter_per_epoch)
+
+                feed_dict[self.__loss_placeholder_2] = mean_loss / self.__iter_per_epoch
+                mean_loss = 0
+                self.add_summary_train(feed_dict, epoch)
+
+                # 测试 校验集 的 loss
+                mean_test_loss = self.__measure_loss_2(self.__test_set)
+                batch_test_x, batch_test_y = self.__test_set.next_batch(self.BATCH_SIZE)
+                feed_dict = {self.__image: batch_test_x, self.__mask:batch_test_y, self.__keep_prob: 1.0,
+                             self.__loss_placeholder_2: mean_test_loss}
+                self.add_summary_val(feed_dict, epoch)
+
+                if best_test_loss > mean_test_loss:
+                    best_test_loss = mean_test_loss
+                    increase_test_loss_times = 0
+
+                    self.save_model()   # 保存模型
+
+                else:
+                    increase_test_loss_times += 1
+                    if increase_test_loss_times > self.MAX_VAL_LOSS_INCR_TIMES:
+                        break
+
+        self.restore_model()  # 恢复模型
+
+        train_loss = self.__measure_loss_2(self.__train_set)
+        val_loss = self.__measure_loss_2(self.__val_set)
+        test_loss = self.__measure_loss_2(self.__test_set)
+
+        self.echo('\ntrain mean loss_2: %.6f' % train_loss)
+        self.echo('validation mean loss_2: %.6f' % val_loss)
+        self.echo('test mean loss_2: %.6f' % test_loss)
+
+        # ***********************************************************************
+
+        self.close_summary()  # 关闭 TensorBoard
 
         self.echo('\ndone')
 

@@ -485,8 +485,6 @@ class NN:
                     self.WList.append(None)
                     self.bList.append(None)
 
-
-
         a = X
         if is_train:    # 将图像输出到 TensorBoard
             self.image_summary(a, 1, 'input', 1)
