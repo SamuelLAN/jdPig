@@ -20,7 +20,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 5    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 100    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -28,7 +28,7 @@ class FCN(base.NN):
     NUM_CLASSES = 2     # 输出的类别
 
     BASE_LEARNING_RATE = 0.01  # 初始 学习率
-    DECAY_RATE = 0.9    # 学习率 的 下降速率
+    DECAY_RATE = 0.1    # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01 # 正则化的 beta 参数
     KEEP_PROB = 0.85    # dropout 的 keep_prob
@@ -326,49 +326,6 @@ class FCN(base.NN):
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = step // self.__iter_per_epoch
                 self.add_summary_train(feed_dict, epoch)
-
-            if step == self.__steps - 1:
-                output, image, output_mask = self.sess.run([self.__output, self.__image, self.__output_mask], feed_dict=feed_dict)
-                # output_mask = self.sess.run(self.__output_mask, feed_dict=feed_dict)
-                #
-                # print 'output_mask shape:'
-                # print output_mask.shape
-
-                print '\n************ output *******************'
-                print output[0]
-                print ''
-
-                print '\n************ output_mask *******************'
-                print output_mask[0]
-                print ''
-
-                print 'output shape:'
-                print output.shape
-
-                print 'output_mask shape:'
-                print output_mask.shape
-
-                # # tmp_mask
-                # # tmp_mask[tmp_mask > 0] = 255
-                from PIL import Image
-                import numpy as np
-
-                tmp_image = image[0]
-                tmp_mask = np.expand_dims(output_mask[0], 2)
-
-                tmp_mask = tmp_mask * tmp_image
-
-                #
-                # print 'tmp_mask:'
-                tmp_mask = np.cast['uint8'](tmp_mask)
-                # tmp_mask = tmp_mask.reshape(tmp_mask.shape[:2])
-                #
-                # print tmp_mask.shape
-                # print type(tmp_mask)
-                #
-                tmp_mask_img = Image.fromarray(tmp_mask)
-                tmp_mask_img.show()
-
 
         self.close_summary()  # 关闭 TensorBoard
 
