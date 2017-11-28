@@ -21,7 +21,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 100    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 50    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -36,7 +36,7 @@ class FCN(base.NN):
 
     SHOW_PROGRESS_FREQUENCY = 2     # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
-    MAX_VAL_LOSS_INCR_TIMES = 100   # 校验集 val_loss 连续 100 次没有降低，则 early stop
+    MAX_VAL_LOSS_INCR_TIMES = 20   # 校验集 val_loss 连续 100 次没有降低，则 early stop
 
     TENSORBOARD_SHOW_IMAGE = False  # 默认不将 image 显示到 TensorBoard，以免影响性能
 
