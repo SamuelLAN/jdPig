@@ -9,6 +9,7 @@ if cur_dir_path:
     os.chdir(cur_dir_path)
     sys.path.append(cur_dir_path)
 
+import math
 import base
 import load
 import vgg
@@ -297,6 +298,8 @@ class FCN(base.NN):
     ''' 测量数据集的 loss '''
 
     def __measure_loss(self, data_set):
+        times = int( math.ceil( float(data_set.getSize()) / self.BATCH_SIZE ) )
+
         mean_loss = 0
         count = 0
         batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
@@ -307,6 +310,10 @@ class FCN(base.NN):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
             count += 1
 
+            progress = float(count) / times * 100
+            self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
+
+        self.echo('\r measuring loss progress: %.2f%% | %d \t' % (100.0, times), False)
         return mean_loss / count
 
     ''' 主函数 '''
@@ -360,7 +367,9 @@ class FCN(base.NN):
                 self.add_summary_train(feed_dict, epoch)
 
                 # 测试 校验集 的 loss
+                self.echo('\nmeasuring val loss (epoch %d) ...' % epoch)
                 mean_val_loss = self.__measure_loss(self.__val_set)
+                self.echo('finish measuring val loss')
                 feed_dict[self.__loss_placeholder] = mean_val_loss
                 self.add_summary_val(feed_dict, epoch)
 
