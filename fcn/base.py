@@ -330,8 +330,8 @@ class NN:
     @staticmethod
     def __run_tensorboard_sync(path, port=6006):
         try:
-            NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
-            # NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
+            # NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
+            NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
         except Exception, ex:
             print ex
 
@@ -625,6 +625,16 @@ class NN:
                     continue
                 regularizer = tf.add(regularizer, tf.nn.l2_loss(W))
             return tf.reduce_mean(loss + beta * regularizer)
+
+
+    ''' 正则化，默认采用 l2_loss 正则化 '''
+    def regularize_trainable(self, loss, beta):
+        trainable_var = tf.trainable_variables()
+        with tf.name_scope('regularize'):
+            regularizer = 0.0
+            for var in trainable_var:
+                regularizer = tf.add(regularizer, tf.nn.l2_loss(var))
+        return tf.reduce_mean(loss + beta * regularizer)
 
 
     ''' dropout '''
