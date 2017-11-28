@@ -275,10 +275,16 @@ class FCN(base.NN):
     ''' 将图片输出到 tensorboard '''
 
     def __summary(self):
-        with tf.name_scope('summary'):
-            tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
-            tf.summary.image('mask', tf.cast(self.__mask * self.__image, tf.uint8), max_outputs=2)             # mask (ground truth)
-            tf.summary.image('output_image', tf.cast(self.__output_mask * self.__image, tf.uint8), max_outputs=2)   # 输出图片
+        pass
+        # with tf.name_scope('summary'):
+        #     print self.__output_mask
+        #     print self.__image
+        #     exit()
+        #     output_mask = self.__output_mask * self.__image
+        #
+        #     tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
+        #     tf.summary.image('mask', tf.cast(self.__mask * self.__image, tf.uint8), max_outputs=2)             # mask (ground truth)
+        #     tf.summary.image('output_image', tf.cast(output_mask, tf.uint8), max_outputs=2)   # 输出图片
 
     ''' 主函数 '''
 
@@ -324,7 +330,7 @@ class FCN(base.NN):
             if step == self.__steps - 1:
                 output, image, output_mask = self.sess.run([self.__output, self.__image, self.__output_mask], feed_dict=feed_dict)
                 # output_mask = self.sess.run(self.__output_mask, feed_dict=feed_dict)
-
+                #
                 # print 'output_mask shape:'
                 # print output_mask.shape
 
@@ -335,6 +341,13 @@ class FCN(base.NN):
                 print '\n************ output_mask *******************'
                 print output_mask[0]
                 print ''
+
+                print 'output shape:'
+                print output.shape
+
+                print 'output_mask shape:'
+                print output_mask.shape
+
 
                 # tmp_mask = output_mask[0]
                 # # tmp_mask

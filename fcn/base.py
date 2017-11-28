@@ -330,7 +330,8 @@ class NN:
     @staticmethod
     def __run_tensorboard_sync(path, port=6006):
         try:
-            NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
+            NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
+            # NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
         except Exception, ex:
             print ex
 
