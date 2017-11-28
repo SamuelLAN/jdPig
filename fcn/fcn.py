@@ -272,6 +272,8 @@ class FCN(base.NN):
     ''' 获取 train_op '''
 
     def get_train_op(self, loss, learning_rate, global_step):
+        tf.summary.scalar('loss', loss)
+
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(learning_rate)
             return optimizer.minimize(loss, global_step=global_step)
@@ -293,7 +295,7 @@ class FCN(base.NN):
 
             # 记录 loss 到 tensorboard
             self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
-            tf.summary.scalar('loss', self.__loss_placeholder)
+            tf.summary.scalar('mean_loss', self.__loss_placeholder)
 
     ''' 测量数据集的 loss '''
 
@@ -364,7 +366,9 @@ class FCN(base.NN):
 
                 # 测试 校验集 的 loss
                 mean_val_loss = self.__measure_loss(self.__val_set)
-                feed_dict[self.__loss_placeholder] = mean_val_loss
+                batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+                feed_dict = {self.__image: batch_val_x, self.__mask:batch_val_y, self.__keep_prob: 1.0,
+                             self.__loss_placeholder: mean_val_loss}
                 self.add_summary_val(feed_dict, epoch)
 
                 if best_val_loss > mean_val_loss:
