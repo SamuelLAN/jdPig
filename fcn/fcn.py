@@ -21,7 +21,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 50    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 100    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -29,7 +29,7 @@ class FCN(base.NN):
     NUM_CLASSES = 2     # 输出的类别
 
     BASE_LEARNING_RATE = 0.01   # 初始 学习率
-    DECAY_RATE = 0.01           # 学习率 的 下降速率
+    DECAY_RATE = 0.05           # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01         # 正则化的 beta 参数
     KEEP_PROB = 0.5             # dropout 的 keep_prob
