@@ -121,26 +121,34 @@ class Data:
         # 初始化变量
         self.__name = name
         self.__data = []
+        self.__data_dict = {}
+        self.__data_list = []
         self.__y = {}
+        self.__total_size = 0
 
         # 加载全部数据
         self.__load()
-        self.__dataLen = len(self.__data)
+        self.__data_len = len(self.__data_list)
 
         # 检查输入参数
         start_ratio = min(max(0.0, start_ratio), 1.0)
         end_ratio = min(max(0.0, end_ratio), 1.0)
 
         # 根据比例计算数据的位置范围
-        start_index = int(self.__dataLen * start_ratio)
-        end_index = int(self.__dataLen * end_ratio)
+        start_index = int(self.__data_len * start_ratio)
+        end_index = int(self.__data_len * end_ratio)
 
         # 根据数据的位置范围 取数据
-        self.__data = self.__data[start_index: end_index]
-        self.__dataLen = len(self.__data)
+        self.__data_list = self.__data_list[start_index: end_index]
+
+        for (img_no, data_list) in self.__data_list:
+            for data in data_list:
+                self.__data.append(data)
+
+        self.__data_len = len(self.__data)
         random.shuffle(self.__data)
 
-        self.__curIndex = 0
+        self.__cur_index = 0
 
 
     ''' 加载数据 '''
@@ -168,9 +176,29 @@ class Data:
 
                 image = Image.open(os.path.join(self.DATA_ROOT, file_name))
                 image = np.array(image.resize( np.array(image.size) / self.IMAGE_SCALE ))
-                self.__data.append([image, self.__y[y_file_name]])
+                # self.__data.append([image, self.__y[y_file_name]])
+
+                self.__total_size += 1
+
+                if img_no not in self.__data_dict:
+                    self.__data_dict[img_no] = []
+                self.__data_dict[img_no].append([image, self.__y[y_file_name]])
+
+        for img_no, data_list in self.__data_dict.iteritems():
+            self.__data_list.append([img_no, data_list])
+        self.__data_list.sort(self.__sort) # 按顺序排列
 
         self.echo('\nFinish Loading\n')
+
+
+    @staticmethod
+    def __sort(a, b):
+        if a[0] < b[0]:
+            return -1
+        elif a[0] > b[0]:
+            return 1
+        else:
+            return 0
 
 
     ''' 将 mask 图转为 0 1 像素 '''
@@ -190,32 +218,32 @@ class Data:
 
     ''' 获取下个 batch '''
     def next_batch(self, batch_size, loop = True):
-        if not loop and self.__curIndex >= self.__dataLen:
+        if not loop and self.__cur_index >= self.__data_len:
             return None, None
 
-        start_index = self.__curIndex
-        end_index = self.__curIndex + batch_size
+        start_index = self.__cur_index
+        end_index = self.__cur_index + batch_size
         left_num = 0
 
-        if end_index >= self.__dataLen:
-            left_num = end_index - self.__dataLen
-            end_index = self.__dataLen
+        if end_index >= self.__data_len:
+            left_num = end_index - self.__data_len
+            end_index = self.__data_len
 
         X, y = zip(*self.__data[start_index: end_index])
 
         if not loop:
-            self.__curIndex = end_index
+            self.__cur_index = end_index
             return np.array(X), np.array(y)
 
         if not left_num:
-            self.__curIndex = end_index if end_index < self.__dataLen else 0
+            self.__cur_index = end_index if end_index < self.__data_len else 0
             return np.array(X), np.array(y)
 
         while left_num:
             end_index = left_num
-            if end_index > self.__dataLen:
-                left_num = end_index - self.__dataLen
-                end_index = self.__dataLen
+            if end_index > self.__data_len:
+                left_num = end_index - self.__data_len
+                end_index = self.__data_len
             else:
                 left_num = 0
 
@@ -223,18 +251,18 @@ class Data:
             X += left_x
             y += left_y
 
-        self.__curIndex = end_index if end_index < self.__dataLen else 0
+        self.__cur_index = end_index if end_index < self.__data_len else 0
         return np.array(X), np.array(y)
 
 
     ''' 获取数据集大小 '''
-    def getSize(self):
-        return self.__dataLen
+    def get_size(self):
+        return self.__data_len
 
 
     ''' 重置当前 index 位置 '''
-    def resetCurIndex(self):
-        self.__curIndex = 0
+    def reset_cur_index(self):
+        self.__cur_index = 0
 
 
     ''' 输出展示 '''
@@ -249,6 +277,9 @@ class Data:
 
 # Download.run()
 
-# train_data = Data(0.6, 0.8)
+# train_data = Data(0.64, 0.8)
 # batch_x , batch_y = train_data.next_batch(10)
-
+#
+# print train_data.get_size()
+# print batch_x.shape
+# print batch_y.shape

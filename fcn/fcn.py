@@ -29,7 +29,9 @@ class FCN(base.NN):
     NUM_CLASSES = 2     # 输出的类别
 
     BASE_LEARNING_RATE = 0.01  # 初始 学习率
-    DECAY_RATE = 0.1    # 学习率 的 下降速率
+    DECAY_RATE = 0.1
+
+    # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01 # 正则化的 beta 参数
     KEEP_PROB = 0.85    # dropout 的 keep_prob
@@ -247,9 +249,9 @@ class FCN(base.NN):
         self.__val_set = load.Data(0.64, 0.8, 'validation')
         self.__test_set = load.Data(0.8, 1.0, 'test')
 
-        self.__train_size = self.__train_set.getSize()
-        self.__val_size = self.__val_set.getSize()
-        self.__test_size = self.__test_set.getSize()
+        self.__train_size = self.__train_set.get_size()
+        self.__val_size = self.__val_set.get_size()
+        self.__test_size = self.__test_set.get_size()
 
     ''' 模型 '''
 
@@ -300,7 +302,7 @@ class FCN(base.NN):
     ''' 测量数据集的 loss '''
 
     def __measure_loss(self, data_set):
-        times = int( math.ceil( float(data_set.getSize()) / self.BATCH_SIZE ) )
+        times = int( math.ceil( float(data_set.get_size()) / self.BATCH_SIZE ) )
 
         mean_loss = 0
         for i in range(times):
