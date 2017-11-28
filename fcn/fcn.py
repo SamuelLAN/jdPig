@@ -256,7 +256,7 @@ class FCN(base.NN):
 
     def get_loss(self):
         with tf.name_scope('loss'):
-            logits = tf.to_float( tf.reshape(self.__output, [-1, 1]), name='logits' )
+            logits = tf.to_float( tf.reshape(self.__output, [-1, self.NUM_CLASSES]), name='logits' )
             labels = tf.to_float( tf.reshape(self.__mask, [-1, 1]), name='labels' )
 
             self.__loss = tf.reduce_mean(
@@ -276,16 +276,11 @@ class FCN(base.NN):
     ''' 将图片输出到 tensorboard '''
 
     def __summary(self):
-        pass
-        # with tf.name_scope('summary'):
-        #     print self.__output_mask
-        #     print self.__image
-        #     exit()
-        #     output_mask = self.__output_mask * self.__image
-        #
-        #     tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
-        #     tf.summary.image('mask', tf.cast(self.__mask * self.__image, tf.uint8), max_outputs=2)             # mask (ground truth)
-        #     tf.summary.image('output_image', tf.cast(output_mask, tf.uint8), max_outputs=2)   # 输出图片
+        with tf.name_scope('summary'):
+            output_mask = tf.to_float(tf.expand_dims(self.__output_mask, dim=3), name='output_mask')
+            tf.summary.image('input_image', self.__image, max_outputs=2)                    # 输入图片
+            tf.summary.image('mask', tf.cast(self.__mask * self.__image, tf.uint8), max_outputs=2)             # mask (ground truth)
+            tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)   # 输出图片
 
     ''' 主函数 '''
 
