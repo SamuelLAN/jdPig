@@ -237,7 +237,7 @@ class FCN(base.NN):
 
         # 随训练次数增多而衰减的学习率
         self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.globalStep, self.__steps / 10, self.DECAY_RATE, staircase=True
+            self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
         )
 
     ''' 加载数据 '''
@@ -310,7 +310,7 @@ class FCN(base.NN):
             mean_loss += loss
 
             progress = float(i + 1) / times * 100
-            self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
+            # self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
 
         return mean_loss / times
 
