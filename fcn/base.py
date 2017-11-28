@@ -258,6 +258,21 @@ class NN:
             tf.summary.image('%s_%d' % (name, i), image)
 
 
+    @staticmethod
+    def activation_summary(var):
+        if type(var) != type(None):
+            with tf.name_scope('activation'):
+                tf.summary.histogram(var.op.name + '/activation', var)
+                tf.summary.scalar(var.op.name + '/sparsity', tf.nn.zero_fraction(var))
+
+
+    @staticmethod
+    def gradient_summary(grad, var):
+        if type(grad) != type(None):
+            with tf.name_scope('gradient'):
+                tf.summary.histogram(var.op.name + 'gradient', grad)
+
+
     ''' 获取 summary path '''
 
     def __get_summary_path(self):
@@ -490,6 +505,9 @@ class NN:
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
+
+                        # 将 a 输入到 tensorboard 中观察
+                        self.activation_summary(a)
 
                     if is_train:    # 将前 3 个节点的图像输出到 TensorBoard
                         self.image_summary(a, 3, _type, i)
