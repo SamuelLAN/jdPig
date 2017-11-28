@@ -25,7 +25,7 @@ class FCN(base.NN):
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
     NUM_CHANNEL = 3     # 输入图片为 3 通道，彩色
-    NUM_CLASSES = 1     # 输出的类别
+    NUM_CLASSES = 2     # 输出的类别
 
     BASE_LEARNING_RATE = 0.01  # 初始 学习率
     DECAY_RATE = 0.9    # 学习率 的 下降速率
@@ -250,14 +250,14 @@ class FCN(base.NN):
 
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
-        with tf.name_scope('process_output'):
-            self.__output_mask = tf.round(self.__output, name='output_mask')
+        self.__output_mask = tf.argmax(self.__output, dimension=3, name="output_mask")
 
     ''' 计算 loss '''
 
     def get_loss(self):
         with tf.name_scope('loss'):
-            labels = tf.to_float(tf.reshape(self.__mask, (-1, self.NUM_CLASSES)), name='labels')
+            # labels = tf.to_float(tf.reshape(self.__mask, (-1, self.NUM_CLASSES)), name='labels')
+            labels = tf.squeeze(self.__mask, squeeze_dims=[3])
             self.__loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=self.__output,
                                                         labels=labels, name='entropy')
@@ -332,7 +332,7 @@ class FCN(base.NN):
                 print output[0]
                 print ''
 
-                print '\n************ output *******************'
+                print '\n************ output_mask *******************'
                 print output_mask[0]
                 print ''
 

@@ -169,7 +169,7 @@ class Data:
                 image = np.array(image.resize( np.array(image.size) / self.IMAGE_SCALE ))
                 self.__data.append([image, self.__y[y_file_name]])
 
-        self.echo('\nFinish Loading')
+        self.echo('\nFinish Loading\n')
 
 
     ''' 将 mask 图转为 0 1 像素 '''
