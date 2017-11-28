@@ -328,7 +328,7 @@ class FCN(base.NN):
         self.get_loss()
 
         # 正则化
-        self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
+        # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
         # 生成训练的 op
         train_op = self.get_train_op(self.__loss, self.__learning_rate, self.globalStep)
