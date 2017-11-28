@@ -269,8 +269,6 @@ class FCN(base.NN):
     ''' 获取 train_op '''
 
     def get_train_op(self, loss, learning_rate, global_step):
-        tf.summary.scalar('loss', loss)  # TensorBoard 记录 loss
-
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(learning_rate)
             return optimizer.minimize(loss, global_step=global_step)
@@ -281,19 +279,33 @@ class FCN(base.NN):
         with tf.name_scope('summary'):
             mask = tf.argmax(self.__mask, axis=3)
 
+            # 转换 mask 和 output_mask 的 shape 成为 列向量
             mask = tf.to_float(tf.expand_dims(mask, dim=3), name='truth_mask')
             output_mask = tf.to_float(tf.expand_dims(self.__output_mask, dim=3), name='output_mask')
 
+            # 输出图片到 tensorboard
             tf.summary.image('input_image', self.__image, max_outputs=2)
             tf.summary.image('truth_mask', tf.cast(mask * self.__image, tf.uint8), max_outputs=2)
             tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)
 
+            # 记录 loss 到 tensorboard
+            self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
+            tf.summary.scalar('loss', self.__loss_placeholder)
+
     ''' 测量数据集的 loss '''
 
-    def __measure_loss(self, data_set, batch_size):
-        batch_x, batch_y = data_set.next_batch(batch_size)
-        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
-        return self.sess.run([self.__loss], feed_dict)
+    def __measure_loss(self, data_set):
+        mean_loss = 0
+        count = 0
+        batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
+        while batch_x and batch_y:
+            feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+            loss = self.sess.run(self.__loss, feed_dict)
+            mean_loss += loss
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
+            count += 1
+
+        return mean_loss / count
 
     ''' 主函数 '''
 
@@ -321,6 +333,7 @@ class FCN(base.NN):
 
         best_val_loss = 999999          # 校验集 loss 最好的情况
         increase_val_loss_times = 0     # 校验集 loss 连续上升次数
+        mean_loss = 0
 
         self.echo('\nepoch:')
         
@@ -333,20 +346,24 @@ class FCN(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
             feed_dict = {self.__image: batch_x, self.__mask:batch_y, self.__keep_prob: self.KEEP_PROB}
-            self.sess.run(train_op, feed_dict)
+            _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
+
+            mean_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = step // self.__iter_per_epoch
+
+                feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
+                mean_loss = 0
                 self.add_summary_train(feed_dict, epoch)
 
-                batch_val_x, batch_val_y = self.__val_set.next_batch(self.__val_size)
-                feed_dict = {self.__image: batch_val_x, self.__mask: batch_val_y, self.__keep_prob: 1.0}
-                val_loss = self.sess.run([self.__loss], feed_dict)
-
+                # 测试 校验集 的 loss
+                mean_val_loss = self.__measure_loss(self.__val_set)
+                feed_dict[self.__loss_placeholder] = mean_val_loss
                 self.add_summary_val(feed_dict, epoch)
 
-                if best_val_loss > val_loss:
-                    best_val_loss = val_loss
+                if best_val_loss > mean_val_loss:
+                    best_val_loss = mean_val_loss
                     increase_val_loss_times = 0
 
                     self.save_model()   # 保存模型
@@ -360,13 +377,13 @@ class FCN(base.NN):
 
         self.restore_model()  # 恢复模型
 
-        train_loss = self.__measure_loss(self.__train_set, self.__train_size)
-        val_loss = self.__measure_loss(self.__val_set, self.__val_size)
-        test_loss = self.__measure_loss(self.__test_set, self.__test_size)
+        train_loss = self.__measure_loss(self.__train_set)
+        val_loss = self.__measure_loss(self.__val_set)
+        test_loss = self.__measure_loss(self.__test_set)
 
-        self.echo('\ntrain loss: %.6f' % train_loss)
-        self.echo('validation loss: %.6f' % val_loss)
-        self.echo('test loss: %.6f' % test_loss)
+        self.echo('\ntrain mean loss: %.6f' % train_loss)
+        self.echo('validation mean loss: %.6f' % val_loss)
+        self.echo('test mean loss: %.6f' % test_loss)
 
         self.echo('\ndone')
 
