@@ -20,7 +20,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 12     # 迭代的 epoch 次数
-    EPOCH_TIMES = 2    # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 1    # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -324,17 +324,20 @@ class FCN(base.NN):
             if step == self.__steps - 1:
                 output_mask = self.sess.run(self.__output_mask, feed_dict=feed_dict)
 
+                print 'output_mask shape:'
+                print output_mask.shape
+
                 tmp_mask = output_mask[0]
                 tmp_mask[tmp_mask > 0] = 255
                 from PIL import Image
                 import numpy as np
-                tmp_mask = np.cast['uint8'](tmp_mask)
 
-                print tmp_mask
+                print 'tmp_mask:'
+                tmp_mask = np.cast['uint8'](tmp_mask)
+                tmp_mask = tmp_mask.reshape(tmp_mask.shape[:2])
+
                 print tmp_mask.shape
                 print type(tmp_mask)
-
-                exit()
 
                 tmp_mask_img = Image.fromarray(tmp_mask)
                 tmp_mask_img.show()
