@@ -433,5 +433,5 @@ class FCN(base.NN):
 
 
 o_fcn = FCN()
-o_fcn.run()
-# o_fcn.use_model()
+# o_fcn.run()
+o_fcn.use_model()
