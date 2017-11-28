@@ -363,9 +363,7 @@ class FCN(base.NN):
                 self.add_summary_train(feed_dict, epoch)
 
                 # 测试 校验集 的 loss
-                self.echo('\nmeasuring val loss (epoch %d) ...' % epoch)
                 mean_val_loss = self.__measure_loss(self.__val_set)
-                self.echo('finish measuring val loss')
                 feed_dict[self.__loss_placeholder] = mean_val_loss
                 self.add_summary_val(feed_dict, epoch)
 
