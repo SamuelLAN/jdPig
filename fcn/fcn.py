@@ -319,8 +319,6 @@ class FCN(base.NN):
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = step // self.__iter_per_epoch
-                self.echo('\nepoch %d finish \t' % epoch)
-
                 self.add_summary_train(feed_dict, epoch)
 
             if step == self.__steps - 1:
