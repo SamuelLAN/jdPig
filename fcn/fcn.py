@@ -250,16 +250,17 @@ class FCN(base.NN):
 
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
-        self.__output_mask = tf.argmax(self.__output, dimension=3, name="output_mask")
+        self.__output_mask = tf.argmax(self.__output, axis=3, name="output_mask")
 
     ''' 计算 loss '''
 
     def get_loss(self):
         with tf.name_scope('loss'):
-            # labels = tf.to_float(tf.reshape(self.__mask, (-1, self.NUM_CLASSES)), name='labels')
-            labels = tf.squeeze(self.__mask, squeeze_dims=[3])
+            logits = tf.to_float( tf.reshape(self.__output, [-1, 1]), name='logits' )
+            labels = tf.to_float( tf.reshape(self.__mask, [-1, 1]), name='labels' )
+
             self.__loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(logits=self.__output,
+                tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                         labels=labels, name='entropy')
             )
 
