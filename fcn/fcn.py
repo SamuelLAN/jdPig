@@ -300,7 +300,7 @@ class FCN(base.NN):
         mean_loss = 0
         count = 0
         batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
-        while type(batch_x) == type(None):
+        while type(batch_x) != type(None):
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
             loss = self.sess.run(self.__loss, feed_dict)
             mean_loss += loss
