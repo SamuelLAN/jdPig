@@ -507,7 +507,7 @@ class NN:
                         a = self.activate(a)
 
                         # 将 a 输入到 tensorboard 中观察
-                        self.activation_summary(a)
+                        # self.activation_summary(a)
 
                     if is_train:    # 将前 3 个节点的图像输出到 TensorBoard
                         self.image_summary(a, 3, _type, i)
