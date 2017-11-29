@@ -116,7 +116,7 @@ class Download:
 class Data:
     DATA_ROOT = r'data'
     IMAGE_SCALE = 2
-    RESIZE_SIZE = [640, 320]
+    RESIZE_SIZE = [360, 640]
 
     def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = ''):
         # 初始化变量
@@ -176,7 +176,7 @@ class Data:
                     self.__y[y_file_name] = self.__get_mask(y_file_name)
 
                 image = Image.open(os.path.join(self.DATA_ROOT, file_name))
-                image = np.array(image.resize( np.array(image.size) / self.IMAGE_SCALE ))
+                image = np.array(image.resize( np.array(Data.RESIZE_SIZE) ))
                 # self.__data.append([image, self.__y[y_file_name]])
 
                 self.__total_size += 1
@@ -206,7 +206,7 @@ class Data:
     @staticmethod
     def __get_mask(file_name):
         mask = Image.open(os.path.join(Data.DATA_ROOT, file_name)).convert('L')
-        mask = np.array(mask.resize( np.array(Data.RESIZE_SIZE) / Data.IMAGE_SCALE ))
+        mask = np.array(mask.resize( np.array(Data.RESIZE_SIZE) ))
 
         background = copy.deepcopy(mask)
         background[background != 255] = 0
