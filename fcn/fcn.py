@@ -25,7 +25,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 4  # 迭代的 epoch 次数
-    EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 5  # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -228,21 +228,16 @@ class FCN(base.NN):
         self.__iter_per_epoch = int(self.__train_size // self.BATCH_SIZE)
         self.__steps = self.EPOCH_TIMES * self.__iter_per_epoch
 
-        # # 输入 与 label
-        # self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
-        # self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
-        #
-        # self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-        #
-        # # # 用于预测
-        # # self.__preX = tf.placeholder(tf.float32, [None, self.IMAGE_PIXELS], name='preX')
-        # # self.__preY = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='preY')
-        # # self.__preSize = tf.placeholder(tf.float32, name='preSize')
-        #
-        # # 随训练次数增多而衰减的学习率
-        # self.__learning_rate = self.get_learning_rate(
-        #     self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
-        # )
+        # 输入 与 label
+        self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
+        self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
+        # dropout 的 keep_prob
+        self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+
+        # 随训练次数增多而衰减的学习率
+        self.__learning_rate = self.get_learning_rate(
+            self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
+        )
 
     ''' 加载数据 '''
 
@@ -383,37 +378,6 @@ class FCN(base.NN):
 
         return o_new_img
 
-
-    def use_model(self):
-        # 恢复模型
-        self.restore_model()
-
-        self.__output_mask = self.get_variable_by_name('output_mask:0')
-        self.__image = self.get_variable_by_name('X:0')
-        self.__mask = self.get_variable_by_name('y:0')
-        self.__keep_prob = self.get_variable_by_name('keep_prob:0')
-
-        self.sess.run(tf.global_variables_initializer())
-
-        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
-        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
-        output_mask = self.sess.run(self.__output_mask, feed_dict)
-
-        import numpy as np
-        from PIL import Image
-        output_mask = np.expand_dims(output_mask, axis=3)
-
-        for i in range(3):
-            mask = output_mask[i]
-            image = batch_x[i]
-            new_image = np.cast['uint8'](mask * image)
-
-            o_image = Image.fromarray(np.cast['uint8'](image))
-            o_image.show()
-
-            o_new_image = Image.fromarray(new_image)
-            o_new_image.show()
-
     ''' 主函数 '''
 
     def run(self):
@@ -516,6 +480,58 @@ class FCN(base.NN):
             o_new_image.show()
 
 
+class FCNTest(base.NN):
+    MODEL_NAME = 'fcn'  # 模型的名称
+
+    BATCH_SIZE = 4  # 迭代的 epoch 次数
+
+    def init(self):
+        self.load()
+
+
+    ''' 加载数据 '''
+    def load(self):
+        self.__train_set = load.Data(0.0, 0.64, 'train')
+        self.__val_set = load.Data(0.64, 0.8, 'validation')
+        self.__test_set = load.Data(0.8, 1.0, 'test')
+
+        self.__train_size = self.__train_set.get_size()
+        self.__val_size = self.__val_set.get_size()
+        self.__test_size = self.__test_set.get_size()
+
+
+    ''' 主函数 '''
+    def run(self):
+        # 恢复模型
+        self.restore_model()
+
+        self.__output_mask = self.get_variable_by_name('output_mask:0')
+        self.__image = self.get_variable_by_name('X:0')
+        self.__mask = self.get_variable_by_name('y:0')
+        self.__keep_prob = self.get_variable_by_name('keep_prob:0')
+
+        self.sess.run(tf.global_variables_initializer())
+
+        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
+        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+        output_mask = self.sess.run(self.__output_mask, feed_dict)
+
+        import numpy as np
+        from PIL import Image
+        output_mask = np.expand_dims(output_mask, axis=3)
+
+        for i in range(3):
+            mask = output_mask[i]
+            image = batch_x[i]
+            new_image = np.cast['uint8'](mask * image)
+
+            o_image = Image.fromarray(np.cast['uint8'](image))
+            o_image.show()
+
+            o_new_image = Image.fromarray(new_image)
+            o_new_image.show()
+
+
+# o_fcn = FCNTest()
 o_fcn = FCN()
-# o_fcn.run()
-o_fcn.use_model()
+o_fcn.run()
