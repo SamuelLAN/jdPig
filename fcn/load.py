@@ -176,14 +176,15 @@ class Data:
                     self.__y[y_file_name] = self.__get_mask(y_file_name)
 
                 image = Image.open(os.path.join(self.DATA_ROOT, file_name))
-                image = np.array(image.resize( np.array(Data.RESIZE_SIZE) ))
+                np_image = np.array(image.resize( np.array(image.size) / Data.IMAGE_SCALE ))
+                # image = np.array(image.resize( np.array(Data.RESIZE_SIZE) ))
                 # self.__data.append([image, self.__y[y_file_name]])
 
                 self.__total_size += 1
 
                 if img_no not in self.__data_dict:
                     self.__data_dict[img_no] = []
-                self.__data_dict[img_no].append([image, self.__y[y_file_name]])
+                self.__data_dict[img_no].append([np_image, self.__get_same_size_mask(image, y_file_name)])
 
         for img_no, data_list in self.__data_dict.iteritems():
             self.__data_list.append([img_no, data_list])
@@ -206,7 +207,23 @@ class Data:
     @staticmethod
     def __get_mask(file_name):
         mask = Image.open(os.path.join(Data.DATA_ROOT, file_name)).convert('L')
-        mask = np.array(mask.resize( np.array(Data.RESIZE_SIZE) ))
+        return mask
+        # mask = np.array(mask.resize( np.array(Data.RESIZE_SIZE) ))
+        # mask = np.array(mask.resize( np.array(mask.size) / Data.IMAGE_SCALE ))
+        #
+        # background = copy.deepcopy(mask)
+        # background[background != 255] = 0
+        # background[background == 255] = 1
+        #
+        # mask[mask == 255] = 0
+        # mask[mask > 0] = 1
+        # return np.array([background, mask]).transpose([1, 2, 0])
+
+
+    ''' 获取跟 image 相同 size 的 mask '''
+    def __get_same_size_mask(self, image, y_file_name):
+        mask = self.__y[y_file_name]
+        mask = np.array( mask.resize( np.array(image.size) / Data.IMAGE_SCALE ) )
 
         background = copy.deepcopy(mask)
         background[background != 255] = 0
@@ -279,8 +296,10 @@ class Data:
 # Download.run()
 
 # train_data = Data(0.0, 0.64)
-# batch_x , batch_y = train_data.next_batch(10)
-# #
-# print train_data.get_size()
-# print batch_x.shape
-# print batch_y.shape
+# for i in range(4):
+#     batch_x , batch_y = train_data.next_batch(1)
+#     # #
+#     print '********************************'
+#     print train_data.get_size()
+#     print batch_x.shape
+#     print batch_y.shape
