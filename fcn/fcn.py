@@ -533,6 +533,6 @@ class FCNTest(base.NN):
             o_new_image.show()
 
 
-o_fcn = FCNTest()
-# o_fcn = FCN()
+# o_fcn = FCNTest()
+o_fcn = FCN()
 o_fcn.run()

@@ -149,6 +149,12 @@ class NN:
         )
 
 
+    ''' 初始化权重矩阵 '''
+    @staticmethod
+    def init_weight_w(w):
+        return tf.Variable(w, name='weight')
+
+
     ''' 初始化 bias '''
     @staticmethod
     def init_bias(shape):
@@ -158,6 +164,12 @@ class NN:
             nodes = shape[-1]
 
         return tf.Variable(tf.zeros([nodes]), name='bias')
+
+
+    ''' 初始化 bias '''
+    @staticmethod
+    def init_bias_b(b):
+        return tf.Variable(b, name='bias')
 
 
     ''' 获取全局的训练 step '''
@@ -468,16 +480,20 @@ class NN:
                 # 卷积层
                 if _type == 'conv':
                     with tf.name_scope(name):
-                        W = self.init_weight(config['k_size'] + config['shape']) if not 'W' in config else config['W']
-                        b = self.init_bias(config['shape']) if not 'b' in config else config['b']
+                        W = self.init_weight(config['k_size'] + config['shape']) \
+                            if not 'W' in config else self.init_weight_w(config['W'])
+                        b = self.init_bias(config['shape']) \
+                            if not 'b' in config else self.init_bias_b(config['b'])
                         self.WList.append(W)
                         self.bList.append(b)
 
                 # 反卷积层 (上采样 transpose conv)
                 elif _type == 'tr_conv':
                     with tf.name_scope(name):
-                        W = self.init_weight(config['k_size'] + config['shape']) if not 'W' in config else config['W']
-                        b = self.init_bias(config['shape'][:-2] + [config['shape'][-1], config['shape'][-2]]) if not 'b' in config else config['b']
+                        W = self.init_weight(config['k_size'] + config['shape']) \
+                            if not 'W' in config else self.init_weight_w(config['W'])
+                        b = self.init_bias(config['shape'][:-2] + [config['shape'][-1], config['shape'][-2]]) \
+                            if not 'b' in config else self.init_bias_b(config['b'])
                         self.WList.append(W)
                         self.bList.append(b)
 
