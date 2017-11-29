@@ -430,8 +430,7 @@ class FCN(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: self.KEEP_PROB}
-            self.sess.run(train_op, feed_dict)
-            train_loss = self.sess.run(self.__loss, feed_dict)
+            _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
 
             mean_loss += train_loss
 
