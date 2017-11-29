@@ -151,8 +151,8 @@ class NN:
 
     ''' 初始化权重矩阵 '''
     @staticmethod
-    def init_weight_w(w):
-        return NN.get_variable(w, 'weight')
+    def init_weight_w(w, name):
+        return NN.get_variable(w, name + '_weight')
         # return tf.Variable(w, name='weight')
 
 
@@ -169,8 +169,8 @@ class NN:
 
     ''' 初始化 bias '''
     @staticmethod
-    def init_bias_b(b):
-        return NN.get_variable(b, 'bias')
+    def init_bias_b(b, name):
+        return NN.get_variable(b, name + '_bias')
         # return tf.Variable(b, name='bias')
 
 
@@ -490,9 +490,9 @@ class NN:
                 if _type == 'conv':
                     with tf.name_scope(name):
                         W = self.init_weight(config['k_size'] + config['shape']) \
-                            if not 'W' in config else self.init_weight_w(config['W'])
+                            if not 'W' in config else self.init_weight_w(config['W'], name)
                         b = self.init_bias(config['shape']) \
-                            if not 'b' in config else self.init_bias_b(config['b'])
+                            if not 'b' in config else self.init_bias_b(config['b'], name)
                         self.WList.append(W)
                         self.bList.append(b)
 
@@ -500,9 +500,9 @@ class NN:
                 elif _type == 'tr_conv':
                     with tf.name_scope(name):
                         W = self.init_weight(config['k_size'] + config['shape']) \
-                            if not 'W' in config else self.init_weight_w(config['W'])
+                            if not 'W' in config else self.init_weight_w(config['W'], name)
                         b = self.init_bias(config['shape'][:-2] + [config['shape'][-1], config['shape'][-2]]) \
-                            if not 'b' in config else self.init_bias_b(config['b'])
+                            if not 'b' in config else self.init_bias_b(config['b'], name)
                         self.WList.append(W)
                         self.bList.append(b)
 
