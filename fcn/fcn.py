@@ -228,21 +228,21 @@ class FCN(base.NN):
         self.__iter_per_epoch = int(self.__train_size // self.BATCH_SIZE)
         self.__steps = self.EPOCH_TIMES * self.__iter_per_epoch
 
-        # 输入 与 label
-        self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
-        self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
-
-        self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-
-        # # 用于预测
-        # self.__preX = tf.placeholder(tf.float32, [None, self.IMAGE_PIXELS], name='preX')
-        # self.__preY = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='preY')
-        # self.__preSize = tf.placeholder(tf.float32, name='preSize')
-
-        # 随训练次数增多而衰减的学习率
-        self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
-        )
+        # # 输入 与 label
+        # self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
+        # self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
+        #
+        # self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+        #
+        # # # 用于预测
+        # # self.__preX = tf.placeholder(tf.float32, [None, self.IMAGE_PIXELS], name='preX')
+        # # self.__preY = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='preY')
+        # # self.__preSize = tf.placeholder(tf.float32, name='preSize')
+        #
+        # # 随训练次数增多而衰减的学习率
+        # self.__learning_rate = self.get_learning_rate(
+        #     self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
+        # )
 
     ''' 加载数据 '''
 
@@ -387,7 +387,11 @@ class FCN(base.NN):
     def use_model(self):
         # 恢复模型
         self.restore_model()
+
         self.__output_mask = self.get_variable_by_name('output_mask:0')
+        self.__image = self.get_variable_by_name('X:0')
+        self.__mask = self.get_variable_by_name('y:0')
+        self.__keep_prob = self.get_variable_by_name('keep_prob:0')
 
         self.sess.run(tf.global_variables_initializer())
 
