@@ -82,12 +82,12 @@ class NN:
         self.bList = []                                     # 存放偏置量的 list
 
         self.__modelPath = ''
-        self.__get_model_path()                               # 生成存放模型的文件夹 与 路径
+        self.__get_model_path()                             # 生成存放模型的文件夹 与 路径
 
         self.__summaryPath = ''
         self.__get_summary_path()
 
-        self.globalStep = self.get_global_step()              # 记录全局训练状态的 global step
+        self.globalStep = self.get_global_step()            # 记录全局训练状态的 global step
 
         self.init()                                         # 执行定制化的 初始化操作
 
