@@ -19,7 +19,7 @@ class Download:
     DATA_ROOT = r'data'
     FILE_NAME = 'data.zip'
     EXPECTED_BYTES = 87153522
-    FILE_NUM = 375
+    FILE_NUM = 663
 
     def __init__(self):
         pass
