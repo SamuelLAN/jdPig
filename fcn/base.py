@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 from math import sqrt
+import numpy as np
 from numpy import hstack
 import re
 import sys
@@ -152,6 +153,7 @@ class NN:
     ''' 初始化权重矩阵 '''
     @staticmethod
     def init_weight_w(w, name):
+        w = np.transpose(w, (1, 0, 2, 3))
         return NN.get_variable(w, name + '_weight')
         # return tf.Variable(w, name='weight')
 
