@@ -256,12 +256,12 @@ class FCN(base.NN):
 
     def load(self):
         self.__train_set = load.Data(0.0, 0.64, 'train')
-        self.__val_set = load.Data(0.64, 0.8, 'validation')
-        self.__test_set = load.Data(0.8, 1.0, 'test')
+        # self.__val_set = load.Data(0.64, 0.8, 'validation')
+        # self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_size = self.__train_set.get_size()
-        self.__val_size = self.__val_set.get_size()
-        self.__test_size = self.__test_set.get_size()
+        # self.__val_size = self.__val_set.get_size()
+        # self.__test_size = self.__test_set.get_size()
 
     ''' 模型 '''
 
@@ -430,7 +430,7 @@ class FCN(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: self.KEEP_PROB}
-            _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
+            train_loss, _ = self.sess.run([self.__loss, train_op], feed_dict)
 
             mean_loss += train_loss
 
