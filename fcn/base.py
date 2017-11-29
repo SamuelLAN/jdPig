@@ -153,10 +153,11 @@ class NN:
     ''' 初始化权重矩阵 '''
     @staticmethod
     def init_weight_w(w, name):
-        return w
+        # return w
         # w = np.transpose(w, (1, 0, 2, 3))
         # return NN.get_variable(w, name + '_weight')
-        # return tf.Variable(w, name='weight')
+        return tf.Variable(w, trainable=False, name='weight')
+        # return tf.constant(w, name='weight')
 
 
     ''' 初始化 bias '''
@@ -173,9 +174,9 @@ class NN:
     ''' 初始化 bias '''
     @staticmethod
     def init_bias_b(b, name):
-        return b
+        # return b
         # return NN.get_variable(b, name + '_bias')
-        # return tf.Variable(b, name='bias')
+        return tf.Variable(b, trainable=False, name='bias')
 
 
     @staticmethod
