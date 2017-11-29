@@ -152,12 +152,8 @@ class NN:
 
     ''' 初始化权重矩阵 '''
     @staticmethod
-    def init_weight_w(w, name):
-        # return w
-        # w = np.transpose(w, (1, 0, 2, 3))
-        # return NN.get_variable(w, name + '_weight')
-        return tf.Variable(w, trainable=False, name='weight')
-        # return tf.constant(w, name='weight')
+    def init_weight_w(w, trainable=True):
+        return tf.Variable(w, trainable=trainable, name='weight')
 
 
     ''' 初始化 bias '''
@@ -173,10 +169,8 @@ class NN:
 
     ''' 初始化 bias '''
     @staticmethod
-    def init_bias_b(b, name):
-        # return b
-        # return NN.get_variable(b, name + '_bias')
-        return tf.Variable(b, trainable=False, name='bias')
+    def init_bias_b(b, trainable=True):
+        return tf.Variable(b, trainable=trainable, name='bias')
 
 
     @staticmethod
@@ -494,20 +488,22 @@ class NN:
                 # 卷积层
                 if _type == 'conv':
                     with tf.name_scope(name):
+                        trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
-                            if not 'W' in config else self.init_weight_w(config['W'], name)
+                            if not 'W' in config else self.init_weight_w(config['W'], trainable)
                         b = self.init_bias(config['shape']) \
-                            if not 'b' in config else self.init_bias_b(config['b'], name)
+                            if not 'b' in config else self.init_bias_b(config['b'], trainable)
                         self.WList.append(W)
                         self.bList.append(b)
 
                 # 反卷积层 (上采样 transpose conv)
                 elif _type == 'tr_conv':
                     with tf.name_scope(name):
+                        trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
-                            if not 'W' in config else self.init_weight_w(config['W'], name)
+                            if not 'W' in config else self.init_weight_w(config['W'], trainable)
                         b = self.init_bias(config['shape'][:-2] + [config['shape'][-1], config['shape'][-2]]) \
-                            if not 'b' in config else self.init_bias_b(config['b'], name)
+                            if not 'b' in config else self.init_bias_b(config['b'], trainable)
                         self.WList.append(W)
                         self.bList.append(b)
 

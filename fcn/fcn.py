@@ -53,12 +53,14 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv1_1'][0],
             'b': VGG_MODEL['conv1_1'][1],
+            'trainable': False,
         },
         {
             'name': 'conv1_2',
             'type': 'conv',
             'W': VGG_MODEL['conv1_2'][0],
             'b': VGG_MODEL['conv1_2'][1],
+            'trainable': False,
         },
         {
             'name': 'pool_1',
@@ -71,12 +73,14 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv2_1'][0],
             'b': VGG_MODEL['conv2_1'][1],
+            'trainable': False,
         },
         {
             'name': 'conv2_2',
             'type': 'conv',
             'W': VGG_MODEL['conv2_2'][0],
             'b': VGG_MODEL['conv2_2'][1],
+            'trainable': False,
         },
         {
             'name': 'pool_2',
@@ -89,18 +93,21 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv3_1'][0],
             'b': VGG_MODEL['conv3_1'][1],
+            'trainable': False,
         },
         {
             'name': 'conv3_2',
             'type': 'conv',
             'W': VGG_MODEL['conv3_2'][0],
             'b': VGG_MODEL['conv3_2'][1],
+            'trainable': False,
         },
         {
             'name': 'conv3_3',
             'type': 'conv',
             'W': VGG_MODEL['conv3_3'][0],
             'b': VGG_MODEL['conv3_3'][1],
+            'trainable': False,
         },
         {
             'name': 'pool_3',
@@ -113,18 +120,21 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv4_1'][0],
             'b': VGG_MODEL['conv4_1'][1],
+            'trainable': False,
         },
         {
             'name': 'conv4_2',
             'type': 'conv',
             'W': VGG_MODEL['conv4_2'][0],
             'b': VGG_MODEL['conv4_2'][1],
+            'trainable': False,
         },
         {
             'name': 'conv4_3',
             'type': 'conv',
             'W': VGG_MODEL['conv4_3'][0],
             'b': VGG_MODEL['conv4_3'][1],
+            'trainable': False,
         },
         {
             'name': 'pool_4',
@@ -137,18 +147,21 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv5_1'][0],
             'b': VGG_MODEL['conv5_1'][1],
+            'trainable': False,
         },
         {
             'name': 'conv5_2',
             'type': 'conv',
             'W': VGG_MODEL['conv5_2'][0],
             'b': VGG_MODEL['conv5_2'][1],
+            'trainable': False,
         },
         {
             'name': 'conv5_3',
             'type': 'conv',
             'W': VGG_MODEL['conv5_3'][0],
             'b': VGG_MODEL['conv5_3'][1],
+            'trainable': False,
         },
         {
             'name': 'pool_5',
@@ -533,6 +546,6 @@ class FCNTest(base.NN):
             o_new_image.show()
 
 
-o_fcn = FCNTest()
-# o_fcn = FCN()
+# o_fcn = FCNTest()
+o_fcn = FCN()
 o_fcn.run()
