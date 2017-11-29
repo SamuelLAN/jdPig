@@ -387,28 +387,26 @@ class FCN(base.NN):
     def use_model(self):
         # 恢复模型
         self.restore_model()
-        output_mask = self.get_variable_by_name('output_mask:0')
-        print output_mask
-        exit()
+        self.__output_mask = self.get_variable_by_name('output_mask:0')
 
-        # batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
-        # feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
-        # output_mask = self.sess.run(self.__output_mask, feed_dict)
-        #
-        # import numpy as np
-        # from PIL import Image
-        # output_mask = np.expand_dims(output_mask, axis=3)
-        #
-        # for i in range(3):
-        #     mask = output_mask[i]
-        #     image = batch_x[i]
-        #     new_image = np.cast['uint8'](mask * image)
-        #
-        #     o_image = Image.fromarray(np.cast['uint8'](image))
-        #     o_image.show()
-        #
-        #     o_new_image = Image.fromarray(new_image)
-        #     o_new_image.show()
+        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
+        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+        output_mask = self.sess.run(self.__output_mask, feed_dict)
+
+        import numpy as np
+        from PIL import Image
+        output_mask = np.expand_dims(output_mask, axis=3)
+
+        for i in range(3):
+            mask = output_mask[i]
+            image = batch_x[i]
+            new_image = np.cast['uint8'](mask * image)
+
+            o_image = Image.fromarray(np.cast['uint8'](image))
+            o_image.show()
+
+            o_new_image = Image.fromarray(new_image)
+            o_new_image.show()
 
     ''' 主函数 '''
 
