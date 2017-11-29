@@ -18,8 +18,8 @@ class Download:
     URL = 'http://www.lin-baobao.com/pig/data.zip'
     DATA_ROOT = r'data'
     FILE_NAME = 'data.zip'
-    EXPECTED_BYTES = 87153522
-    FILE_NUM = 663
+    EXPECTED_BYTES = 86858795
+    FILE_NUM = 662
 
     def __init__(self):
         pass
@@ -275,7 +275,7 @@ class Data:
             sys.stdout.flush()
 
 
-# Download.run()
+Download.run()
 
 # train_data = Data(0.64, 0.8)
 # batch_x , batch_y = train_data.next_batch(10)
