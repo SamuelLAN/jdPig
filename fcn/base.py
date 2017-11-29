@@ -153,7 +153,8 @@ class NN:
     ''' 初始化权重矩阵 '''
     @staticmethod
     def init_weight_w(w, trainable=True):
-        return tf.Variable(w, trainable=trainable, name='weight')
+        return w
+        # return tf.Variable(w, trainable=trainable, name='weight')
 
 
     ''' 初始化 bias '''
@@ -170,7 +171,8 @@ class NN:
     ''' 初始化 bias '''
     @staticmethod
     def init_bias_b(b, trainable=True):
-        return tf.Variable(b, trainable=trainable, name='bias')
+        return b
+        # return tf.Variable(b, trainable=trainable, name='bias')
 
 
     @staticmethod

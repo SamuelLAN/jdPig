@@ -256,12 +256,12 @@ class FCN(base.NN):
 
     def load(self):
         self.__train_set = load.Data(0.0, 0.64, 'train')
-        # self.__val_set = load.Data(0.64, 0.8, 'validation')
-        # self.__test_set = load.Data(0.8, 1.0, 'test')
+        self.__val_set = load.Data(0.64, 0.8, 'validation')
+        self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_size = self.__train_set.get_size()
-        # self.__val_size = self.__val_set.get_size()
-        # self.__test_size = self.__test_set.get_size()
+        self.__val_size = self.__val_set.get_size()
+        self.__test_size = self.__test_set.get_size()
 
     ''' 模型 '''
 
