@@ -13,9 +13,6 @@ import math
 import base
 import load
 import vgg
-import Queue
-import numpy as np
-from PIL import Image
 import tensorflow as tf
 
 ''' 全卷积神经网络 '''
@@ -53,14 +50,12 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv1_1'][0],
             'b': VGG_MODEL['conv1_1'][1],
-            'trainable': False,
         },
         {
             'name': 'conv1_2',
             'type': 'conv',
             'W': VGG_MODEL['conv1_2'][0],
             'b': VGG_MODEL['conv1_2'][1],
-            'trainable': False,
         },
         {
             'name': 'pool_1',
@@ -73,14 +68,12 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv2_1'][0],
             'b': VGG_MODEL['conv2_1'][1],
-            'trainable': False,
         },
         {
             'name': 'conv2_2',
             'type': 'conv',
             'W': VGG_MODEL['conv2_2'][0],
             'b': VGG_MODEL['conv2_2'][1],
-            'trainable': False,
         },
         {
             'name': 'pool_2',
@@ -93,21 +86,18 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv3_1'][0],
             'b': VGG_MODEL['conv3_1'][1],
-            'trainable': False,
         },
         {
             'name': 'conv3_2',
             'type': 'conv',
             'W': VGG_MODEL['conv3_2'][0],
             'b': VGG_MODEL['conv3_2'][1],
-            'trainable': False,
         },
         {
             'name': 'conv3_3',
             'type': 'conv',
             'W': VGG_MODEL['conv3_3'][0],
             'b': VGG_MODEL['conv3_3'][1],
-            'trainable': False,
         },
         {
             'name': 'pool_3',
@@ -120,21 +110,18 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv4_1'][0],
             'b': VGG_MODEL['conv4_1'][1],
-            'trainable': False,
         },
         {
             'name': 'conv4_2',
             'type': 'conv',
             'W': VGG_MODEL['conv4_2'][0],
             'b': VGG_MODEL['conv4_2'][1],
-            'trainable': False,
         },
         {
             'name': 'conv4_3',
             'type': 'conv',
             'W': VGG_MODEL['conv4_3'][0],
             'b': VGG_MODEL['conv4_3'][1],
-            'trainable': False,
         },
         {
             'name': 'pool_4',
@@ -147,21 +134,18 @@ class FCN(base.NN):
             'type': 'conv',
             'W': VGG_MODEL['conv5_1'][0],
             'b': VGG_MODEL['conv5_1'][1],
-            'trainable': False,
         },
         {
             'name': 'conv5_2',
             'type': 'conv',
             'W': VGG_MODEL['conv5_2'][0],
             'b': VGG_MODEL['conv5_2'][1],
-            'trainable': False,
         },
         {
             'name': 'conv5_3',
             'type': 'conv',
             'W': VGG_MODEL['conv5_3'][0],
             'b': VGG_MODEL['conv5_3'][1],
-            'trainable': False,
         },
         {
             'name': 'pool_5',
@@ -244,8 +228,13 @@ class FCN(base.NN):
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
         self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
-        # dropout 的 keep_prob
+
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+
+        # # 用于预测
+        # self.__preX = tf.placeholder(tf.float32, [None, self.IMAGE_PIXELS], name='preX')
+        # self.__preY = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='preY')
+        # self.__preSize = tf.placeholder(tf.float32, name='preSize')
 
         # 随训练次数增多而衰减的学习率
         self.__learning_rate = self.get_learning_rate(
@@ -330,67 +319,6 @@ class FCN(base.NN):
 
         return mean_loss / times
 
-
-    @staticmethod
-    def __mask2img(mask, np_image):
-        h, w = mask.shape
-
-        data = []
-        for i in range(h):
-            for j in range(w):
-                if mask[i, j] != 0:
-                    data.append([i, j])
-
-        data = np.array(data)
-        center = np.cast['uint8'](np.mean(data, axis=0))
-
-        s = set()
-        q = Queue.Queue()
-        q.put(center)
-
-        while not q.empty():
-            x, y = q.get()
-
-            if x + 1 < h:
-                c = (x + 1, y)
-                if mask[c[0], c[1]] != 0:
-                    if c not in s:
-                        s.add(c)
-                        q.put(c)
-
-            if x - 1 >= 0:
-                c = (x - 1, y)
-                if mask[c[0], c[1]] != 0:
-                    if c not in s:
-                        s.add(c)
-                        q.put(c)
-
-            if y - 1 >= 0:
-                c = (x, y - 1)
-                if mask[c[0], c[1]] != 0:
-                    if c not in s:
-                        s.add(c)
-                        q.put(c)
-
-            if y + 1 < w:
-                c = (x, y + 1)
-                if mask[c[0], c[1]] != 0:
-                    if c not in s:
-                        s.add(c)
-                        q.put(c)
-
-        new_mask = np.zeros_like(mask)
-        for c in s:
-            new_mask[c[0], c[1]] = 1
-
-        new_mask = np.expand_dims(new_mask, axis=2)
-        new_img = np.cast['uint8'](new_mask * np_image)
-
-        o_new_img = Image.fromarray(new_img)
-        o_new_img.show()
-
-        return o_new_img
-
     ''' 主函数 '''
 
     def run(self):
@@ -430,8 +358,7 @@ class FCN(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: self.KEEP_PROB}
-            self.sess.run(train_op, feed_dict)
-            train_loss = self.sess.run(self.__loss, feed_dict)
+            _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
 
             mean_loss += train_loss
 
@@ -454,7 +381,6 @@ class FCN(base.NN):
                     increase_val_loss_times = 0
 
                     self.save_model()  # 保存模型
-                    self.echo(' best_val_loss: %.2f , save model \t ' % best_val_loss)
 
                 else:
                     increase_val_loss_times += 1
@@ -463,7 +389,7 @@ class FCN(base.NN):
 
         self.close_summary()  # 关闭 TensorBoard
 
-        # self.restore_model()  # 恢复模型
+        self.restore_model()  # 恢复模型
 
         train_loss = self.__measure_loss(self.__train_set)
         val_loss = self.__measure_loss(self.__val_set)
@@ -475,78 +401,7 @@ class FCN(base.NN):
 
         self.echo('\ndone')
 
-        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
-        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
-        output_mask = self.sess.run(self.__output_mask, feed_dict)
 
-        import numpy as np
-        from PIL import Image
-        output_mask = np.expand_dims(output_mask, axis=3)
-
-        for i in range(3):
-            mask = output_mask[i]
-            image = batch_x[i]
-            new_image = np.cast['uint8'](mask * image)
-
-            o_image = Image.fromarray(np.cast['uint8'](image))
-            o_image.show()
-
-            o_new_image = Image.fromarray(new_image)
-            o_new_image.show()
-
-
-class FCNTest(base.NN):
-    MODEL_NAME = 'fcn'  # 模型的名称
-
-    BATCH_SIZE = 4  # 迭代的 epoch 次数
-
-    def init(self):
-        self.load()
-
-
-    ''' 加载数据 '''
-    def load(self):
-        self.__train_set = load.Data(0.0, 0.64, 'train')
-        self.__val_set = load.Data(0.64, 0.8, 'validation')
-        self.__test_set = load.Data(0.8, 1.0, 'test')
-
-        self.__train_size = self.__train_set.get_size()
-        self.__val_size = self.__val_set.get_size()
-        self.__test_size = self.__test_set.get_size()
-
-
-    ''' 主函数 '''
-    def run(self):
-        # 恢复模型
-        self.restore_model()
-
-        self.__output_mask = self.get_variable_by_name('output_mask:0')
-        self.__image = self.get_variable_by_name('X:0')
-        self.__mask = self.get_variable_by_name('y:0')
-        self.__keep_prob = self.get_variable_by_name('keep_prob:0')
-
-        self.sess.run(tf.global_variables_initializer())
-
-        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
-        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
-        output_mask = self.sess.run(self.__output_mask, feed_dict)
-
-        import numpy as np
-        from PIL import Image
-        output_mask = np.expand_dims(output_mask, axis=3)
-
-        for i in range(3):
-            mask = output_mask[i]
-            image = batch_x[i]
-            new_image = np.cast['uint8'](mask * image)
-
-            o_image = Image.fromarray(np.cast['uint8'](image))
-            o_image.show()
-
-            o_new_image = Image.fromarray(new_image)
-            o_new_image.show()
-
-
-# o_fcn = FCNTest()
 o_fcn = FCN()
 o_fcn.run()
+
