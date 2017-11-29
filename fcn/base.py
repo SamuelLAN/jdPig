@@ -91,7 +91,6 @@ class NN:
 
         self.init()                                         # 执行定制化的 初始化操作
 
-        self.saver = tf.train.Saver()
         self.sess = tf.Session()
 
     # ******************************* 子类需要实现的接口 *******************************
@@ -130,6 +129,7 @@ class NN:
     ''' 初始化所有变量 '''
     def init_variables(self):
         self.sess.run(tf.global_variables_initializer())
+        self.saver = tf.train.Saver()  # 初始化 saver; 用于之后保存 网络结构
 
 
     ''' 初始化权重矩阵 '''
@@ -188,7 +188,15 @@ class NN:
     
     ''' 恢复模型 '''
     def restore_model(self):
-        self.saver.restore(self.sess, self.__get_model_path())
+        model_path = self.__get_model_path()
+        self.saver = tf.train.import_meta_graph('%s.meta' % model_path)
+        self.saver.restore(self.sess, tf.train.latest_checkpoint(os.path.split(model_path)[0]))
+        self.graph = self.sess.graph
+
+
+    ''' 根据 name 获取 tensor 变量 '''
+    def get_variable_by_name(self, name):
+        return self.graph.get_tensor_by_name(name)
 
 
     ''' 获取存放模型的路径 '''

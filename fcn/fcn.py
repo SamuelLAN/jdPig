@@ -385,20 +385,9 @@ class FCN(base.NN):
 
 
     def use_model(self):
-        # # 生成模型
-        # self.model()
-        #
-        # # 初始化所有变量
-        # self.init_variables()
-
         # 恢复模型
         self.restore_model()
-
-        new_saver = tf.train.import_meta_graph(r'model/fcn/fcn.meta')
-        new_saver.restore(self.sess, tf.train.latest_checkpoint(r'model/fcn/'))
-
-        output_mask = tf.get_variable('output_mask')
-
+        output_mask = self.get_variable_by_name('output_mask:0')
         print output_mask
         exit()
 
