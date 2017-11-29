@@ -152,7 +152,8 @@ class NN:
     ''' 初始化权重矩阵 '''
     @staticmethod
     def init_weight_w(w):
-        return tf.Variable(w, name='weight')
+        return NN.get_variable(w, 'weight')
+        # return tf.Variable(w, name='weight')
 
 
     ''' 初始化 bias '''
@@ -169,7 +170,15 @@ class NN:
     ''' 初始化 bias '''
     @staticmethod
     def init_bias_b(b):
-        return tf.Variable(b, name='bias')
+        return NN.get_variable(b, 'bias')
+        # return tf.Variable(b, name='bias')
+
+
+    @staticmethod
+    def get_variable(weights, name):
+        init = tf.constant_initializer(weights, dtype=tf.float32)
+        var = tf.get_variable(name=name, initializer=init, shape=weights.shape)
+        return var
 
 
     ''' 获取全局的训练 step '''
