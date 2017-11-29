@@ -449,7 +449,7 @@ class FCN(base.NN):
 
         self.close_summary()  # 关闭 TensorBoard
 
-        self.restore_model()  # 恢复模型
+        # self.restore_model()  # 恢复模型
 
         train_loss = self.__measure_loss(self.__train_set)
         val_loss = self.__measure_loss(self.__val_set)
