@@ -275,7 +275,7 @@ class Data:
             sys.stdout.flush()
 
 
-Download.run()
+# Download.run()
 
 # train_data = Data(0.64, 0.8)
 # batch_x , batch_y = train_data.next_batch(10)
