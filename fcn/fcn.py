@@ -394,6 +394,9 @@ class FCN(base.NN):
         # 恢复模型
         self.restore_model()
 
+        new_saver = tf.train.import_meta_graph(r'model/fcn/fcn.meta')
+        new_saver.restore(self.sess, tf.train.latest_checkpoint(r'model/fcn/'))
+
         output_mask = tf.get_variable('output_mask')
 
         print output_mask
