@@ -116,7 +116,7 @@ class Download:
 class Data:
     DATA_ROOT = r'data'
     IMAGE_SCALE = 2
-    RESIZE_SIZE = [360, 640]
+    RESIZE_SIZE = [640, 360]
 
     def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = ''):
         # 初始化变量
