@@ -13,6 +13,9 @@ import math
 import base
 import load
 import vgg
+import Queue
+import numpy as np
+from PIL import Image
 import tensorflow as tf
 
 ''' 全卷积神经网络 '''
@@ -319,6 +322,68 @@ class FCN(base.NN):
 
         return mean_loss / times
 
+
+    @staticmethod
+    def __mask2img(mask, np_image):
+        h, w = mask.shape
+
+        data = []
+        for i in range(h):
+            for j in range(w):
+                if mask[i, j] != 0:
+                    data.append([i, j])
+
+        data = np.array(data)
+        center = np.cast['uint8'](np.mean(data, axis=0))
+
+        s = set()
+        q = Queue.Queue()
+        q.put(center)
+
+        while not q.empty():
+            x, y = q.get()
+
+            if x + 1 < h:
+                c = (x + 1, y)
+                if mask[c[0], c[1]] != 0:
+                    if c not in s:
+                        s.add(c)
+                        q.put(c)
+
+            if x - 1 >= 0:
+                c = (x - 1, y)
+                if mask[c[0], c[1]] != 0:
+                    if c not in s:
+                        s.add(c)
+                        q.put(c)
+
+            if y - 1 >= 0:
+                c = (x, y - 1)
+                if mask[c[0], c[1]] != 0:
+                    if c not in s:
+                        s.add(c)
+                        q.put(c)
+
+            if y + 1 < w:
+                c = (x, y + 1)
+                if mask[c[0], c[1]] != 0:
+                    if c not in s:
+                        s.add(c)
+                        q.put(c)
+
+        new_mask = np.zeros_like(mask)
+        for c in s:
+            new_mask[c[0], c[1]] = 1
+
+        new_mask = np.expand_dims(new_mask, axis=2)
+        new_img = np.cast['uint8'](new_mask * np_image)
+
+        o_new_img = Image.fromarray(new_img)
+        o_new_img.show()
+
+        return o_new_img
+
+
     def use_model(self):
         # 生成模型
         self.model()
@@ -347,7 +412,6 @@ class FCN(base.NN):
 
             o_new_image = Image.fromarray(new_image)
             o_new_image.show()
-
 
     ''' 主函数 '''
 
@@ -452,5 +516,5 @@ class FCN(base.NN):
 
 
 o_fcn = FCN()
-o_fcn.run()
-# o_fcn.use_model()
+# o_fcn.run()
+o_fcn.use_model()
