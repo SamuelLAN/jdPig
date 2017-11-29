@@ -440,6 +440,7 @@ class FCN(base.NN):
                     increase_val_loss_times = 0
 
                     self.save_model()  # 保存模型
+                    self.echo(' best_val_loss: %.2f , save model \t ' % best_val_loss)
 
                 else:
                     increase_val_loss_times += 1
