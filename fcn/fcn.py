@@ -485,7 +485,7 @@ class FCN(base.NN):
         self.echo('\ndone')
 
         batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
-        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+        feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
         output_mask = np.expand_dims(output_mask, axis=3)
