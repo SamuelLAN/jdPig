@@ -520,12 +520,12 @@ class FCNTest(base.NN):
     ''' 加载数据 '''
     def load(self):
         self.__train_set = load.Data(0.0, 0.64, 'train')
-        self.__val_set = load.Data(0.64, 0.8, 'validation')
-        self.__test_set = load.Data(0.8, 1.0, 'test')
+        # self.__val_set = load.Data(0.64, 0.8, 'validation')
+        # self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_size = self.__train_set.get_size()
-        self.__val_size = self.__val_set.get_size()
-        self.__test_size = self.__test_set.get_size()
+        # self.__val_size = self.__val_set.get_size()
+        # self.__test_size = self.__test_set.get_size()
 
 
     ''' 主函数 '''
@@ -540,7 +540,7 @@ class FCNTest(base.NN):
 
         self.sess.run(tf.global_variables_initializer())
 
-        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
+        batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
         feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
