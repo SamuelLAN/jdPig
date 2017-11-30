@@ -189,7 +189,7 @@ class Data:
                 self.__data_dict[img_no].append([np_image, self.__get_same_size_mask(image, y_file_name)])
 
         for img_no, data_list in self.__data_dict.iteritems():
-            self.__data_list.append([img_no, data_list])
+            self.__data_list.append([int(img_no), data_list])
         self.__data_list.sort(self.__sort) # 按顺序排列
 
         self.echo('\nFinish Loading\n')
@@ -307,7 +307,6 @@ class Data:
 
         img_no_list = list(img_no_set)
         random.shuffle(img_no_list)
-        print img_no_list
         return img_no_list
 
 
