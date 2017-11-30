@@ -252,6 +252,8 @@ class FCN(base.NN):
             self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
         )
 
+        self.__has_rebuild = False
+
 
     ''' 加载数据 '''
     def load(self):
@@ -486,10 +488,7 @@ class FCN(base.NN):
         feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
-        import numpy as np
-        from PIL import Image
         output_mask = np.expand_dims(output_mask, axis=3)
-
         for i in range(3):
             mask = output_mask[i]
             image = batch_x[i]
@@ -502,30 +501,20 @@ class FCN(base.NN):
             o_new_image.show()
 
 
-    def test_model(self):
-        self.restore_model_w_b()    # 恢复模型
-        self.rebuild_model()        # 重建模型
+    def use_model(self, np_image):
+        if not self.__has_rebuild:
+            self.restore_model_w_b()    # 恢复模型
+            self.rebuild_model()        # 重建模型
 
-        self.init_variables()       # 初始化所有变量
+            self.init_variables()       # 初始化所有变量
+            self.__has_rebuild = True
 
-        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
-        feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
+        np_image = np.expand_dims(np_image, axis=0)
+        feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
-        import numpy as np
-        from PIL import Image
-        output_mask = np.expand_dims(output_mask, axis=3)
-
-        for i in range(3):
-            mask = output_mask[i]
-            image = batch_x[i]
-            new_image = np.cast['uint8'](mask * image)
-
-            o_image = Image.fromarray(np.cast['uint8'](image))
-            o_image.show()
-
-            o_new_image = Image.fromarray(new_image)
-            o_new_image.show()
+        output_mask = np.expand_dims(output_mask[0], axis=2)
+        return np.cast['uint8'](output_mask * np_image)
 
 
 o_fcn = FCN()
