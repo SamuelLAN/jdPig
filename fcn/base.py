@@ -82,8 +82,8 @@ class NN:
         self.WList = []                                     # 存放权重矩阵的 list
         self.bList = []                                     # 存放偏置量的 list
 
-        self.__modelPath = ''
-        self.__get_model_path()                             # 生成存放模型的文件夹 与 路径
+        self.modelPath = ''
+        self.get_model_path()                             # 生成存放模型的文件夹 与 路径
 
         self.__summaryPath = ''
         self.__get_summary_path()
@@ -203,12 +203,12 @@ class NN:
 
     ''' 保存模型 '''
     def save_model(self):
-        self.saver.save(self.sess, self.__get_model_path())
+        self.saver.save(self.sess, self.get_model_path())
         
     
     ''' 恢复模型 '''
     def restore_model(self):
-        model_path = self.__get_model_path()
+        model_path = self.get_model_path()
         self.saver = tf.train.import_meta_graph('%s.meta' % model_path)
         self.saver.restore(self.sess, tf.train.latest_checkpoint(os.path.split(model_path)[0]))
         self.graph = self.sess.graph
@@ -220,9 +220,9 @@ class NN:
 
 
     ''' 获取存放模型的路径 '''
-    def __get_model_path(self):
-        if self.__modelPath:
-            return self.__modelPath
+    def get_model_path(self):
+        if self.modelPath:
+            return self.modelPath
 
         cur_dir = os.path.split(os.path.abspath(__file__))[0]
         model_dir = os.path.join(cur_dir, 'model')
@@ -234,8 +234,8 @@ class NN:
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
 
-        self.__modelPath = os.path.join(model_dir, self.MODEL_NAME)
-        return self.__modelPath
+        self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        return self.modelPath
 
     # ************************** TensorBoard summary ************************
 
