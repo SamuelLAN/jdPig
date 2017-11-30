@@ -176,8 +176,8 @@ class Data:
                     self.__y[y_file_name] = self.__get_mask(y_file_name)
 
                 image = Image.open(os.path.join(self.DATA_ROOT, file_name))
-                np_image = np.array(image.resize( np.array(image.size) / Data.IMAGE_SCALE ))
-                # image = np.array(image.resize( np.array(Data.RESIZE_SIZE) ))
+                # np_image = np.array(image.resize( np.array(image.size) / Data.IMAGE_SCALE ))
+                np_image = np.array(image.resize( np.array(Data.RESIZE_SIZE) ))
                 # self.__data.append([image, self.__y[y_file_name]])
 
                 self.__total_size += 1
@@ -223,7 +223,8 @@ class Data:
     ''' 获取跟 image 相同 size 的 mask '''
     def __get_same_size_mask(self, image, y_file_name):
         mask = self.__y[y_file_name]
-        mask = np.array( mask.resize( np.array(image.size) / Data.IMAGE_SCALE ) )
+        # mask = np.array( mask.resize( np.array(image.size) / Data.IMAGE_SCALE ) )
+        mask = np.array( mask.resize( np.array(Data.RESIZE_SIZE) ) )
 
         background = copy.deepcopy(mask)
         background[background != 255] = 0
