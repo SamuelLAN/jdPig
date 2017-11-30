@@ -231,12 +231,18 @@ class NN:
 
         w_list = []
         for i, w in enumerate(self.WList):
+            if type(w) == type(None):
+                w_list.append(None)
+                continue
             name = w.name.split(':')[0]
             w_value = self.sess.run(w)
             w_list.append([name, w_value])
 
         b_list = []
         for i, b in enumerate(self.bList):
+            if type(b) == type(None):
+                b_list.append(None)
+                continue
             name = b.name.split(':')[0]
             b_value = self.sess.run(b)
             b_list.append([name, b_value])
@@ -258,12 +264,18 @@ class NN:
         self.bList = []
 
         for i, w_val in enumerate(w_list):
+            if type(w_val) == type(None):
+                self.WList.append(None)
+                continue
             name, w_value = w_val
             self.WList.append( tf.Variable(w_value, trainable=False, name=name) )
 
         for i, b_val in enumerate(b_list):
+            if type(b_val) == type(None):
+                self.bList.append(None)
+                continue
             name, b_value = b_val
-            self.WList.append( tf.Variable(b_val, trainable=False, name=name) )
+            self.bList.append( tf.Variable(b_val, trainable=False, name=name) )
 
         self.echo('Finish restoring ')
 
