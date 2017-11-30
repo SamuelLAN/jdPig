@@ -499,6 +499,15 @@ class FCNTest(base.NN):
 
     BATCH_SIZE = 4  # 迭代的 epoch 次数
 
+    def __init__(self):
+        self.__modelPath = ''
+        self.__get_model_path()  # 生成存放模型的文件夹 与 路径
+
+        self.init()  # 执行定制化的 初始化操作
+
+        self.sess = tf.Session()
+
+
     def init(self):
         self.load()
 
