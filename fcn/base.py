@@ -275,7 +275,7 @@ class NN:
                 self.bList.append(None)
                 continue
             name, b_value = b_val
-            self.bList.append( tf.Variable(b_val, trainable=False, name=name) )
+            self.bList.append( tf.Variable(b_value, trainable=False, name=name) )
 
         self.echo('Finish restoring ')
 
