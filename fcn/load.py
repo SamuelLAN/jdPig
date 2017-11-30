@@ -197,8 +197,8 @@ class Data:
 
     def __sort(self, a, b):
         if self.__sort_list:
-            index_a = self.__sort_list.index(a)
-            index_b = self.__sort_list.index(b)
+            index_a = self.__sort_list.index(a[0])
+            index_b = self.__sort_list.index(b[0])
             if index_a < index_b:
                 return -1
             elif index_a > index_b:
