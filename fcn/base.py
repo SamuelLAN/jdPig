@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 from math import sqrt
-import numpy as np
 from numpy import hstack
 import re
 import sys
@@ -231,13 +230,13 @@ class NN:
         self.echo('Saving model to %s ...' % model_path)
 
         w_list = []
-        for i, w in self.WList:
+        for i, w in enumerate(self.WList):
             name = w.name.split(':')[0]
             w_value = self.sess.run(w)
             w_list.append([name, w_value])
 
         b_list = []
-        for i, b in self.bList:
+        for i, b in enumerate(self.bList):
             name = b.name.split(':')[0]
             b_value = self.sess.run(b)
             b_list.append([name, b_value])
@@ -258,11 +257,11 @@ class NN:
         self.WList = []
         self.bList = []
 
-        for i, w_val in w_list:
+        for i, w_val in enumerate(w_list):
             name, w_value = w_val
             self.WList.append( tf.Variable(w_value, trainable=False, name=name) )
 
-        for i, b_val in b_list:
+        for i, b_val in enumerate(b_list):
             name, b_value = b_val
             self.WList.append( tf.Variable(b_val, trainable=False, name=name) )
 
