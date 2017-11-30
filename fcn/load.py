@@ -18,8 +18,8 @@ class Download:
     URL = 'http://www.lin-baobao.com/pig/data.zip'
     DATA_ROOT = r'data'
     FILE_NAME = 'data.zip'
-    EXPECTED_BYTES = 104909294
-    FILE_NUM = 801
+    EXPECTED_BYTES = 123059779
+    FILE_NUM = 960
 
     def __init__(self):
         pass
