@@ -512,6 +512,10 @@ class FCN(base.NN):
         feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
+        import numpy as np
+        from PIL import Image
+        output_mask = np.expand_dims(output_mask, axis=3)
+
         for i in range(3):
             mask = output_mask[i]
             image = batch_x[i]
