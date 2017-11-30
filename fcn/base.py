@@ -88,11 +88,13 @@ class NN:
         self.__summaryPath = ''
         self.__get_summary_path()
 
-        self.globalStep = self.get_global_step()            # 记录全局训练状态的 global step
+        self.global_step = self.get_global_step()            # 记录全局训练状态的 global step
 
         self.init()                                         # 执行定制化的 初始化操作
 
         self.sess = tf.Session()
+
+        self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
 
     # ******************************* 子类需要实现的接口 *******************************
 
@@ -130,7 +132,6 @@ class NN:
     ''' 初始化所有变量 '''
     def init_variables(self):
         self.sess.run(tf.global_variables_initializer())
-        self.saver = tf.train.Saver()  # 初始化 saver; 用于之后保存 网络结构
 
 
     ''' 初始化权重矩阵 '''
@@ -201,9 +202,18 @@ class NN:
 
     # *************************** 保存模型 ***************************
 
+    ''' 恢复模型 '''
+    def restore_old_model(self):
+        ckpt = tf.train.get_checkpoint_state( os.path.split( self.get_model_path() )[1] )
+        if ckpt and ckpt.model_checkpoint_path:
+            self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+            self.echo('Model restored ...')
+
+
     ''' 保存模型 '''
     def save_model(self):
-        self.saver.save(self.sess, self.get_model_path())
+        self.saver.save(self.sess, self.get_model_path() + '.ckpt', self.global_step)
+        # self.saver.save(self.sess, self.get_model_path())
         
     
     ''' 恢复模型 '''
@@ -277,7 +287,7 @@ class NN:
             return
 
         with tf.name_scope('summary'):
-            index = self.globalStep % self.BATCH_SIZE       # 让每次输出不同图片，取不同 index 的图片
+            index = self.global_step % self.BATCH_SIZE       # 让每次输出不同图片，取不同 index 的图片
             shape = list(hstack([-1, [int(j) for j in tensor_4d.shape[1: 3]], 1]))  # 生成的 shape 为 [-1, image_width, image_height, 1]
             image = tf.concat([tensor_4d[index, :, :, j] for j in range(num)], 0)   # 将多幅图像合并在一起
 

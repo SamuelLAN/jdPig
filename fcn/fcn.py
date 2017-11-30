@@ -25,7 +25,7 @@ class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
     BATCH_SIZE = 1 # 迭代的 epoch 次数
-    EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 30  # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
@@ -40,7 +40,7 @@ class FCN(base.NN):
 
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
-    MAX_VAL_LOSS_INCR_TIMES = 20  # 校验集 val_loss 连续 100 次没有降低，则 early stop
+    MAX_VAL_LOSS_INCR_TIMES = 10  # 校验集 val_loss 连续 100 次没有降低，则 early stop
 
     TENSORBOARD_SHOW_IMAGE = False  # 默认不将 image 显示到 TensorBoard，以免影响性能
 
@@ -249,7 +249,7 @@ class FCN(base.NN):
 
         # 随训练次数增多而衰减的学习率
         self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.globalStep, self.__steps, self.DECAY_RATE, staircase=False
+            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
         )
 
     ''' 加载数据 '''
@@ -404,7 +404,7 @@ class FCN(base.NN):
         # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
         # 生成训练的 op
-        train_op = self.get_train_op(self.__loss, self.__learning_rate, self.globalStep)
+        train_op = self.get_train_op(self.__loss, self.__learning_rate, self.global_step)
 
         # tensorboard 相关记录
         self.__summary()
@@ -462,7 +462,7 @@ class FCN(base.NN):
 
         self.close_summary()  # 关闭 TensorBoard
 
-        # self.restore_model()  # 恢复模型
+        self.restore_old_model()  # 恢复模型
 
         train_loss = self.__measure_loss(self.__train_set)
         val_loss = self.__measure_loss(self.__val_set)
@@ -555,7 +555,7 @@ class FCNTest(base.NN):
         from PIL import Image
         output_mask = np.expand_dims(output_mask, axis=3)
 
-        for i in range(1):
+        for i in range(3):
             mask = output_mask[i]
             image = batch_x[i]
             new_image = np.cast['uint8'](mask * image)
@@ -567,6 +567,6 @@ class FCNTest(base.NN):
             o_new_image.show()
 
 
-o_fcn = FCNTest()
-# o_fcn = FCN()
+# o_fcn = FCNTest()
+o_fcn = FCN()
 o_fcn.run()
