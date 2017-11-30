@@ -307,6 +307,7 @@ class Data:
 
         img_no_list = list(img_no_set)
         random.shuffle(img_no_list)
+        print img_no_list
         return img_no_list
 
 
