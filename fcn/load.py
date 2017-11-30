@@ -297,14 +297,15 @@ class Data:
 
     @staticmethod
     def get_sort_list():
-        img_no_list = []
+        img_no_set = set()
         for i, file_name in enumerate(os.listdir(Data.DATA_ROOT)):
             if os.path.splitext(file_name)[1].lower() != '.jpg':
                 continue
 
             img_no = int(file_name.split('_')[0])
-            img_no_list.append(img_no)
+            img_no_set.add(img_no)
 
+        img_no_list = list(img_no_set)
         random.shuffle(img_no_list)
         return img_no_list
 
