@@ -118,7 +118,7 @@ class Data:
     IMAGE_SCALE = 2
     RESIZE_SIZE = [640, 360]
 
-    def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = ''):
+    def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = '', sort_list = []):
         # 初始化变量
         self.__name = name
         self.__data = []
@@ -126,6 +126,8 @@ class Data:
         self.__data_list = []
         self.__y = {}
         self.__total_size = 0
+
+        self.__sort_list = sort_list
 
         # 加载全部数据
         self.__load()
@@ -193,8 +195,17 @@ class Data:
         self.echo('\nFinish Loading\n')
 
 
-    @staticmethod
-    def __sort(a, b):
+    def __sort(self, a, b):
+        if self.__sort_list:
+            index_a = self.__sort_list.index(a)
+            index_b = self.__sort_list.index(b)
+            if index_a < index_b:
+                return -1
+            elif index_a > index_b:
+                return 1
+            else:
+                return 0
+
         if a[0] < b[0]:
             return -1
         elif a[0] > b[0]:
@@ -208,16 +219,6 @@ class Data:
     def __get_mask(file_name):
         mask = Image.open(os.path.join(Data.DATA_ROOT, file_name)).convert('L')
         return mask
-        # mask = np.array(mask.resize( np.array(Data.RESIZE_SIZE) ))
-        # mask = np.array(mask.resize( np.array(mask.size) / Data.IMAGE_SCALE ))
-        #
-        # background = copy.deepcopy(mask)
-        # background[background != 255] = 0
-        # background[background == 255] = 1
-        #
-        # mask[mask == 255] = 0
-        # mask[mask > 0] = 1
-        # return np.array([background, mask]).transpose([1, 2, 0])
 
 
     ''' 获取跟 image 相同 size 的 mask '''
@@ -292,6 +293,20 @@ class Data:
         else:
             sys.stdout.write(msg)
             sys.stdout.flush()
+
+
+    @staticmethod
+    def get_sort_list():
+        img_no_list = []
+        for i, file_name in enumerate(os.listdir(Data.DATA_ROOT)):
+            if os.path.splitext(file_name)[1].lower() != '.jpg':
+                continue
+
+            img_no = int(file_name.split('_')[0])
+            img_no_list.append(img_no)
+
+        random.shuffle(img_no_list)
+        return img_no_list
 
 
 # Download.run()
