@@ -539,6 +539,13 @@ class FCNTest(base.NN):
         feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
+        print 'batch_x:'
+        print batch_x.shape
+
+        print '__output_mask'
+        print self.__output_mask
+        print output_mask.shape
+
         import numpy as np
         from PIL import Image
         output_mask = np.expand_dims(output_mask, axis=3)
