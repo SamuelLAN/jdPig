@@ -24,7 +24,7 @@ import tensorflow as tf
 class FCN(base.NN):
     MODEL_NAME = 'fcn'  # 模型的名称
 
-    BATCH_SIZE = 4  # 迭代的 epoch 次数
+    BATCH_SIZE = 1 # 迭代的 epoch 次数
     EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
 
     IMAGE_SHAPE = [320, 180]
@@ -534,7 +534,7 @@ class FCNTest(base.NN):
         from PIL import Image
         output_mask = np.expand_dims(output_mask, axis=3)
 
-        for i in range(3):
+        for i in range(1):
             mask = output_mask[i]
             image = batch_x[i]
             new_image = np.cast['uint8'](mask * image)
@@ -546,6 +546,6 @@ class FCNTest(base.NN):
             o_new_image.show()
 
 
-# o_fcn = FCNTest()
-o_fcn = FCN()
+o_fcn = FCNTest()
+# o_fcn = FCN()
 o_fcn.run()
