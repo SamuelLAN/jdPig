@@ -231,8 +231,8 @@ class FCN(base.NN):
         },
     ]
 
-    ''' 自定义 初始化变量 过程 '''
 
+    ''' 自定义 初始化变量 过程 '''
     def init(self):
         # 加载数据
         self.load()
@@ -252,8 +252,8 @@ class FCN(base.NN):
             self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
         )
 
-    ''' 加载数据 '''
 
+    ''' 加载数据 '''
     def load(self):
         sort_list = load.Data.get_sort_list()
         self.__train_set = load.Data(0.0, 0.64, 'train', sort_list)
@@ -264,8 +264,8 @@ class FCN(base.NN):
         self.__val_size = self.__val_set.get_size()
         self.__test_size = self.__test_set.get_size()
 
-    ''' 模型 '''
 
+    ''' 模型 '''
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
         self.__output_mask = tf.argmax(self.__output, axis=3, name="output_mask")
@@ -277,7 +277,6 @@ class FCN(base.NN):
 
 
     ''' 计算 loss '''
-
     def get_loss(self):
         with tf.name_scope('loss'):
             logits = tf.to_float(tf.reshape(self.__output, [-1, self.NUM_CLASSES]), name='logits')
@@ -288,8 +287,8 @@ class FCN(base.NN):
                                                         labels=labels, name='entropy')
             )
 
-    ''' 获取 train_op '''
 
+    ''' 获取 train_op '''
     def get_train_op(self, loss, learning_rate, global_step):
         tf.summary.scalar('loss', loss)
 
@@ -301,8 +300,8 @@ class FCN(base.NN):
             # return optimizer.apply_gradients(grads)
             return optimizer.minimize(loss, global_step=global_step)
 
-    ''' 将图片输出到 tensorboard '''
 
+    ''' 将图片输出到 tensorboard '''
     def __summary(self):
         with tf.name_scope('summary'):
             mask = tf.argmax(self.__mask, axis=3)
@@ -320,8 +319,8 @@ class FCN(base.NN):
             self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
             tf.summary.scalar('mean_loss', self.__loss_placeholder)
 
-    ''' 测量数据集的 loss '''
 
+    ''' 测量数据集的 loss '''
     def __measure_loss(self, data_set):
         times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
 
@@ -398,8 +397,8 @@ class FCN(base.NN):
 
         return o_new_img
 
-    ''' 主函数 '''
 
+    ''' 主函数 '''
     def run(self):
         # 生成模型
         self.model()
@@ -503,66 +502,15 @@ class FCN(base.NN):
             o_new_image.show()
 
 
-class FCNTest(base.NN):
-    MODEL_NAME = 'fcn'  # 模型的名称
+    def test_model(self):
+        self.restore_model_w_b()    # 恢复模型
+        self.rebuild_model()        # 重建模型
 
-    BATCH_SIZE = 4  # 迭代的 epoch 次数
+        self.init_variables()       # 初始化所有变量
 
-    def __init__(self):
-        self.modelPath = ''
-        self.get_model_path()  # 生成存放模型的文件夹 与 路径
-
-        self.init()  # 执行定制化的 初始化操作
-
-        self.sess = tf.Session()
-
-
-    ''' 析构函数 '''
-    def __del__(self):
-        pass
-
-
-    def init(self):
-        self.load()
-
-
-    ''' 加载数据 '''
-    def load(self):
-        self.__train_set = load.Data(0.0, 0.64, 'train')
-        # self.__val_set = load.Data(0.64, 0.8, 'validation')
-        # self.__test_set = load.Data(0.8, 1.0, 'test')
-
-        self.__train_size = self.__train_set.get_size()
-        # self.__val_size = self.__val_set.get_size()
-        # self.__test_size = self.__test_set.get_size()
-
-
-    ''' 主函数 '''
-    def run(self):
-        # 恢复模型
-        self.restore_model()
-
-        self.__output_mask = self.get_variable_by_name('output_mask:0')
-        self.__image = self.get_variable_by_name('X:0')
-        self.__mask = self.get_variable_by_name('y:0')
-        self.__keep_prob = self.get_variable_by_name('keep_prob:0')
-
-        self.sess.run(tf.global_variables_initializer())
-
-        batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
-        feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
+        feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
-
-        print 'batch_x:'
-        print batch_x.shape
-
-        print '__output_mask'
-        print self.__output_mask
-        print output_mask.shape
-
-        import numpy as np
-        from PIL import Image
-        output_mask = np.expand_dims(output_mask, axis=3)
 
         for i in range(3):
             mask = output_mask[i]
@@ -576,6 +524,88 @@ class FCNTest(base.NN):
             o_new_image.show()
 
 
+# class FCNTest(base.NN):
+#     MODEL_NAME = 'fcn'  # 模型的名称
+#
+#     BATCH_SIZE = 4  # 迭代的 epoch 次数
+#
+#     MODEL = FCN.MODEL
+#
+#     def __init__(self):
+#         self.modelPath = ''
+#         self.get_model_path()   # 生成存放模型的文件夹 与 路径
+#
+#         self.init()             # 执行定制化的 初始化操作
+#
+#         self.sess = tf.Session()
+#
+#
+#     ''' 析构函数 '''
+#     def __del__(self):
+#         pass
+#
+#
+#     def init(self):
+#         self.load()
+#
+#
+#     ''' 加载数据 '''
+#     def load(self):
+#         self.__train_set = load.Data(0.0, 0.64, 'train')
+#         # self.__val_set = load.Data(0.64, 0.8, 'validation')
+#         # self.__test_set = load.Data(0.8, 1.0, 'test')
+#
+#         self.__train_size = self.__train_set.get_size()
+#         # self.__val_size = self.__val_set.get_size()
+#         # self.__test_size = self.__test_set.get_size()
+#
+#
+#     ''' 重建模型 '''
+#     def rebuild_model(self):
+#         self.__output = self.deep_model_rebuild(self.__image)
+#         self.__output_mask = tf.argmax(self.__output, axis=3, name="output_mask")
+#
+#
+#     ''' 主函数 '''
+#     def run(self):
+#         self.restore_model_w_b()    # 恢复模型
+#         self.rebuild_model()        # 重建模型
+#
+#         self.__output_mask = self.get_variable_by_name('output_mask:0')
+#         self.__image = self.get_variable_by_name('X:0')
+#         self.__mask = self.get_variable_by_name('y:0')
+#         self.__keep_prob = self.get_variable_by_name('keep_prob:0')
+#
+#         self.sess.run(tf.global_variables_initializer())
+#
+#         batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+#         feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
+#         output_mask = self.sess.run(self.__output_mask, feed_dict)
+#
+#         print 'batch_x:'
+#         print batch_x.shape
+#
+#         print '__output_mask'
+#         print self.__output_mask
+#         print output_mask.shape
+#
+#         import numpy as np
+#         from PIL import Image
+#         output_mask = np.expand_dims(output_mask, axis=3)
+#
+#         for i in range(3):
+#             mask = output_mask[i]
+#             image = batch_x[i]
+#             new_image = np.cast['uint8'](mask * image)
+#
+#             o_image = Image.fromarray(np.cast['uint8'](image))
+#             o_image.show()
+#
+#             o_new_image = Image.fromarray(new_image)
+#             o_new_image.show()
+
+
 # o_fcn = FCNTest()
 o_fcn = FCN()
-o_fcn.run()
+# o_fcn.run()
+o_fcn.test_model()
