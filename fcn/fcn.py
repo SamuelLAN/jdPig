@@ -270,6 +270,12 @@ class FCN(base.NN):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
         self.__output_mask = tf.argmax(self.__output, axis=3, name="output_mask")
 
+    ''' 重建模型 '''
+    def rebuild_model(self):
+        self.__output = self.deep_model_rebuild(self.__image)
+        self.__output_mask = tf.argmax(self.__output, axis=3, name="output_mask")
+
+
     ''' 计算 loss '''
 
     def get_loss(self):
@@ -453,17 +459,19 @@ class FCN(base.NN):
                     best_val_loss = mean_val_loss
                     increase_val_loss_times = 0
 
-                    self.save_model()  # 保存模型
-                    self.echo(' best_val_loss: %.2f , save model \t ' % best_val_loss)
+                    self.echo('\n best_val_loss: %.2f \t ' % best_val_loss)
+                    self.save_model_w_b()
+                    # self.save_model()  # 保存模型
 
                 else:
                     increase_val_loss_times += 1
                     if increase_val_loss_times > self.MAX_VAL_LOSS_INCR_TIMES:
                         break
 
-        self.close_summary()  # 关闭 TensorBoard
+        self.close_summary()        # 关闭 TensorBoard
 
-        self.restore_old_model()  # 恢复模型
+        self.restore_model_w_b()    # 恢复模型
+        self.rebuild_model()        # 重建模型
 
         train_loss = self.__measure_loss(self.__train_set)
         val_loss = self.__measure_loss(self.__val_set)

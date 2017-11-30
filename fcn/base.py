@@ -8,6 +8,7 @@ import re
 import sys
 import os
 from multiprocessing import Process
+from six.moves import cPickle as pickle
 
 
 '''
@@ -94,7 +95,7 @@ class NN:
 
         self.sess = tf.Session()
 
-        self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
+        # self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
 
     # ******************************* 子类需要实现的接口 *******************************
 
@@ -214,7 +215,7 @@ class NN:
     def save_model(self):
         self.saver.save(self.sess, self.get_model_path() + '.ckpt', self.global_step)
         # self.saver.save(self.sess, self.get_model_path())
-        
+
     
     ''' 恢复模型 '''
     def restore_model(self):
@@ -222,6 +223,50 @@ class NN:
         self.saver = tf.train.import_meta_graph('%s.meta' % model_path)
         self.saver.restore(self.sess, tf.train.latest_checkpoint(os.path.split(model_path)[0]))
         self.graph = self.sess.graph
+
+
+    ''' 自己实现的 save model '''
+    def save_model_w_b(self):
+        model_path = self.get_model_path() + '.pkl'
+        self.echo('Saving model to %s ...' % model_path)
+
+        w_list = []
+        for i, w in self.WList:
+            name = w.name.split(':')[0]
+            w_value = self.sess.run(w)
+            w_list.append([name, w_value])
+
+        b_list = []
+        for i, b in self.bList:
+            name = b.name.split(':')[0]
+            b_value = self.sess.run(b)
+            b_list.append([name, b_value])
+
+        with open(model_path, 'wb') as f:
+            pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
+
+        self.echo('Finish saving model ')
+
+
+    def restore_model_w_b(self):
+        model_path = self.get_model_path() + '.pkl'
+
+        self.echo('Restoring from %s ...' % model_path)
+        with open(model_path, 'rb') as f:
+            w_list, b_list = pickle.load(f)
+
+        self.WList = []
+        self.bList = []
+
+        for i, w_val in w_list:
+            name, w_value = w_val
+            self.WList.append( tf.Variable(w_value, trainable=False, name=name) )
+
+        for i, b_val in b_list:
+            name, b_value = b_val
+            self.WList.append( tf.Variable(b_val, trainable=False, name=name) )
+
+        self.echo('Finish restoring ')
 
 
     ''' 根据 name 获取 tensor 变量 '''
@@ -578,6 +623,76 @@ class NN:
             elif _type == 'dropout':
                 with tf.name_scope(name):
                     a = self.dropout(a, dropout)
+
+            # 反卷积层(上采样层)
+            elif _type == 'tr_conv':
+                with tf.name_scope(name):
+                    if 'output_shape' in config:
+                        output_shape = config['output_shape']
+                    elif 'output_shape_index' in config:
+                        output_shape = tf.shape( self.net[ config['output_shape_index'] ] )
+                    elif 'output_shape_x' in config:
+                        output_shape = tf.shape(X)
+                        for j, val_j in enumerate(config['output_shape_x']):
+                            if not val_j:
+                                continue
+                            tmp = tf.Variable([1 if k != j else 0 for k in range(4)], tf.int8)
+                            output_shape *= tmp
+                            tmp = tf.Variable([0 if k != j else val_j for k in range(4)], tf.int8)
+                            output_shape += tmp
+                    else:
+                        output_shape = None
+
+                    stride = config['stride'] if 'stride' in config else 2
+                    a = self.conv2d_transpose_stride(a, self.WList[i], self.bList[i], output_shape, stride)
+
+            # 将上一层的输出 与 第 layer_index 层的网络相加
+            elif _type == 'add':
+                with tf.name_scope(name):
+                    a = tf.add(a, self.net[config['layer_index']])
+
+            self.net.append(a)
+
+        self.echo('Finish building model')
+
+        return a
+
+
+    ''' 在已有 WList 以及 bList 的前提下 rebulid model '''
+    def deep_model_rebuild(self, X):
+        self.echo('\nStart rebuilding model ...')
+        self.net = []
+        a = X
+
+        model_len = len(self.MODEL)
+        for i, config in enumerate(self.MODEL):
+            _type = config['type'].lower()
+            name = '%s_%d' % (_type, i + 1) if 'name' not in config else config['name']
+            # self.echo('building %s layer ...' % name)
+
+            # 卷积层
+            if _type == 'conv':
+                with tf.name_scope(name):
+                    a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
+                    if not 'activate' in config or config['activate']:
+                        a = self.activate(a)
+
+            # 池化层
+            elif _type == 'pool':
+                with tf.name_scope(name):
+                    if not 'pool_type' or config['pool_type'] == 'max':
+                        a = self.max_pool(a, config['k_size'])
+                    else:
+                        a = self.avg_pool(a, config['k_size'])
+
+            # 全连接层
+            elif _type == 'fc':
+                with tf.name_scope(name):
+                    x = tf.reshape(a, [-1, config['shape'][0]])
+                    a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
+
+                    if ('activate' not in config and i < model_len - 1) or config['activate']:
+                        a = self.activate(a)
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
