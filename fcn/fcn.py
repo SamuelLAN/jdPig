@@ -258,13 +258,13 @@ class FCN(base.NN):
     ''' 加载数据 '''
     def load(self):
         sort_list = load.Data.get_sort_list()
-        self.__train_set = load.Data(0.0, 0.64, 'train', sort_list)
-        self.__val_set = load.Data(0.64, 0.8, 'validation', sort_list)
-        self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
+        self.__train_set = load.Data(0.0, 0.9, 'train', sort_list)
+        self.__val_set = load.Data(0.9, 1.0, 'validation', sort_list)
+        # self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
 
         self.__train_size = self.__train_set.get_size()
         self.__val_size = self.__val_set.get_size()
-        self.__test_size = self.__test_set.get_size()
+        # self.__test_size = self.__test_set.get_size()
 
 
     ''' 模型 '''
@@ -474,6 +474,8 @@ class FCN(base.NN):
         self.restore_model_w_b()    # 恢复模型
         self.rebuild_model()        # 重建模型
 
+        self.init_variables()       # 重新初始化变量
+
         train_loss = self.__measure_loss(self.__train_set)
         val_loss = self.__measure_loss(self.__val_set)
         test_loss = self.__measure_loss(self.__test_set)
@@ -484,7 +486,7 @@ class FCN(base.NN):
 
         self.echo('\ndone')
 
-        batch_x, batch_y = self.__test_set.next_batch(self.BATCH_SIZE)
+        batch_x, batch_y = self.__val_set.next_batch(self.BATCH_SIZE)
         feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
