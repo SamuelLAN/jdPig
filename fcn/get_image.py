@@ -45,11 +45,6 @@ class GetImage:
             image = np.array(image.resize(self.RESIZE_SIZE))
 
             np_pig = self.__o_fcn.use_model(image)
-
-            print 'np_pig:'
-            print np_pig.shape
-            exit()
-
             im_pig = Image.fromarray(np_pig)
 
             im_pig.show()
