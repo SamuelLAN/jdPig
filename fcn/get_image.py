@@ -31,18 +31,18 @@ class GetImage:
                     or os.path.isfile('%s_pig.jpg' % split_file_name[0]) or 'MACOSX' in split_file_name[0]:
                 continue
 
-            image = Image.open( os.path.join(self.IMG_DIR, file_name) )
-            image = np.array( image.resize( self.RESIZE_SIZE ) )
-
-            self.__img_list.append([ split_file_name[0], image ])
+            self.__img_list.append([ split_file_name[0], os.path.join(self.IMG_DIR, file_name) ])
 
         self.__img_len = len(self.__img_list)
 
 
     def __get_pig(self):
-        for i, (file_name, image) in enumerate(self.__img_list):
+        for i, (file_name, img_path) in enumerate(self.__img_list):
             progress = float(i + 1) / self.__img_len * 100
             self.echo('\r Progress: %.2f | %d / %d \t ' % (progress, i + 1, self.__img_len), False)
+
+            image = Image.open(img_path)
+            image = np.array(image.resize(self.RESIZE_SIZE))
 
             np_pig = self.__o_fcn.use_model(image)
 
