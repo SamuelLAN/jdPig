@@ -33,7 +33,7 @@ class FCN(base.NN):
     NUM_CLASSES = 2  # 输出的类别
 
     BASE_LEARNING_RATE = 0.01  # 初始 学习率
-    DECAY_RATE = 0.05  # 学习率 的 下降速率
+    DECAY_RATE = 0.01  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
@@ -519,6 +519,6 @@ class FCN(base.NN):
         return np.cast['uint8'](output_mask * np_image)
 
 
-# o_fcn = FCN()
-# o_fcn.run()
+o_fcn = FCN()
+o_fcn.run()
 # o_fcn.test_model()
