@@ -347,6 +347,7 @@ class FCN(base.NN):
         for i in range(h):
             for j in range(w):
                 if mask[i, j] != 0:
+                    print mask[i, j]
                     data.append([i, j])
 
         data = np.array(data)
