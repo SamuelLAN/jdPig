@@ -347,15 +347,10 @@ class FCN(base.NN):
         for i in range(h):
             for j in range(w):
                 if mask[i, j] != 0:
-                    print mask[i, j]
                     data.append([i, j])
 
         data = np.array(data)
         center = np.cast['uint8'](np.mean(data, axis=0))
-
-        print data
-        print center
-        exit()
 
         s = set()
         q = Queue.Queue()
@@ -391,6 +386,17 @@ class FCN(base.NN):
                     if c not in s:
                         s.add(c)
                         q.put(c)
+
+        print 'center'
+        print mask[center[0], center[1]]
+        print mask[center[0] + 1, center[1]]
+        print mask[center[0] - 1, center[1]]
+        print mask[center[0], center[1] + 1]
+        print mask[center[0], center[1] - 1]
+        print 's'
+        print s
+
+        exit()
 
         new_mask = np.zeros_like(mask)
         for c in s:
