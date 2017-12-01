@@ -15,9 +15,9 @@ from six.moves.urllib.request import urlretrieve
     下载数据
 '''
 class Download:
-    URL = 'http://www.lin-baobao.com/pig/data.zip'
+    URL = 'http://www.lin-baobao.com/pig/TrainImg.zip'
     DATA_ROOT = r'data/TrainImg'
-    FILE_NAME = 'data.zip'
+    FILE_NAME = 'TrainImg.zip'
     EXPECTED_BYTES = 973849767
     FILE_NUM = 2986
 
