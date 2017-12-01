@@ -85,8 +85,8 @@ class NN:
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
 
-        self.__summaryPath = ''
-        self.__get_summary_path()
+        # self.__summaryPath = ''
+        # self.__get_summary_path()
 
         self.global_step = self.get_global_step()            # 记录全局训练状态的 global step
 
