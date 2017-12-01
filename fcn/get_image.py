@@ -13,6 +13,7 @@ from PIL import Image
 import numpy as np
 import fcn
 
+
 class GetImage:
     IMG_DIR = r'../deep_id/data/TrainImg'
     RESIZE_SIZE = [640, 360]
