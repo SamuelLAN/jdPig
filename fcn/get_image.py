@@ -19,6 +19,7 @@ class GetImage:
 
     def __init__(self):
         self.__img_list = []
+        self.__img_len = 0
         self.__o_fcn = fcn.FCN()
 
 
@@ -34,9 +35,14 @@ class GetImage:
 
             self.__img_list.append([ split_file_name[0], image ])
 
+        self.__img_len = len(self.__img_list)
+
 
     def __get_pig(self):
-        for file_name, image in self.__img_list:
+        for i, (file_name, image) in enumerate(self.__img_list):
+            progress = float(i + 1) / self.__img_len * 100
+            self.echo('\r Progress: %.2f \t ' % progress, False)
+
             np_pig = self.__o_fcn.use_model(image)
 
             im_pig = Image.fromarray(np_pig)
@@ -58,5 +64,12 @@ class GetImage:
         self.__get_image_list()
         self.echo('Finish getting image list')
 
+        self.echo('\nGetting pig ...')
         self.__get_pig()
+        self.echo('Finish getting pig')
+
+        self.echo('\ndone')
+
+o_get_img = GetImage()
+o_get_img.run()
 
