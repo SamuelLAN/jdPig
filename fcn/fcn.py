@@ -352,6 +352,11 @@ class FCN(base.NN):
         data = np.array(data)
         center = np.cast['uint8'](np.mean(data, axis=0))
 
+        print 'data'
+        print data
+        print 'center'
+        print center
+
         s = set()
         q = Queue.Queue()
         q.put(center)
