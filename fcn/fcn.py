@@ -511,6 +511,16 @@ class FCN(base.NN):
         feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
+        output_mask = np.expand_dims(output_mask, axis=3)
+        mask = output_mask[0]
+        image = np_image[0]
+        new_image = np.cast['uint8'](mask * image)
+
+        o_new_image = Image.fromarray(new_image)
+        o_new_image.show()
+
+        exit()
+
         return self.__mask2img(output_mask[0], np_image[0])    # 将 mask 待人 image 并去掉外部的点点
 
 

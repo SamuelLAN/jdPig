@@ -42,10 +42,9 @@ class GetImage:
             self.echo('\r Progress: %.2f | %d / %d \t ' % (progress, i + 1, self.__img_len), False)
 
             image = Image.open(img_path)
-
-            image.show()
-
             image = np.array(image.resize(self.RESIZE_SIZE))
+
+            Image.fromarray(image).show()
 
             np_pig = self.__o_fcn.use_model(image)
             im_pig = Image.fromarray(np_pig)
