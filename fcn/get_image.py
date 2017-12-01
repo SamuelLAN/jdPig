@@ -41,7 +41,7 @@ class GetImage:
     def __get_pig(self):
         for i, (file_name, image) in enumerate(self.__img_list):
             progress = float(i + 1) / self.__img_len * 100
-            self.echo('\r Progress: %.2f \t ' % progress, False)
+            self.echo('\r Progress: %.2f | %d / %d \t ' % (progress, i + 1, self.__img_len), False)
 
             np_pig = self.__o_fcn.use_model(image)
 

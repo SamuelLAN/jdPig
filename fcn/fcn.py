@@ -478,11 +478,11 @@ class FCN(base.NN):
 
         train_loss = self.__measure_loss(self.__train_set)
         val_loss = self.__measure_loss(self.__val_set)
-        test_loss = self.__measure_loss(self.__test_set)
+        # test_loss = self.__measure_loss(self.__test_set)
 
         self.echo('\ntrain mean loss: %.6f' % train_loss)
         self.echo('validation mean loss: %.6f' % val_loss)
-        self.echo('test mean loss: %.6f' % test_loss)
+        # self.echo('test mean loss: %.6f' % test_loss)
 
         self.echo('\ndone')
 
@@ -519,6 +519,6 @@ class FCN(base.NN):
         return np.cast['uint8'](output_mask * np_image)
 
 
-o_fcn = FCN()
-o_fcn.run()
+# o_fcn = FCN()
+# o_fcn.run()
 # o_fcn.test_model()
