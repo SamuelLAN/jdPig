@@ -468,6 +468,7 @@ class FCN(base.NN):
 
         self.restore_model_w_b()    # 恢复模型
         self.rebuild_model()        # 重建模型
+        self.get_loss()             # 重新 get loss
 
         self.init_variables()       # 重新初始化变量
 
