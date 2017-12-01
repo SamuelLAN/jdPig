@@ -17,8 +17,8 @@ from six.moves.urllib.request import urlretrieve
 class Download:
     URL = 'http://www.lin-baobao.com/pig/data.zip'
     DATA_ROOT = r'data/TrainImg'
-    FILE_NAME = 'TrainImg.zip'
-    EXPECTED_BYTES = 973922779
+    FILE_NAME = 'data.zip'
+    EXPECTED_BYTES = 973849767
     FILE_NUM = 2986
 
     def __init__(self):
