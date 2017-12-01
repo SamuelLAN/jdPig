@@ -46,6 +46,7 @@ class GetImage:
 
             np_pig = self.__o_fcn.use_model(image)
 
+            print 'np_pig:'
             print np_pig.shape
             exit()
 

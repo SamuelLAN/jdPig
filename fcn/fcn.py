@@ -392,6 +392,11 @@ class FCN(base.NN):
             new_mask[c[0], c[1]] = 1
 
         new_mask = np.expand_dims(new_mask, axis=2)
+
+        print 'new_mask:'
+        print new_mask.shape
+        print np_image.shape
+
         return np.cast['uint8'](new_mask * np_image)
 
 
