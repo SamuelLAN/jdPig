@@ -33,6 +33,18 @@ class Img:
         self.__progress_len = 0
 
 
+    def __check_folder(self):
+        data_dir = os.path.split(self.IMG_PATH)[0]
+        if not os.path.isdir(data_dir):
+            os.mkdir(data_dir)
+
+        if not os.path.isdir(self.IMG_PATH):
+            os.mkdir(self.IMG_PATH)
+
+        if not os.path.isdir(self.IMG_MORE_PATH):
+            os.mkdir(self.IMG_MORE_PATH)
+
+
     ''' 检查文件夹已经存在的 patch ，避免重复生成 '''
     def __get_already_exist_list(self):
         already_list = {}
@@ -276,6 +288,8 @@ class Img:
 
 
     def run(self):
+        self.__check_folder()
+
         self.echo('\nGetting already exist list ...')
         self.__get_already_exist_list()
         self.echo('Finish getting already exist list ')
