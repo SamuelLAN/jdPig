@@ -343,6 +343,11 @@ class FCN(base.NN):
     def __mask2img(mask, np_image):
         h, w = mask.shape
 
+        print 'h'
+        print h
+        print 'w'
+        print w
+
         data = []
         for i in range(h):
             for j in range(w):
@@ -352,9 +357,14 @@ class FCN(base.NN):
         data = np.array(data)
         center = np.cast['uint8'](np.mean(data, axis=0))
 
+        print 'org_center:'
+        print center
+        print mask[center[0], center[1]]
+
         dis_mat = np.sum( np.power(data - center, 2), axis=1 )
 
         print 'dis_mat:'
+        print np.power(data - center, 2).shape
         print dis_mat.shape
 
         dis_list = []
@@ -362,10 +372,10 @@ class FCN(base.NN):
             dis_list.append([i, dis])
         dis_list.sort(FCN.__sort)
 
-        print 'dis_list:'
-        print dis_list
+        print 'dis_list_0:'
+        print dis_list[0]
 
-        center = data[ dis_list[0] ]
+        center = data[ dis_list[0][0] ]
 
         print 'center'
         print center
