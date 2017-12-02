@@ -348,13 +348,28 @@ class FCN(base.NN):
         print 'np_image.shape'
         print np_image.shape
 
+
+        print 'range(h):'
+        print len(range(h))
+        print 'range(w):'
+        print len(range(w))
+
         data = []
         for i in range(h):
             for j in range(w):
+                if i == 122 and j == 320:
+                    print '*********************'
+                    print mask[i][j]
                 if mask[i, j] != 0:
                     data.append([i, j])
 
+        n = len(data)
+
         data = np.array(data)
+
+        print 'new_center:'
+        print np.sum( data, axis=0 ) / n
+
         center = np.cast['uint8'](np.mean(data, axis=0))
 
         print 'org_center:'
