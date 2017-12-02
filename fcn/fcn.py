@@ -40,7 +40,7 @@ class FCN(base.NN):
 
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
-    MAX_VAL_LOSS_INCR_TIMES = 30  # 校验集 val_loss 连续 100 次没有降低，则 early stop
+    MAX_VAL_LOSS_INCR_TIMES = 20  # 校验集 val_loss 连续 100 次没有降低，则 early stop
 
     TENSORBOARD_SHOW_IMAGE = False  # 默认不将 image 显示到 TensorBoard，以免影响性能
 
