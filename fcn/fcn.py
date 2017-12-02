@@ -343,10 +343,13 @@ class FCN(base.NN):
     def __mask2img(mask, np_image):
         h, w = mask.shape
 
-        print 'h'
-        print h
-        print 'w'
-        print w
+        print 'mask.shape'
+        print h, w
+        print 'np_image.shape'
+        print np_image.shape
+
+        o_img = Image.fromarray(np_image)
+        o_img.show()
 
         data = []
         for i in range(h):
