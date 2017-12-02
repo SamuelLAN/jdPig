@@ -370,10 +370,14 @@ class FCN(base.NN):
         print 'new_center:'
         print np.sum( data, axis=0 ) / n
 
-        center = np.cast['uint8'](np.mean(data, axis=0))
+        center = np.mean(data, axis=0)
 
         print 'org_center:'
         print center
+
+        center = np.cast['uint8'](center)
+        print center
+
         print mask[center[0], center[1]]
 
         o_img = Image.fromarray(np_image)
