@@ -21,7 +21,7 @@ class Img:
     IMG_PATH = r'data/TrainImg'
     IMG_MORE_PATH = r'data/TrainImgMore'
 
-    NUM_TRANSFORM = 11
+    NUM_TRANSFORM = 12
     NUM_BLOCK_IMAGE = 4
     NUM_CORP_IMAGE = 4
     MIN_BLOCK_PIG_RATIO = 0.35
@@ -128,12 +128,13 @@ class Img:
         np_image = np.array( image )
         np_pig = np_image[min_w: max_w + 1, min_h: max_h + 1, :]
 
-        return Image.fromarray(np_pig)
+        return Image.fromarray(np_pig), [min_w, max_w, min_h, max_h]
 
 
     ''' 获取更多的图片 '''
     def __get_more_img(self, img_path):
         im_name = os.path.splitext( os.path.split(img_path)[1] )[0]
+        im_name = im_name.replace('_pig', '')
         file_no = 0
 
         self.__cal_progress(im_name)    # 输出进度
@@ -141,8 +142,16 @@ class Img:
         origin_image = Image.open(img_path)
 
         # 生成猪的原图
-        image = self.__get_pig_object(origin_image)
+        image, pos = self.__get_pig_object(origin_image)
         image.save( os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)) )
+
+        # 生成能用最小的框框住猪的原图(带背景)
+        file_no += 1
+        frame_img = Image.open( os.path.join( os.path.split(img_path)[0], '%s.jpg' % im_name ) )
+        np_frame_img = np.array(frame_img)
+        np_frame_img = np_frame_img[pos[0]: pos[1] + 1, pos[2]: pos[3] + 1]
+        new_frame_img = Image.fromarray(np_frame_img)
+        new_frame_img.save( os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)) )
 
         # 水平翻转
         file_no += 1
