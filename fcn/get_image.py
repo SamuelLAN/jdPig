@@ -44,14 +44,8 @@ class GetImage:
             image = Image.open(img_path)
             image = np.array(image.resize(self.RESIZE_SIZE))
 
-            Image.fromarray(image).show()
-
             np_pig = self.__o_fcn.use_model(image)
             im_pig = Image.fromarray(np_pig)
-
-            im_pig.show()
-            exit()
-
             im_pig.save( os.path.join(self.IMG_DIR, '%s_pig.jpg' % file_name) )
 
 
