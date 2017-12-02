@@ -352,10 +352,26 @@ class FCN(base.NN):
         data = np.array(data)
         center = np.cast['uint8'](np.mean(data, axis=0))
 
-        print 'data'
-        print data
+        dis_mat = np.sum( np.power(data - center, 2), axis=1 )
+
+        print 'dis_mat:'
+        print dis_mat.shape
+
+        dis_list = []
+        for i, dis in enumerate(dis_mat):
+            dis_list.append([i, dis])
+        dis_list.sort(FCN.__sort)
+
+        print 'dis_list:'
+        print dis_list
+
+        center = data[ dis_list[0] ]
+
         print 'center'
         print center
+        print mask[center[0], center[1]]
+
+        exit()
 
         s = set()
         q = Queue.Queue()
@@ -392,23 +408,22 @@ class FCN(base.NN):
                         s.add(c)
                         q.put(c)
 
-        print 'center'
-        print mask[center[0], center[1]]
-        print mask[center[0] + 1, center[1]]
-        print mask[center[0] - 1, center[1]]
-        print mask[center[0], center[1] + 1]
-        print mask[center[0], center[1] - 1]
-        print 's'
-        print s
-
-        exit()
-
         new_mask = np.zeros_like(mask)
         for c in s:
             new_mask[c[0], c[1]] = 1
 
         new_mask = np.expand_dims(new_mask, axis=2)
         return np.cast['uint8'](new_mask * np_image)
+
+
+    @staticmethod
+    def __sort(a, b):
+        if a[1] < b[1]:
+            return -1
+        elif a[1] > b[1]:
+            return 1
+        else:
+            return 0
 
 
     ''' 主函数 '''
