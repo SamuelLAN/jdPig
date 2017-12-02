@@ -28,7 +28,7 @@ class GetImage:
         for file_name in os.listdir(self.IMG_DIR):
             split_file_name = os.path.splitext(file_name)
             if split_file_name[1].lower() != '.jpg' or 'pig' in split_file_name[0].lower() \
-                    or os.path.isfile('%s_pig.jpg' % split_file_name[0]) or 'MACOSX' in split_file_name[0]:
+                    or 'MACOSX' in split_file_name[0]:
                 continue
 
             self.__img_list.append([ split_file_name[0], os.path.join(self.IMG_DIR, file_name) ])
