@@ -343,89 +343,24 @@ class FCN(base.NN):
     def __mask2img(mask, np_image):
         h, w = mask.shape
 
-        print 'mask.shape'
-        print h, w
-        print 'np_image.shape'
-        print np_image.shape
-
-
-        print 'range(h):'
-        print len(range(h))
-        print 'range(w):'
-        print len(range(w))
-
         data = []
         for i in range(h):
             for j in range(w):
-                if i == 122 and j == 320:
-                    print '*********************'
-                    print mask[i][j]
                 if mask[i, j] != 0:
                     data.append([i, j])
 
-        n = len(data)
-
         data = np.array(data)
+        center = np.cast['int32']( np.mean(data, axis=0) )
 
-        print 'new_center:'
-        print np.sum( data, axis=0 ) / n
+        if mask[center[0], center[1]] == 0:
+            dis_mat = np.sum( np.power(data - center, 2), axis=1 )
 
-        center = np.mean(data, axis=0)
+            dis_list = []
+            for i, dis in enumerate(dis_mat):
+                dis_list.append([i, dis])
+            dis_list.sort(FCN.__sort)
 
-        print 'org_center:'
-        print center
-
-        center = np.cast['uint8'](center)
-        print center
-
-        print mask[center[0], center[1]]
-
-        o_img = Image.fromarray(np_image)
-        o_img.show()
-
-        import copy
-        tmp_mask = copy.deepcopy(mask)
-        tmp_mask = np.expand_dims(tmp_mask, axis=2)
-        tmp_img = np.cast['uint8'](tmp_mask * np_image)
-        tmp_img[center[0], center[1]] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0] + 1, center[1]] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0] - 1, center[1]] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0], center[1] + 1] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0], center[1] - 1] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0] + 1, center[1] + 1] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0] - 1, center[1] + 1] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0] + 1, center[1] - 1] = np.cast['uint8']( np.array([0, 0, 255]) )
-        tmp_img[center[0] - 1, center[1] - 1] = np.cast['uint8']( np.array([0, 0, 255]) )
-        o_tmp_img = Image.fromarray(tmp_img)
-        o_tmp_img.show()
-
-        tmp_mask_2 = copy.deepcopy(tmp_mask[0])
-        tmp_mask_2[tmp_mask_2 > 0] = 255
-        tmp_mask_2 = np.cast['uint8'](tmp_mask_2)
-        o_tmp_mask = Image.fromarray(tmp_mask_2)
-        o_tmp_mask.show()
-
-        dis_mat = np.sum( np.power(data - center, 2), axis=1 )
-
-        print 'dis_mat:'
-        print np.power(data - center, 2).shape
-        print dis_mat.shape
-
-        dis_list = []
-        for i, dis in enumerate(dis_mat):
-            dis_list.append([i, dis])
-        dis_list.sort(FCN.__sort)
-
-        print 'dis_list_0:'
-        print dis_list[0]
-
-        center = data[ dis_list[0][0] ]
-
-        print 'center'
-        print center
-        print mask[center[0], center[1]]
-
-        exit()
+            center = data[ dis_list[0][0] ]
 
         s = set()
         q = Queue.Queue()
