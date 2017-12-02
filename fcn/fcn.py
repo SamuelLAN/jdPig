@@ -351,6 +351,19 @@ class FCN(base.NN):
         o_img = Image.fromarray(np_image)
         o_img.show()
 
+        import copy
+        tmp_mask = copy.deepcopy(mask)
+        tmp_mask = np.expand_dims(tmp_mask, axis=2)
+        tmp_img = np.cast['uint8'](tmp_mask * np_image)
+        o_tmp_img = Image.fromarray(tmp_img)
+        o_tmp_img.show()
+
+        tmp_mask_2 = copy.deepcopy(tmp_mask)
+        tmp_mask_2[tmp_mask_2 > 0] = 255
+        tmp_mask_2 = np.cast['uint8'](tmp_mask_2)
+        o_tmp_mask = Image.fromarray(tmp_mask_2)
+        o_tmp_mask.show()
+
         data = []
         for i in range(h):
             for j in range(w):
