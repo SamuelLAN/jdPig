@@ -193,8 +193,13 @@ class Patch:
         base_w = int(w / scale)
         w_times = int(base_w / ratio_w)
         
-        patch_h = w_times * ratio_h
-        patch_w = w_times * ratio_w
+        patch_h = int( w_times * ratio_h )
+        patch_w = int( w_times * ratio_w )
+
+        print patch_h
+        print h
+        print h - patch_h
+        exit()
 
         patch_h_start = random.randrange(0, h - patch_h)
         patch_w_start = random.randrange(0, w - patch_w)
