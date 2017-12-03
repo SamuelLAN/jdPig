@@ -155,12 +155,12 @@ class Img:
 
         # 水平翻转
         file_no += 1
-        flip_image = image.transpose(image.FLIP_LEFT_RIGHT)
+        flip_image = image.transpose(Image.FLIP_LEFT_RIGHT)
         flip_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
 
         # 垂直翻转
         file_no += 1
-        flip_image = image.transpose(image.FLIP_TOP_BOTTOM)
+        flip_image = image.transpose(Image.FLIP_TOP_BOTTOM)
         flip_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
 
         # 亮度
