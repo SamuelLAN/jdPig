@@ -145,7 +145,10 @@ class Img:
 
         # 生成猪的原图
         image, pos = self.__get_pig_object(origin_image)
-        # image.save( os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)) )
+        image.save( os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)) )
+
+        if pos[1] - pos[0] < 50 or pos[3] - pos[2] < 50:
+            return
 
         # 生成能用最小的框框住猪的原图(带背景)
         file_no += 1
@@ -155,89 +158,89 @@ class Img:
         new_frame_img = Image.fromarray(np_frame_img)
         new_frame_img.save( os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)) )
 
-        # # 水平翻转
-        # file_no += 1
-        # flip_image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        # flip_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 垂直翻转
-        # file_no += 1
-        # flip_image = image.transpose(Image.FLIP_TOP_BOTTOM)
-        # flip_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 亮度
-        # brightness_up = 1 + random.random() * 0.8
-        # brightness_down = 1 - random.random() * 0.85
-        # enh_bri = ImageEnhance.Brightness(image)
-        #
-        # # 亮度增强
-        # file_no += 1
-        # image_brightened = enh_bri.enhance(brightness_up)
-        # image_brightened.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 亮度降低
-        # file_no += 1
-        # image_brightened = enh_bri.enhance(brightness_down)
-        # image_brightened.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 色度
-        # color_up = 1 + random.random() * 0.8
-        # color_down = 1 - random.random() * 0.7
-        # enh_col = ImageEnhance.Color(image)
-        #
-        # # 色度增强
-        # file_no += 1
-        # image_colored = enh_col.enhance(color_up)
-        # image_colored.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 色度降低
-        # file_no += 1
-        # image_colored = enh_col.enhance(color_down)
-        # image_colored.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 对比度
-        # contrast_up = 1 + random.random() * 0.55
-        # contrast_down = 1 - random.random() * 0.5
-        # enh_con = ImageEnhance.Contrast(image)
-        #
-        # # 对比度增强
-        # file_no += 1
-        # image_contrasted = enh_con.enhance(contrast_up)
-        # image_contrasted.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 对比度降低
-        # file_no += 1
-        # image_contrasted = enh_con.enhance(contrast_down)
-        # image_contrasted.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 锐度
-        # sharpness_up = 1 + random.random() * 2
-        # sharpness_down = 1 - random.random() * 0.8
-        # enh_sha = ImageEnhance.Sharpness(image)
-        #
-        # # 锐度增强
-        # file_no += 1
-        # image_sharped = enh_sha.enhance(sharpness_up)
-        # image_sharped.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 锐度降低
-        # file_no += 1
-        # image_sharped = enh_sha.enhance(sharpness_down)
-        # image_sharped.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 遮挡
-        # np_image = np.array(image)
-        # for i in range(self.NUM_BLOCK_IMAGE):
-        #     block_image = Image.fromarray(self.__get_block_img(copy.deepcopy(np_image)))
-        #
-        #     file_no += 1
-        #     block_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
-        #
-        # # 随机裁剪图片
-        # for i in range(self.NUM_CORP_IMAGE):
-        #     corp_image = self.__random_corp(np_image)
-        #     file_no += 1
-        #     corp_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+        # 水平翻转
+        file_no += 1
+        flip_image = image.transpose(Image.FLIP_LEFT_RIGHT)
+        flip_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 垂直翻转
+        file_no += 1
+        flip_image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        flip_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 亮度
+        brightness_up = 1 + random.random() * 0.8
+        brightness_down = 1 - random.random() * 0.85
+        enh_bri = ImageEnhance.Brightness(image)
+
+        # 亮度增强
+        file_no += 1
+        image_brightened = enh_bri.enhance(brightness_up)
+        image_brightened.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 亮度降低
+        file_no += 1
+        image_brightened = enh_bri.enhance(brightness_down)
+        image_brightened.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 色度
+        color_up = 1 + random.random() * 0.8
+        color_down = 1 - random.random() * 0.7
+        enh_col = ImageEnhance.Color(image)
+
+        # 色度增强
+        file_no += 1
+        image_colored = enh_col.enhance(color_up)
+        image_colored.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 色度降低
+        file_no += 1
+        image_colored = enh_col.enhance(color_down)
+        image_colored.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 对比度
+        contrast_up = 1 + random.random() * 0.55
+        contrast_down = 1 - random.random() * 0.5
+        enh_con = ImageEnhance.Contrast(image)
+
+        # 对比度增强
+        file_no += 1
+        image_contrasted = enh_con.enhance(contrast_up)
+        image_contrasted.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 对比度降低
+        file_no += 1
+        image_contrasted = enh_con.enhance(contrast_down)
+        image_contrasted.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 锐度
+        sharpness_up = 1 + random.random() * 2
+        sharpness_down = 1 - random.random() * 0.8
+        enh_sha = ImageEnhance.Sharpness(image)
+
+        # 锐度增强
+        file_no += 1
+        image_sharped = enh_sha.enhance(sharpness_up)
+        image_sharped.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 锐度降低
+        file_no += 1
+        image_sharped = enh_sha.enhance(sharpness_down)
+        image_sharped.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 遮挡
+        np_image = np.array(image)
+        for i in range(self.NUM_BLOCK_IMAGE):
+            block_image = Image.fromarray(self.__get_block_img(copy.deepcopy(np_image)))
+
+            file_no += 1
+            block_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
+
+        # 随机裁剪图片
+        for i in range(self.NUM_CORP_IMAGE):
+            corp_image = self.__random_corp(np_image)
+            file_no += 1
+            corp_image.save(os.path.join(self.IMG_MORE_PATH, '%s_%d.jpg' % (im_name, file_no)))
 
 
     @staticmethod

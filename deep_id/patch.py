@@ -86,11 +86,11 @@ class Patch:
         image = Image.open(img_path)
         np_image = np.array( image )
 
-        print '8888888888888'
-        print np_image.shape
-
         h, w, c = np_image.shape
         ratio_h, ratio_w = self.RATIO_LIST[random.randrange(0, len(self.RATIO_LIST))]
+
+        if h < 2 * ratio_h and w < 2 * ratio_w:
+            return
 
         trans_w = int( float(h) / ratio_h * ratio_w )
         num_trans_w = float(w) / trans_w
@@ -130,10 +130,7 @@ class Patch:
                     break
         
         if patch_no >= self.PATCH_PER_IMG:
-            return 
-
-        print 'im_name'
-        print im_name
+            return
 
         result, patch_no = self.__get_divide_patch(np_image, 3, im_name, patch_no)
         if result:
@@ -151,10 +148,6 @@ class Patch:
     def __get_divide_patch(self, np_image, k, im_name, patch_no):
         h, w, c = np_image.shape
 
-        print 'divide:'
-        print h, w, c
-        print k
-
         divide_h = int(h / k)
         divide_w = int(w / k)
         for i in range(k):
@@ -168,13 +161,6 @@ class Patch:
                 else:
                     w_start = w - divide_w
                 np_tmp_image = np_image[h_start: h_start + divide_h, w_start: w_start + divide_w, :]
-
-                print 'np_tmp_shape'
-                print h_start
-                print divide_h
-                print w_start
-                print divide_w
-
                 self.__get_biggest_patch(np_tmp_image, im_name, patch_no)
                 patch_no += 1
                 if patch_no >= self.PATCH_PER_IMG:
@@ -193,36 +179,12 @@ class Patch:
             patch_h_start = random.randrange(0, h - patch_h) if h - patch_h != 0 else 0
             np_patch = np_image[patch_h_start: patch_h_start + patch_h, :, :]
 
-            try:
-                patch = Image.fromarray(np_patch)
-
-            except ValueError, ex:
-                print ex
-                print 'np_patch_1:'
-                print np_patch.shape
-                print h, w, c
-                print patch_h
-                print patch_h_start
-                exit()
-
         else:
             patch_w = int( float(h) / ratio_h * ratio_w )
             patch_w_start = random.randrange(0, w - patch_w) if w - patch_w != 0 else 0
             np_patch = np_image[:, patch_w_start: patch_w_start + patch_w, :]
 
-            try:
-                patch = Image.fromarray(np_patch)
-
-            except ValueError, ex:
-                print ex
-                print 'np_patch_2:'
-                print np_patch.shape
-                print h, w, c
-                print patch_w
-                print patch_w_start
-                exit()
-
-        patch = patch.resize([ratio_h, ratio_w])
+        patch = Image.fromarray(np_patch).resize([ratio_h, ratio_w])
         patch.save(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no)))
         
 
@@ -250,22 +212,7 @@ class Patch:
         
         np_patch = np_image[patch_h_start: patch_h_start + patch_h, patch_w_start: patch_w_start + patch_w, :]
 
-        # patch = Image.fromarray(np_patch)
-        try:
-            patch = Image.fromarray(np_patch)
-
-        except ValueError, ex:
-            print ex
-            print 'np_patch_3:'
-            print np_patch.shape
-            print h, w, c
-            print patch_h_start
-            print patch_h
-            print patch_w_start
-            print patch_w
-            exit()
-
-        patch = patch.resize([ratio_h, ratio_w])
+        patch = Image.fromarray(np_patch).resize([ratio_h, ratio_w])
         patch.save(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no)))
 
 
