@@ -172,12 +172,12 @@ class Patch:
         
         if float(ratio_h) / ratio_w <= float(h) / w:
             patch_h = int( float(w) / ratio_w * ratio_h )
-            patch_h_start = random.randrange(0, h - patch_h)
+            patch_h_start = random.randrange(0, h - patch_h) if h - patch_h != 0 else 0
             np_patch = np_image[patch_h_start: patch_h_start + patch_h, :, :]
         
         else:
             patch_w = int( float(h) / ratio_h * ratio_w )
-            patch_w_start = random.randrange(0, w - patch_w)
+            patch_w_start = random.randrange(0, w - patch_w) if w - patch_w != 0 else 0
             np_patch = np_image[:, patch_w_start: patch_w_start + patch_w, :]
 
         patch = Image.fromarray(np_patch)
