@@ -145,7 +145,7 @@ class Patch:
     def __get_divide_patch(self, np_image, k, im_name, patch_no):
         h, w, c = np_image.shape
         divide_h = int(h / k)
-        divide_w = int(h / w)
+        divide_w = int(w / k)
         for i in range(k):
             if i < k - 1:
                 h_start = i * divide_h
