@@ -207,7 +207,8 @@ class Patch:
         patch_w_start = random.randrange(0, w - patch_w)
         
         np_patch = np_image[patch_h_start: patch_h_start + patch_h, patch_w_start: patch_w_start + patch_w, :]
-        patch = Image.fromarray(np_patch).resize([ratio_h, ratio_w])
+        patch = Image.fromarray(np_patch)
+        patch = patch.resize([ratio_h, ratio_w])
         patch.save(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no)))
 
 
