@@ -26,7 +26,10 @@ for file_name in os.listdir(data_dir):
 
     h, w, c = np_image.shape
 
-    ratio_list.append( float(h) / w )
+    if float(h) / w >= 1:
+        ratio_list.append( float(w) / h )
+    else:
+        ratio_list.append( float(h) / w )
 
 ratio_list = np.array(ratio_list)
 
