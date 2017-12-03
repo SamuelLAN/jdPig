@@ -86,6 +86,9 @@ class Patch:
         image = Image.open(img_path)
         np_image = np.array( image )
 
+        print '8888888888888'
+        print np_image.shape
+
         h, w, c = np_image.shape
         ratio_h, ratio_w = self.RATIO_LIST[random.randrange(0, len(self.RATIO_LIST))]
 
@@ -128,7 +131,10 @@ class Patch:
         
         if patch_no >= self.PATCH_PER_IMG:
             return 
-        
+
+        print 'im_name'
+        print im_name
+
         result, patch_no = self.__get_divide_patch(np_image, 3, im_name, patch_no)
         if result:
             result, patch_no = self.__get_divide_patch(np_image, 2, im_name, patch_no)
@@ -147,6 +153,7 @@ class Patch:
 
         print 'divide:'
         print h, w, c
+        print k
 
         divide_h = int(h / k)
         divide_w = int(w / k)
