@@ -196,15 +196,15 @@ class Patch:
         patch_h = int( w_times * ratio_h )
         patch_w = int( w_times * ratio_w )
 
-        if patch_h > h:
+        if patch_h >= h:
             base_h = int(h / scale)
             h_times = int(base_h / ratio_h)
 
             patch_h = int( h_times * ratio_h )
             patch_w = int( h_times * ratio_w )
 
-        patch_h_start = random.randrange(0, h - patch_h)
-        patch_w_start = random.randrange(0, w - patch_w)
+        patch_h_start = random.randrange(0, h - patch_h) if h - patch_h != 0 else 0
+        patch_w_start = random.randrange(0, w - patch_w) if w - patch_w != 0 else 0
         
         np_patch = np_image[patch_h_start: patch_h_start + patch_h, patch_w_start: patch_w_start + patch_w, :]
         patch = Image.fromarray(np_patch)
