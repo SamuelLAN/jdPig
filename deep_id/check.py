@@ -17,7 +17,7 @@ data_dir = r'data/TrainImg'
 ratio_list = []
 
 for file_name in os.listdir(data_dir):
-    if not os.path.splitext(file_name)[1].lower() != '.jpg':
+    if os.path.splitext(file_name)[1].lower() != '.jpg':
         continue
 
     img_path = os.path.join(data_dir, file_name)
