@@ -9,6 +9,7 @@ if cur_dir_path:
     os.chdir(cur_dir_path)
     sys.path.append(cur_dir_path)
 
+import math
 import random
 import numpy as np
 from PIL import Image
@@ -26,37 +27,44 @@ class Patch:
     PATCH_PER_IMG = 20
 
     # 每个 ratio: 长 w, 宽 h, n 原图宽的 n 分之一
-    RATIO_LIST = [[39, 31, 3], [31, 31, 3], [31, 39, 3], [31, 31, 3], [31, 31, 2], [31, 39, 2], [39, 31, 2], [31, 31, 1.5], [31, 39, 1.5], [39, 31, 1.5]]
+    RATIO_LIST = [[39, 31], [31, 31], [31, 39], [31, 31]]
+    SCALE_LIST = [3, 2.5, 2, 1.5]
 
-    MIN_PIG_RATIO = 0.3         # 猪在图片至少占的比例
-    MIN_RATIO_N = 3             # patch 的宽 至少是 原图的宽的 n 分之一
     MIN_CENTER_DIS = 10         # 不同 patch 中心之间的最小间距
 
     MAX_TRY_TIMES = 200
 
     def __init__(self):
         self.__img_list = []
-        self.__alreadyList = {}
-        # self.__progressIndex = 0
-        # self.__progress_len = 0
+        self.__already_list = {}
+        self.__progress_len = 0
 
 
-    # ''' 检查文件夹已经存在的 patch ，避免重复生成 '''
-    # def __getAlreadyExistList(self):
-    #     already_list = {}
-    #     for file_name in os.listdir(self.PATCH_PATH):
-    #         if os.path.splitext(file_name)[1].lower() != '.jpg':
-    #             continue
-    #         file_name = os.path.splitext(file_name)[0]
-    #         file_no = file_name.split('_')
-    # 
-    #         img_name = '%s_%s.jpg' % (file_no[0], file_no[1])
-    #         if img_name not in already_list:
-    #             already_list[img_name] = 0
-    #         already_list[img_name] += 1
-    # 
-    #         if already_list[img_name] >= self.PATCH_PER_IMG:
-    #             self.__alreadyList[img_name] = True
+    def __check_dir(self):
+        if not os.path.isdir(self.IMG_PATH):
+            os.mkdir(self.IMG_PATH)
+
+        if not os.path.isdir(self.PATCH_PATH):
+            os.mkdir(self.PATCH_PATH)
+
+
+    ''' 检查文件夹已经存在的 patch ，避免重复生成 '''
+    def __get_already_exist_list(self):
+        already_list = {}
+        for file_name in os.listdir(self.PATCH_PATH):
+            split_file_name = os.path.splitext(file_name)
+            if split_file_name[1].lower() != '.jpg':
+                continue
+            file_name = split_file_name[0]
+            file_no = file_name.split('_')
+
+            img_name = '%s_%s_%s.jpg' % (file_no[0], file_no[1], file_no[2])
+            if img_name not in already_list:
+                already_list[img_name] = 0
+            already_list[img_name] += 1
+
+            if already_list[img_name] >= self.PATCH_PER_IMG:
+                self.__already_list[img_name] = True
 
 
     ''' 获取图片列表 '''
@@ -64,119 +72,142 @@ class Patch:
         for file_name in os.listdir(self.IMG_PATH):
             split_file_name = os.path.splitext(file_name)
             if split_file_name[1].lower() != '.jpg' \
-                    or file_name in self.__alreadyList:
+                    or file_name in self.__already_list:
                 continue
 
             self.__img_list.append( os.path.join(self.IMG_PATH, file_name) )
-        self.__progress_len = len(self.__img_list) * self.PATCH_PER_IMG
+        self.__progress_len = len(self.__img_list)
 
 
-    ''' 根据 ratio 获取 im 的 patch '''
-    @staticmethod
-    def __getPatch(im, org_w, org_h, ratio):
-        w, h, n = ratio
-        patch_w = org_w / n
-        w_times = patch_w / w
-        w *= w_times
-        h *= w_times
-        w_half = int(0.5 * w)
-        h_half = int(0.5 * h)
-
-        # patch 的中心
-        w_center = random.randrange(w_half, org_w - w_half)
-        h_center = random.randrange(h_half, org_h - h_half)
-
-        return im[w_center - w_half: w_center + w_half, h_center - h_half: h_center + h_half, :], np.array([w_center, h_center])
-
-
-    def __img2PatchGreedy(self):
-        pass
-
-
-    ''' 将 img 转化为 patch '''
-    def __img2patch(self, img_path):
+    ''' 获取每张图片所需的 patch '''
+    def __get_patch(self, img_path):
         im_name = os.path.splitext( os.path.split(img_path)[1] )[0]
+        
         image = Image.open(img_path)
+        np_image = np.array( image )
 
+        h, w, c = np_image.shape
+        ratio_h, ratio_w = self.RATIO_LIST[random.randrange(0, len(self.RATIO_LIST))]
 
-    ''' 将 img 转化为 patch '''
-    def __img2Patch2(self, img_path):
-        im_name = os.path.splitext(os.path.split(img_path)[1])[0]
-        im = cv2.imread(img_path)                   # 读取图片
-        org_w, org_h, c = im.shape
+        trans_w = float(h) / ratio_h * ratio_w
+        num_trans_w = float(w) / trans_w
 
-        ratio_len = len(self.RATIO_LIST)
+        patch_no = 0
 
-        centers = []
-
-        def __checkCenter(_center, _ratio, _try_times, max_try_times):
-            if _try_times > max_try_times:
-                print '%s has problem ' % im_name
-                return True
-
-            w, h, n = _ratio
-            n_list = [n, self.MIN_RATIO_N]
-            patch_w = org_w / n_list[random.randint(0, 1)]
-            w_times = patch_w / w
-            dis = self.MIN_CENTER_DIS * w_times
-            for _c in centers:
-                if np.sqrt( sum( pow(_c - _center, 2) ) ) < dis:
-                    return False
-            return True
-
-        for i in range(self.PATCH_PER_IMG):
-            ratio = self.RATIO_LIST[random.randint(0, ratio_len - 1)]
-            patch, center = self.__getPatch(im, org_w, org_h, ratio)
-
-            try_times = 0
-            while self.calPigRatio(patch) < 0.35 or not __checkCenter(center, ratio, try_times, self.MAX_TRY_TIMES):
-                try_times += 1
-                ratio = self.RATIO_LIST[random.randint(0, ratio_len - 1)]
-                patch, center = self.__getPatch(im, org_w, org_h, ratio)
-
-            if try_times > self.MAX_TRY_TIMES:
-                continue
-
-            centers.append(center)
-            self.__calProgress(im_name, i)
-
-            cv2.imwrite(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, i)), patch)
-
-
-    @staticmethod
-    def calPigRatio(im):
-        w, h, c = im.shape
-        im_size = w * h
-
-        real_size = 0
-        for i, val_i in enumerate(im):
-            for j, val_j in enumerate(val_i):
-                b = float(val_j[0])
-                g = float(val_j[1])
-                r = float(val_j[2])
-
-                if (80 < r < 96 and 70 < g < 80 and 65 < b < 80) \
-                        or (145 < r < 155 and 115 < g < 121 and 100 < b < 115) \
-                        or (141 < r < 147 and 113 < g < 118 and 112 < b < 120) \
-                        or (114 < r < 120 and 94 < g < 100 and 94 < b < 100) \
-                        or (52 < r < 60 and 40 < g < 50 and 40 < b < 50) \
-                        or (95 < r < 105 and 82 < g < 89 and 78 < b < 85) \
-                        or (123 < r < 131 and 106 < g < 113 and 95 < b < 103) \
-                        or b < 35 or g < 45 or r < 40 or r > 252 \
-                        or g > 225 or b > 215 or g / b > 1.15 or g / b < 0.8 \
-                        or r / g > 3.1 or 2 > r / g > 1.35 or r / g < 1.14:
-                    pass
+        if num_trans_w < 1:
+            trans_h = float(w) / ratio_w * ratio_h
+            num_trans_h = int(math.ceil( float(h) / trans_h ))
+            
+            for i in range(num_trans_h):
+                if i < num_trans_h - 1:
+                    np_patch = np_image[i * trans_h: (i + 1) * trans_h, :, :]
                 else:
-                    real_size += 1
+                    np_patch = np_image[-trans_h:, :, :]
 
-        return float(real_size) / im_size
+                patch = Image.fromarray(np_patch).resize([ratio_h, ratio_w])
+                patch.save(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no)))
+                patch_no += 1
+                
+                if patch_no >= self.PATCH_PER_IMG:
+                    break
+            
+        else:
+            num_trans_w = int(math.ceil(num_trans_w))
+            for i in range(num_trans_w):
+                if i < num_trans_w - 1:
+                    np_patch = np_image[:, i * trans_w: (i + 1) * trans_w, :]
+                else:
+                    np_patch = np_image[:, -trans_w:, :]
+                
+                patch = Image.fromarray( np_patch ).resize([ratio_h, ratio_w])
+                patch.save( os.path.join( self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no) ) )
+                patch_no += 1
+
+                if patch_no >= self.PATCH_PER_IMG:
+                    break
+        
+        if patch_no >= self.PATCH_PER_IMG:
+            return 
+        
+        result, patch_no = self.__get_divide_patch(np_image, 3, im_name, patch_no)
+        if result:
+            result, patch_no = self.__get_divide_patch(np_image, 2, im_name, patch_no)
+
+        if not result:
+            return 
+
+        for i in range(self.PATCH_PER_IMG - patch_no):
+            self.__get_random_patch(np_image, im_name, patch_no)
+            patch_no += 1 
+
+
+    ''' 将图片的 w, h 分别等分为 k 份，然后在里面取 patch '''
+    def __get_divide_patch(self, np_image, k, im_name, patch_no):
+        h, w, c = np_image.shape
+        divide_h = int(h / k)
+        divide_w = int(h / w)
+        for i in range(k):
+            if i < k - 1:
+                h_start = i * divide_h
+            else:
+                h_start = h - divide_h
+            for j in range(k):
+                if j < k - 1:
+                    w_start = j * divide_w
+                else:
+                    w_start = w - divide_w
+                np_tmp_image = np_image[h_start: h_start + divide_h, w_start: w_start + divide_w, :]
+                self.__get_biggest_patch(np_tmp_image, im_name, patch_no)
+                patch_no += 1
+                if patch_no >= self.PATCH_PER_IMG:
+                    return False, patch_no
+        
+        return True, patch_no
+
+
+    ''' 在给定的 np_image 里取 size 尽可能大的 patch '''
+    def __get_biggest_patch(self, np_image, im_name, patch_no):
+        h, w, c = np_image.shape
+        ratio_h, ratio_w = self.RATIO_LIST[random.randrange(0, len(self.RATIO_LIST))]
+        
+        if float(ratio_h) / ratio_w <= float(h) / w:
+            patch_h = float(w) / ratio_w * ratio_h
+            patch_h_start = random.randrange(0, h - patch_h)
+            np_patch = np_image[patch_h_start: patch_h_start + patch_h, :, :]
+        
+        else:
+            patch_w = float(h) / ratio_h * ratio_w
+            patch_w_start = random.randrange(0, w - patch_w)
+            np_patch = np_image[:, patch_w_start: patch_w_start + patch_w, :]
+
+        patch = Image.fromarray(np_patch).resize([ratio_h, ratio_w])
+        patch.save(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no)))
+        
+
+    ''' 在给定的 np_iamge 里随机取 patch '''
+    def __get_random_patch(self, np_image, im_name, patch_no):
+        h, w, c = np_image.shape
+        ratio_h, ratio_w = self.RATIO_LIST[random.randrange(0, len(self.RATIO_LIST))]
+        scale = self.SCALE_LIST[random.randrange(0, len(self.SCALE_LIST))]
+        
+        base_w = int(w / scale)
+        w_times = int(base_w / ratio_w)
+        
+        patch_h = w_times * ratio_h
+        patch_w = w_times * ratio_w
+
+        patch_h_start = random.randrange(0, h - patch_h)
+        patch_w_start = random.randrange(0, w - patch_w)
+        
+        np_patch = np_image[patch_h_start: patch_h_start + patch_h, patch_w_start: patch_w_start + patch_w, :]
+        patch = Image.fromarray(np_patch).resize([ratio_h, ratio_w])
+        patch.save(os.path.join(self.PATCH_PATH, '%s_%d.jpg' % (im_name, patch_no)))
 
 
     ''' 获取进度 '''
-    def __calProgress(self, im_name, patch_index):
-        self.__progressIndex += 1
-        progress = float(self.__progressIndex) / self.__progress_len * 100
-        self.echo('progress: %.2f%% \t img_name: %s \t patch: %d \t \r' % (progress, im_name, patch_index), False)
+    def __cal_progress(self, i, img_patch):
+        progress = float(i + 1) / self.__progress_len * 100
+        self.echo('\r >> progress: %.2f%% \t img_patch: %s \t ' % (progress, img_patch), False)
 
 
     ''' 输出展示 '''
@@ -191,13 +222,23 @@ class Patch:
 
     ''' 主函数 '''
     def run(self):
-        # self.__getAlreadyExistList()
+        self.__check_dir()
+
+        self.echo('\nGetting already exist list ... ')
+        self.__get_already_exist_list()
+        self.echo('Finish getting already exist list ')
+
+        self.echo('\nGetting img list ... ')
         self.__get_img_list()
+        self.echo('Finish getting img list ')
 
+        self.echo('\nGetting patch ... ')
         for i, img_path in enumerate(self.__img_list):
-            self.__img2Patch(img_path)
+            self.__cal_progress(i, img_path)        # 输出进度
+            self.__get_patch(img_path)              # 获取每张图片的 patch
+        self.echo('Finish getting patch ')
 
-        self.echo('\ndone')
+        self.echo('\ndone ')
 
 
 o_patch = Patch()
