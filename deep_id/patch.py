@@ -185,7 +185,7 @@ class Patch:
 
         except ValueError, ex:
             print ex
-            print 'np_patch:'
+            print 'np_patch_1:'
             print np_patch.shape
             exit()
 
@@ -223,7 +223,7 @@ class Patch:
 
         except ValueError, ex:
             print ex
-            print 'np_patch:'
+            print 'np_patch_2:'
             print np_patch.shape
             exit()
 
