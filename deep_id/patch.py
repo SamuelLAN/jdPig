@@ -144,6 +144,10 @@ class Patch:
     ''' 将图片的 w, h 分别等分为 k 份，然后在里面取 patch '''
     def __get_divide_patch(self, np_image, k, im_name, patch_no):
         h, w, c = np_image.shape
+
+        print 'divide:'
+        print h, w, c
+
         divide_h = int(h / k)
         divide_w = int(w / k)
         for i in range(k):
@@ -157,6 +161,13 @@ class Patch:
                 else:
                     w_start = w - divide_w
                 np_tmp_image = np_image[h_start: h_start + divide_h, w_start: w_start + divide_w, :]
+
+                print 'np_tmp_shape'
+                print h_start
+                print divide_h
+                print w_start
+                print divide_w
+
                 self.__get_biggest_patch(np_tmp_image, im_name, patch_no)
                 patch_no += 1
                 if patch_no >= self.PATCH_PER_IMG:
