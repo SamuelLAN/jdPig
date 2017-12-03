@@ -89,14 +89,14 @@ class Patch:
         h, w, c = np_image.shape
         ratio_h, ratio_w = self.RATIO_LIST[random.randrange(0, len(self.RATIO_LIST))]
 
-        trans_w = float(h) / ratio_h * ratio_w
+        trans_w = int( float(h) / ratio_h * ratio_w )
         num_trans_w = float(w) / trans_w
 
         patch_no = 0
 
         if num_trans_w < 1:
-            trans_h = float(w) / ratio_w * ratio_h
-            num_trans_h = int(math.ceil( float(h) / trans_h ))
+            trans_h = int( float(w) / ratio_w * ratio_h )
+            num_trans_h = int( math.ceil( float(h) / trans_h ) )
             
             for i in range(num_trans_h):
                 if i < num_trans_h - 1:
@@ -112,7 +112,7 @@ class Patch:
                     break
             
         else:
-            num_trans_w = int(math.ceil(num_trans_w))
+            num_trans_w = int( math.ceil(num_trans_w) )
             for i in range(num_trans_w):
                 if i < num_trans_w - 1:
                     np_patch = np_image[:, i * trans_w: (i + 1) * trans_w, :]
