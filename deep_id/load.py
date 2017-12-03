@@ -315,7 +315,7 @@ class Download:
 #         return img_no_list
 
 
-Download.run()
+# Download.run()
 
 # train_data = Data(0.0, 0.64)
 # for i in range(4):
