@@ -303,11 +303,11 @@ class Data:
 
         if not loop:
             self.__cur_index = end_index
-            return np.array(x_list), np.array(y)
+            return np.array(x_list).transpose([1, 0, 2, 3, 4]), np.array(y)
 
         if not left_num:
             self.__cur_index = end_index if end_index < self.__data_len else 0
-            return np.array(x_list), np.array(y)
+            return np.array(x_list).transpose([1, 0, 2, 3, 4]), np.array(y)
 
         while left_num:
             end_index = left_num
@@ -322,7 +322,7 @@ class Data:
             y += left_y
 
         self.__cur_index = end_index if end_index < self.__data_len else 0
-        return np.array(x_list), np.array(y)
+        return np.array(x_list).transpose([1, 0, 2, 3, 4]), np.array(y)
 
 
     ''' 获取数据集大小 '''
@@ -365,5 +365,22 @@ print 'tmp_x_list'
 for i, x in enumerate(tmp_x_list):
     print i
     print x.shape
-    o_tmp = Image.fromarray(x)
-    o_tmp.show()
+    # o_tmp = Image.fromarray(x)
+    # o_tmp.show()
+
+batch_x_list , batch_y = train_data.next_batch(4)
+
+print '\n********************************'
+print train_data.get_size()
+print batch_x_list.shape
+print batch_y.shape
+
+print 'y 0:'
+print batch_y[0]
+
+tmp_x_list = batch_x_list[0]
+
+print 'tmp_x_list'
+for i, x in enumerate(tmp_x_list):
+    print i
+    print x.shape
