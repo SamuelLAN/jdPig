@@ -138,11 +138,15 @@ class DeepId(base.NN):
         self.__train_op_list = []
         self.__learning_rate_list = []
         self.__global_step_list = []
+        self.__size_list = []
+        self.__accuracy_list = []
 
         for i in range(self.X_LIST_LEN):
             # 输入
             self.__x_list.append( tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X_%d' % i) )
-            
+
+            self.__size_list.append( tf.placeholder(tf.float32, name='size_%d' % i) )
+
             # 记录训练 step
             global_step = self.get_global_step()
             self.__global_step_list.append( global_step )
@@ -207,6 +211,21 @@ class DeepId(base.NN):
                                                                 global_step=self.__global_step_list[i]) )
 
 
+    ''' 计算准确率 '''
+    def __get_accuracy(self):
+        with tf.name_scope('accuracy'):
+            labels = tf.arg_max(self.__label, 1)
+            for i in range(self.X_LIST_LEN):
+                predict = tf.arg_max(self.__output_list[i], 1)
+                correct = tf.equal(labels, predict)
+
+                accuracy = tf.divide( tf.reduce_mean( tf.cast(correct, tf.float32) ), self.__size_list[i] )
+                self.__accuracy_list.append(accuracy)
+
+                # 将 准确率 记录到 TensorBoard
+                tf.summary.scalar('accuracy', accuracy)
+
+
     # ''' 将图片输出到 tensorboard '''
     # def __summary(self):
     #     with tf.name_scope('summary'):
@@ -244,7 +263,7 @@ class DeepId(base.NN):
             if step % self.SHOW_PROGRESS_FREQUENCY == 0:
                 epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
                 step_progress = float(step) / self.__steps * 100.0
-                self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
+                self.echo('\r step: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
                                                                        self.__steps, step_progress), False)
 
             batch_x_list, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
@@ -258,9 +277,13 @@ class DeepId(base.NN):
                 _, train_loss = self.sess.run([train_op, loss], feed_dict)
 
                 if step % self.__iter_per_epoch == 0 and step != 0:
+                    accuracy = self.__accuracy_list[i]
                     epoch = int(step // self.__iter_per_epoch)
 
-                    self.echo('\n epoch: %d \t net: %d \t loss: %d \r ' % (epoch, i, train_loss))
+                    train_accuracy = self.sess.run(accuracy, feed_dict)
+
+                    self.echo('\n epoch: %d \t net: %d \t loss: %.2f \t accuracy: %.2f \t \r ' % (epoch, i, train_loss, train_accuracy))
+                    self.add_summary_train(feed_dict, epoch)
 
         self.echo('\nFinish training ')
 
