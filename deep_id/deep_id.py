@@ -72,7 +72,7 @@ class DeepId(base.NN):
         },
         {   # 8 * 8 => 6 * 6
             'name': 'conv_3',
-            'type': 'pool_3',
+            'type': 'conv',
             'shape': [40, 60],
             'k_size': [3, 3],
             'padding': 'VALID',

@@ -689,10 +689,6 @@ class NN:
 
             self.net.append(a)
 
-            print '*************'
-            print a
-            print len(self.net)
-
         self.echo('Finish building model')
 
         return a
