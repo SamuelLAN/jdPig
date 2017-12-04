@@ -29,7 +29,7 @@ class DeepId(base.NN):
     BATCH_SIZE = 4              # 迭代的 epoch 次数
     EPOCH_TIMES = 100           # 随机梯度下降的 batch 大小
 
-    IMAGE_SHAPE = [55, 31]
+    IMAGE_SHAPE = [39, 39]
 
     NUM_CLASSES = 30
     NUM_CHANNEL = 3
@@ -42,70 +42,70 @@ class DeepId(base.NN):
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
     MODEL = [
-        {   # 55 * 31 => 52 * 28
+        {   # 39 * 39 => 36 * 36
             'name': 'conv_1',
             'type': 'conv',
             'shape': [NUM_CHANNEL, 20],
             'k_size': [4, 4],
             'padding': 'VALID',
         },
-        {   # 52 * 28 => 26 * 14
+        {   # 36 * 36 => 18 * 18
             'name': 'pool_1',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 26 * 14 => 24 * 12
+        {   # 18 * 18 => 16 * 16
             'name': 'conv_2',
             'type': 'conv',
             'shape': [20, 40],
             'k_size': [3, 3],
             'padding': 'VALID',
         },
-        {   # 24 * 12 => 12 * 6
+        {   # 16 * 16 => 8 * 8
             'name': 'pool_2',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 12 * 6 => 10 * 4
+        {   # 8 * 8 => 6 * 6
             'name': 'conv_3',
             'type': 'pool_3',
             'shape': [40, 60],
             'k_size': [3, 3],
             'padding': 'VALID',
         },
-        {   # 10 * 4 => 5 * 2
+        {   # 6 * 6 => 3 * 3
             'name': 'pool_3',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 5 * 2 => 4 * 1
+        {   # 3 * 3 => 2 * 2
             'name': 'conv_4',
             'type': 'conv',
             'shape': [60, 80],
             'k_size': [2, 2],
             'padding': 'VALID',
         },
-        {   # 4 * 1 * 80 => 320 ; 与前一层全连接
+        {   # 2 * 2 * 80 => 320 ; 与前一层全连接
             'name': 'fc_4',
             'type': 'fc',
             'shape': [320, 320],
         },
-        {   # 5 * 2 * 60 => 320 与 pool_3 层全连接
+        {   # 3 * 3 * 60 => 320 与 pool_3 层全连接
             'name': 'fc_3',
             'type': 'fc_n',
-            'shape': [600, 320],
+            'shape': [540, 320],
             'layer_index': 5,
         },
-        {   # 12 * 6 * 40 => 320 与 pool_2 层全连接
+        {   # 8 * 8 * 40 => 320 与 pool_2 层全连接
             'name': 'fc_2',
             'type': 'fc_n',
-            'shape': [2880, 320],
+            'shape': [2560, 320],
             'layer_index': 3,
         },
-        {   # 26 * 14 * 20 => 320 与 pool_1 层全连接
+        {   # 18 * 18 * 20 => 320 与 pool_1 层全连接
             'name': 'fc_1',
             'type': 'fc_n',
-            'shape': [7280, 320],
+            'shape': [6480, 320],
             'layer_index': 1,
         },
         {   # softmax 层

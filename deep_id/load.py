@@ -115,8 +115,8 @@ class Download:
 
 class Data:
     DATA_ROOT = r'data/TrainImgMore'
-    RESIZE = [55, 31]
-    RATIO = 55.0 / 31.0
+    RESIZE = [39, 39]
+    RATIO = 39.0 / 39.0
     NUM_CLASSES = 30
 
     def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = '', sort_list = []):
@@ -167,18 +167,45 @@ class Data:
             if not os.path.isfile(pig_file_path):
                 continue
 
-            np_pig = self.__add_padding(pig_file_path)
-            np_pig_bg = self.__add_padding(pig_bg_file_path)
+            # np_pig = self.__add_padding(pig_file_path)
+            # np_pig_bg = self.__add_padding(pig_bg_file_path)
+
+            pig_patch_list = self.__get_three_patch(pig_file_path)
+            pig_bg_patch_list = self.__get_three_patch(pig_bg_file_path)
+            patch_list = pig_patch_list + pig_bg_patch_list
 
             pig_no = int(no_list[0]) - 1
             label = np.zeros([Data.NUM_CLASSES])
             label[pig_no] = 1
 
-            self.__data.append([split_file_name[0], np_pig, np_pig_bg, label])
+            self.__data.append([split_file_name[0], patch_list, label])
 
         self.__data.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
+
+
+
+    @staticmethod
+    def __get_three_patch(img_path):
+        np_image = np.array( Image.open(img_path) )
+        h, w, c = np_image.shape
+
+        if h > w:
+            _size = w
+            padding = int( (h - _size) / 2 )
+            np_image_1 = np_image[:_size, :, :]
+            np_image_2 = np_image[padding: padding + _size, :, :]
+            np_image_3 = np_image[-_size:, :, :]
+
+        else:
+            _size = h
+            padding = int( (w - _size) / 2 )
+            np_image_1 = np_image[:, :_size, :]
+            np_image_2 = np_image[:, padding: padding + _size, :]
+            np_image_3 = np_image[:, -_size:, :]
+
+        return [np_image_1, np_image_2, np_image_3]
 
     
     @staticmethod
@@ -258,15 +285,15 @@ class Data:
             left_num = end_index - self.__data_len
             end_index = self.__data_len
 
-        _, X1, X2, y = zip(*self.__data[start_index: end_index])
+        _, x_list, y = zip(*self.__data[start_index: end_index])
 
         if not loop:
             self.__cur_index = end_index
-            return np.array(X1), np.array(X2), np.array(y)
+            return np.array(x_list), np.array(y)
 
         if not left_num:
             self.__cur_index = end_index if end_index < self.__data_len else 0
-            return np.array(X1), np.array(X2), np.array(y)
+            return np.array(x_list), np.array(y)
 
         while left_num:
             end_index = left_num
@@ -276,13 +303,12 @@ class Data:
             else:
                 left_num = 0
 
-            _, left_x_1, left_x_2, left_y = zip(*self.__data[: end_index])
-            X1 += left_x_1
-            X2 += left_x_2
+            _, left_x_list, left_y = zip(*self.__data[: end_index])
+            x_list += left_x_list
             y += left_y
 
         self.__cur_index = end_index if end_index < self.__data_len else 0
-        return np.array(X1), np.array(X2), np.array(y)
+        return np.array(x_list), np.array(y)
 
 
     ''' 获取数据集大小 '''
@@ -309,23 +335,21 @@ class Data:
 
 train_data = Data(0.0, 0.64, 'train')
 
-batch_x_1, batch_x_2 , batch_y = train_data.next_batch(4)
+batch_x_list , batch_y = train_data.next_batch(4)
 
 print '********************************'
 print train_data.get_size()
-print batch_x_1.shape
-print batch_x_2.shape
+print batch_x_list.shape
 print batch_y.shape
 
 print 'y 0:'
 print batch_y[0]
 
-tmp_x_1 = batch_x_1[0]
-tmp_x_2 = batch_x_2[0]
+tmp_x_list = batch_x_list[0]
 
-o_tmp_x1 = Image.fromarray(tmp_x_1)
-o_tmp_x1.show()
-
-o_tmp_x2 = Image.fromarray(tmp_x_2)
-o_tmp_x2.show()
-
+print 'tmp_x_list'
+for i, x in enumerate(tmp_x_list):
+    print i
+    print x.shape
+    o_tmp = Image.fromarray(x)
+    o_tmp.show()
