@@ -47,76 +47,73 @@ class DeepId(base.NN):
     MAX_VAL_ACCURACY_INCR_TIMES = 20    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     MODEL = [
-        {   # 39 * 39 => 36 * 36
+        {   # 60 * 60
             'name': 'conv_1',
             'type': 'conv',
             'shape': [NUM_CHANNEL, 20],
             'k_size': [4, 4],
-            'padding': 'VALID',
         },
-        {   # 36 * 36 => 18 * 18
+        {   # 60 * 60 => 30 * 30
             'name': 'pool_1',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 18 * 18 => 16 * 16
+        {   # 30 * 30 => 30 * 30
             'name': 'conv_2',
             'type': 'conv',
             'shape': [20, 40],
             'k_size': [3, 3],
             'padding': 'VALID',
         },
-        {   # 16 * 16 => 8 * 8
+        {   # 30 * 30 => 15 * 15
             'name': 'pool_2',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 8 * 8 => 6 * 6
+        {   # 15 * 15
             'name': 'conv_3',
             'type': 'conv',
             'shape': [40, 60],
             'k_size': [3, 3],
-            'padding': 'VALID',
         },
-        {   # 6 * 6 => 3 * 3
+        {   # 15 * 15 => 8 * 8
             'name': 'pool_3',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 3 * 3 => 2 * 2
+        {   # 8 * 8
             'name': 'conv_4',
             'type': 'conv',
             'shape': [60, 80],
             'k_size': [2, 2],
-            'padding': 'VALID',
         },
-        {   # 2 * 2 * 80 => 320 ; 与前一层全连接
+        {   # 8 * 8 * 80 => 320 ; 与前一层全连接
             'name': 'fc_4',
             'type': 'fc',
-            'shape': [320, 320],
+            'shape': [5120, 512],
         },
-        {   # 3 * 3 * 60 => 320 与 pool_3 层全连接
-            'name': 'fc_3',
-            'type': 'fc_n',
-            'shape': [540, 320],
-            'layer_index': 5,
-        },
-        {   # 8 * 8 * 40 => 320 与 pool_2 层全连接
-            'name': 'fc_2',
-            'type': 'fc_n',
-            'shape': [2560, 320],
-            'layer_index': 3,
-        },
-        {   # 18 * 18 * 20 => 320 与 pool_1 层全连接
-            'name': 'fc_1',
-            'type': 'fc_n',
-            'shape': [6480, 320],
-            'layer_index': 1,
-        },
+        # {   # 3 * 3 * 60 => 320 与 pool_3 层全连接
+        #     'name': 'fc_3',
+        #     'type': 'fc_n',
+        #     'shape': [540, 320],
+        #     'layer_index': 5,
+        # },
+        # {   # 8 * 8 * 40 => 320 与 pool_2 层全连接
+        #     'name': 'fc_2',
+        #     'type': 'fc_n',
+        #     'shape': [2560, 320],
+        #     'layer_index': 3,
+        # },
+        # {   # 18 * 18 * 20 => 320 与 pool_1 层全连接
+        #     'name': 'fc_1',
+        #     'type': 'fc_n',
+        #     'shape': [6480, 320],
+        #     'layer_index': 1,
+        # },
         {   # softmax 层
             'name': 'softmax',
             'type': 'fc',
-            'shape': [320, NUM_CLASSES],
+            'shape': [512, NUM_CLASSES],
             'activate': False,
         }
     ]
@@ -287,7 +284,7 @@ class DeepId(base.NN):
                     feed_dict[_size] = batch_y.shape[0]
                     train_accuracy = self.sess.run(accuracy, feed_dict)
 
-                    self.echo('\n epoch: %d \t net: %d \t loss: %.2f \t accuracy: %.2f \t \r ' % (epoch, i, train_loss, train_accuracy))
+                    self.echo('\n epoch: %d  net: %d  loss: %.6f  accuracy: %.6f \t ' % (epoch, i, train_loss, train_accuracy))
                     # self.add_summary_train(feed_dict, epoch)
 
         self.echo('\nFinish training ')
