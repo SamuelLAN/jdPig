@@ -176,6 +176,7 @@ class DeepId(base.NN):
             'type': 'fc',
             'W': VGG_MODEL['fc6'][0],
             'b': VGG_MODEL['fc6'][1],
+            'shape': VGG_MODEL['fc6'][0].shape,
             'trainable': True,
         },
         {
@@ -187,6 +188,7 @@ class DeepId(base.NN):
             'type': 'fc',
             'W': VGG_MODEL['fc7'][0],
             'b': VGG_MODEL['fc7'][1],
+            'shape': VGG_MODEL['fc7'][0].shape,
             'trainable': True,
         },
         {
@@ -198,6 +200,7 @@ class DeepId(base.NN):
             'type': 'fc',
             'W': VGG_MODEL['fc8'][0],
             'b': VGG_MODEL['fc8'][1],
+            'shape': VGG_MODEL['fc8'][0].shape,
             'trainable': True,
         },
         {
