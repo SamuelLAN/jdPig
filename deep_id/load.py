@@ -153,22 +153,24 @@ class Data:
 
         for i, file_name in enumerate(file_list):
             progress = float(i + 1) / file_len * 100
-            self.echo('\rprogress: %.2f%% \t' % progress, False)
+            self.echo('\r >> progress: %.2f%% \t' % progress, False)
 
             split_file_name = os.path.splitext(file_name)
-            if split_file_name[1].lower() != '.jpg' or 'pig' in split_file_name[0]:
+            no_list = split_file_name[0].split('_')
+
+            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) > 0:
                 continue
 
-            pig_file_path = os.path.join(self.DATA_ROOT, '%s_pig.jpg' % split_file_name[0])
-            file_path = os.path.join(self.DATA_ROOT, file_name)
+            pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))
+            pig_file_path = os.path.join(self.DATA_ROOT, file_name)
 
             if not os.path.isfile(pig_file_path):
                 continue
 
             np_pig = self.__add_padding(pig_file_path)
-            np_pig_bg = self.__add_padding(file_path)
+            np_pig_bg = self.__add_padding(pig_bg_file_path)
 
-            pig_no = int(split_file_name[0].split('_')[0]) - 1
+            pig_no = int(no_list[0]) - 1
             label = np.zeros([Data.NUM_CLASSES])
             label[pig_no] = 1
 

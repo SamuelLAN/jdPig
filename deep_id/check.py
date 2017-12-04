@@ -16,8 +16,26 @@ data_dir = r'data/TrainImgMore'
 
 ratio_list = []
 
-for file_name in os.listdir(data_dir):
-    if os.path.splitext(file_name)[1].lower() != '.jpg':
+
+def echo(msg, crlf=True):
+    if crlf:
+        print msg
+    else:
+        sys.stdout.write(msg)
+        sys.stdout.flush()
+
+echo('Loading data ...')
+file_list = os.listdir(data_dir)
+file_len = len(file_list)
+
+for i, file_name in enumerate(file_list):
+    progress = float(i + 1) / file_len * 100
+    echo('\r >> progress: %.2f%% \t' % progress, False)
+
+    split_file_name = os.path.splitext(file_name)
+    no_list = split_file_name[0].split('_')
+
+    if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) > 0:
         continue
 
     img_path = os.path.join(data_dir, file_name)
@@ -31,6 +49,8 @@ for file_name in os.listdir(data_dir):
     #     ratio_list.append( float(w) / h )
     # else:
     #     ratio_list.append( float(h) / w )
+
+echo('Finish loading')
 
 ratio_list = np.array(ratio_list)
 
