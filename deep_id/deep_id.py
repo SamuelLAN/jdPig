@@ -11,6 +11,7 @@ if cur_dir_path:
 
 import base
 import load
+import numpy as np
 import tensorflow as tf
 
 
@@ -253,6 +254,12 @@ class DeepId(base.NN):
                 train_op = self.__train_op_list[i]
                 loss = self.__loss_list[i]
 
+                batch_x = np.cast['float32'](batch_x)
+
+                print 'x_list_i'
+                print self.__x_list[i]
+                print 'i:'
+                print i
                 print 'batch_x.shape:'
                 print batch_x.shape
 
