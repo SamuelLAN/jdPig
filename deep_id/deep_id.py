@@ -25,7 +25,7 @@ class DeepId(base.NN):
     MODEL_NAME = 'deep_id'      # 模型的名称
 
     BATCH_SIZE = 10             # 迭代的 epoch 次数
-    EPOCH_TIMES = 100           # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 200           # 随机梯度下降的 batch 大小
 
     NUM_CLASSES = 30            # 总共分 NUM_CLASSES 类
     NUM_CHANNEL = 3             # 输入 channel
