@@ -41,12 +41,12 @@ class VGG:
         sys.stdout.flush()
 
 
-model = VGG.load()
-print model['conv5_3'][0].shape
-print model['conv5_3'][1].shape
-print model['fc6'][0].shape
-print model['fc6'][1].shape
-print model['fc7'][0].shape
-print model['fc7'][1].shape
-print model['fc8'][0].shape
-print model['fc8'][1].shape
+# model = VGG.load()
+# print model['conv5_3'][0].shape
+# print model['conv5_3'][1].shape
+# print model['fc6'][0].shape
+# print model['fc6'][1].shape
+# print model['fc7'][0].shape
+# print model['fc7'][1].shape
+# print model['fc8'][0].shape
+# print model['fc8'][1].shape
