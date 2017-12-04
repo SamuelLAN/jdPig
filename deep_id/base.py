@@ -627,7 +627,7 @@ class NN:
             # 池化层
             elif _type == 'pool':
                 with tf.name_scope(name):
-                    if not 'pool_type' or config['pool_type'] == 'max':
+                    if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
                         a = self.avg_pool(a, config['k_size'])
@@ -720,7 +720,7 @@ class NN:
             # 池化层
             elif _type == 'pool':
                 with tf.name_scope(name):
-                    if not 'pool_type' or config['pool_type'] == 'max':
+                    if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
                         a = self.avg_pool(a, config['k_size'])
