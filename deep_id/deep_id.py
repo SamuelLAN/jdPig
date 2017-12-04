@@ -288,7 +288,7 @@ class DeepId(base.NN):
                     train_accuracy = self.sess.run(accuracy, feed_dict)
 
                     self.echo('\n epoch: %d \t net: %d \t loss: %.2f \t accuracy: %.2f \t \r ' % (epoch, i, train_loss, train_accuracy))
-                    self.add_summary_train(feed_dict, epoch)
+                    # self.add_summary_train(feed_dict, epoch)
 
         self.echo('\nFinish training ')
 
