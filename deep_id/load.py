@@ -167,7 +167,7 @@ class Data:
             split_file_name = os.path.splitext(file_name)
             no_list = split_file_name[0].split('_')
 
-            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) > 0:
+            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) == 1:
                 continue
 
             pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))

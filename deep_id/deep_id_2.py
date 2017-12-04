@@ -207,6 +207,7 @@ class DeepId(base.NN):
             'name': 'softmax',
             'type': 'fc',
             'shape': [1000, NUM_CLASSES],
+            'activate': False,
         },
     ]
 
