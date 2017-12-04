@@ -214,9 +214,9 @@ class DeepId(base.NN):
     ''' 计算准确率 '''
     def __get_accuracy(self):
         with tf.name_scope('accuracy'):
-            labels = tf.arg_max(self.__label, 1)
+            labels = tf.argmax(self.__label, 1)
             for i in range(self.X_LIST_LEN):
-                predict = tf.arg_max(self.__output_list[i], 1)
+                predict = tf.argmax(self.__output_list[i], 1)
                 correct = tf.equal(labels, predict)
 
                 accuracy = tf.divide( tf.reduce_mean( tf.cast(correct, tf.float32) ), self.__size_list[i] )
@@ -280,8 +280,11 @@ class DeepId(base.NN):
 
                 if step % self.__iter_per_epoch == 0 and step != 0:
                     accuracy = self.__accuracy_list[i]
+                    _size = self.__size_list[i]
+
                     epoch = int(step // self.__iter_per_epoch)
 
+                    feed_dict[_size] = batch_y.shape[0]
                     train_accuracy = self.sess.run(accuracy, feed_dict)
 
                     self.echo('\n epoch: %d \t net: %d \t loss: %.2f \t accuracy: %.2f \t \r ' % (epoch, i, train_loss, train_accuracy))
