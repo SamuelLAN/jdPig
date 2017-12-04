@@ -192,14 +192,14 @@ class Data:
         h, w, c = np_image.shape
 
         if ratio > Data.RATIO:
-            new_h = float(w) / Data.RATIO
+            new_h = int(float(w) / Data.RATIO)
             padding = int((new_h - h) / 2.0)
 
             np_new_image = np.zeros([new_h, w, c])
             np_new_image[padding: padding + h, :, :] = np_image
 
         else:
-            new_w = float(h) * Data.RATIO
+            new_w = int(float(h) * Data.RATIO)
             padding = int((new_w - w) / 2.0)
 
             np_new_image = np.zeros([h, new_w, c])
