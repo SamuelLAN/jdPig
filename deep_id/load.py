@@ -220,7 +220,7 @@ class Data:
 
     @staticmethod
     def __resize_np_img(np_image):
-        return np.array( Image.fromarray(np_image).resize( Data.RESIZE ) )
+        return np.array( Image.fromarray(np_image).resize( Data.RESIZE ), dtype=np.float32 )
 
     
     @staticmethod
