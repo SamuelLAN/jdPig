@@ -230,26 +230,34 @@ class NN:
         model_path = self.get_model_path() + '.pkl'
         self.echo('Saving model to %s ...' % model_path)
 
-        w_list = []
-        for i, w in enumerate(self.WList):
-            if type(w) == type(None):
-                w_list.append(None)
-                continue
-            name = w.name.split(':')[0]
-            w_value = self.sess.run(w)
-            w_list.append([name, w_value])
+        w_all_list = []
+        for i, _w_list in enumerate(self.WList):
+            w_one_list = []
+            for j, w in enumerate(_w_list):
+                if type(w) == type(None):
+                    _w_list.append(None)
+                    continue
+                name = w.name.split(':')[0]
+                w_value = self.sess.run(w)
+                w_one_list.append([name, w_value])
 
-        b_list = []
-        for i, b in enumerate(self.bList):
-            if type(b) == type(None):
-                b_list.append(None)
-                continue
-            name = b.name.split(':')[0]
-            b_value = self.sess.run(b)
-            b_list.append([name, b_value])
+            w_all_list.append(w_one_list)
+
+        b_all_list = []
+        for i, _b_list in enumerate(self.bList):
+            b_one_list = []
+            for j, b in enumerate(_b_list):
+                if type(b) == type(None):
+                    _b_list.append(None)
+                    continue
+                name = b.name.split(':')[0]
+                b_value = self.sess.run(b)
+                b_one_list.append([name, b_value])
+
+            b_all_list.append(b_one_list)
 
         with open(model_path, 'wb') as f:
-            pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump([w_all_list, b_all_list], f, pickle.HIGHEST_PROTOCOL)
 
         self.echo('Finish saving model ')
 
@@ -259,24 +267,30 @@ class NN:
 
         self.echo('Restoring from %s ...' % model_path)
         with open(model_path, 'rb') as f:
-            w_list, b_list = pickle.load(f)
+            w_all_list, b_all_list = pickle.load(f)
 
         self.WList = []
         self.bList = []
 
-        for i, w_val in enumerate(w_list):
-            if type(w_val) == type(None):
-                self.WList.append(None)
-                continue
-            name, w_value = w_val
-            self.WList.append( tf.Variable(w_value, trainable=False, name=name) )
+        for i, w_one_list in enumerate(w_all_list):
+            w_list = []
+            for j, w_val in enumerate(w_one_list):
+                if type(w_val) == type(None):
+                    w_list.append(None)
+                    continue
+                name, w_value = w_val
+                w_list.append(tf.Variable(w_value, trainable=False, name=name))
+            self.WList.append(w_list)
 
-        for i, b_val in enumerate(b_list):
-            if type(b_val) == type(None):
-                self.bList.append(None)
-                continue
-            name, b_value = b_val
-            self.bList.append( tf.Variable(b_value, trainable=False, name=name) )
+        for i, b_one_list in enumerate(b_all_list):
+            b_list = []
+            for j, b_val in enumerate(b_one_list):
+                if type(b_val) == type(None):
+                    b_list.append(None)
+                    continue
+                name, b_value = b_val
+                b_list.append(tf.Variable(b_value, trainable=False, name=name))
+            self.bList.append(b_list)
 
         self.echo('Finish restoring ')
 
@@ -555,49 +569,51 @@ class NN:
             }
              
     '''
-    def deep_model(self, X, dropout = None, is_train = True):
-        if is_train:
-            for i, config in enumerate(self.MODEL):
-                _type = config['type'].lower()
-                name = '%s_%d' % (_type, i + 1) if 'name' not in config else config['name']
+    def deep_model(self, X, dropout = None):
+        w_list = []
+        b_list = []
+        net = []
 
-                # 卷积层
-                if _type == 'conv':
-                    with tf.name_scope(name):
-                        trainable = True if 'trainable' not in config or config['trainable'] else False
-                        W = self.init_weight(config['k_size'] + config['shape']) \
-                            if not 'W' in config else self.init_weight_w(config['W'], trainable)
-                        b = self.init_bias(config['shape']) \
-                            if not 'b' in config else self.init_bias_b(config['b'], trainable)
-                        self.WList.append(W)
-                        self.bList.append(b)
+        for i, config in enumerate(self.MODEL):
+            _type = config['type'].lower()
+            name = '%s_%d' % (_type, i + 1) if 'name' not in config else config['name']
 
-                # 反卷积层 (上采样 transpose conv)
-                elif _type == 'tr_conv':
-                    with tf.name_scope(name):
-                        trainable = True if 'trainable' not in config or config['trainable'] else False
-                        W = self.init_weight(config['k_size'] + config['shape']) \
-                            if not 'W' in config else self.init_weight_w(config['W'], trainable)
-                        b = self.init_bias(config['shape'][:-2] + [config['shape'][-1], config['shape'][-2]]) \
-                            if not 'b' in config else self.init_bias_b(config['b'], trainable)
-                        self.WList.append(W)
-                        self.bList.append(b)
+            # 卷积层
+            if _type == 'conv':
+                with tf.name_scope(name):
+                    trainable = True if 'trainable' not in config or config['trainable'] else False
+                    W = self.init_weight(config['k_size'] + config['shape']) \
+                        if not 'W' in config else self.init_weight_w(config['W'], trainable)
+                    b = self.init_bias(config['shape']) \
+                        if not 'b' in config else self.init_bias_b(config['b'], trainable)
+                    w_list.append(W)
+                    b_list.append(b)
 
-                # 全连接层
-                elif _type == 'fc' or _type == 'fc_n':
-                    with tf.name_scope(name):
-                        W = self.init_weight(config['shape'])
-                        b = self.init_bias(config['shape'])
-                        self.WList.append(W)
-                        self.bList.append(b)
+            # 反卷积层 (上采样 transpose conv)
+            elif _type == 'tr_conv':
+                with tf.name_scope(name):
+                    trainable = True if 'trainable' not in config or config['trainable'] else False
+                    W = self.init_weight(config['k_size'] + config['shape']) \
+                        if not 'W' in config else self.init_weight_w(config['W'], trainable)
+                    b = self.init_bias(config['shape'][:-2] + [config['shape'][-1], config['shape'][-2]]) \
+                        if not 'b' in config else self.init_bias_b(config['b'], trainable)
+                    w_list.append(W)
+                    b_list.append(b)
 
-                else:
-                    self.WList.append(None)
-                    self.bList.append(None)
+            # 全连接层
+            elif _type == 'fc' or _type == 'fc_n':
+                with tf.name_scope(name):
+                    W = self.init_weight(config['shape'])
+                    b = self.init_bias(config['shape'])
+                    w_list.append(W)
+                    b_list.append(b)
+
+            else:
+                w_list.append(None)
+                b_list.append(None)
 
         a = X
-        if is_train:    # 将图像输出到 TensorBoard
-            self.image_summary(a, 1, 'input', 1)
+        self.image_summary(a, 1, 'input', 1)
 
         self.echo('\nStart building model ...')
 
@@ -614,15 +630,15 @@ class NN:
                         padding = 'SAME'
                     else:
                         padding = 'VALID'
-                    a = self.conv2d_bias(a, self.WList[i], self.bList[i], padding)
+                    a = self.conv2d_bias(a, w_list[i], b_list[i], padding)
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
                         # 将 a 输入到 tensorboard 中观察
                         # self.activation_summary(a)
 
-                    if is_train:    # 将前 3 个节点的图像输出到 TensorBoard
-                        self.image_summary(a, 3, _type, i)
+                    # 将前 3 个节点的图像输出到 TensorBoard
+                    self.image_summary(a, 3, _type, i)
 
             # 池化层
             elif _type == 'pool':
@@ -632,14 +648,14 @@ class NN:
                     else:
                         a = self.avg_pool(a, config['k_size'])
 
-                    if is_train:    # 将前 3 个节点的图像输出到 TensorBoard
-                        self.image_summary(a, 3, _type, i)
+                    # 将前 3 个节点的图像输出到 TensorBoard
+                    self.image_summary(a, 3, _type, i)
 
             # 全连接层
             elif _type == 'fc':
                 with tf.name_scope(name):
                     x = tf.reshape(a, [-1, config['shape'][0]])
-                    a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
+                    a = tf.add(tf.matmul(x, w_list[i]), b_list[i])
 
                     if ('activate' not in config and i < model_len - 1) or config['activate']:
                         a = self.activate(a)
@@ -647,8 +663,8 @@ class NN:
             # 与第 n 层全连接
             elif _type == 'fc_n':
                 with tf.name_scope(name):
-                    x = tf.reshape( self.net[config['layer_index']], [-1, config['shape'][0]] )
-                    a_n = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
+                    x = tf.reshape( net[config['layer_index']], [-1, config['shape'][0]] )
+                    a_n = tf.add(tf.matmul(x, w_list[i]), b_list[i])
 
                     if ('activate' not in config and i < model_len - 1) or config['activate']:
                         a_n = self.activate(a_n)
@@ -666,7 +682,7 @@ class NN:
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
-                        output_shape = tf.shape( self.net[ config['output_shape_index'] ] )
+                        output_shape = tf.shape( net[ config['output_shape_index'] ] )
                     elif 'output_shape_x' in config:
                         output_shape = tf.shape(X)
                         for j, val_j in enumerate(config['output_shape_x']):
@@ -680,14 +696,18 @@ class NN:
                         output_shape = None
 
                     stride = config['stride'] if 'stride' in config else 2
-                    a = self.conv2d_transpose_stride(a, self.WList[i], self.bList[i], output_shape, stride)
+                    a = self.conv2d_transpose_stride(a, w_list[i], b_list[i], output_shape, stride)
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
                 with tf.name_scope(name):
-                    a = tf.add(a, self.net[config['layer_index']])
+                    a = tf.add(a, net[config['layer_index']])
 
-            self.net.append(a)
+            net.append(a)
+
+        self.WList.append(w_list)
+        self.bList.append(b_list)
+        self.net.append(net)
 
         self.echo('Finish building model')
 
@@ -695,9 +715,8 @@ class NN:
 
 
     ''' 在已有 WList 以及 bList 的前提下 rebulid model '''
-    def deep_model_rebuild(self, X):
+    def deep_model_rebuild(self, X, w_list, b_list, net = []):
         self.echo('\nStart rebuilding model ...')
-        self.net = []
         a = X
 
         model_len = len(self.MODEL)
@@ -713,7 +732,7 @@ class NN:
                         padding = 'SAME'
                     else:
                         padding = 'VALID'
-                    a = self.conv2d_bias(a, self.WList[i], self.bList[i], padding)
+                    a = self.conv2d_bias(a, w_list[i], b_list[i], padding)
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
@@ -729,7 +748,7 @@ class NN:
             elif _type == 'fc':
                 with tf.name_scope(name):
                     x = tf.reshape(a, [-1, config['shape'][0]])
-                    a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
+                    a = tf.add(tf.matmul(x, w_list[i]), b_list[i])
 
                     if ('activate' not in config and i < model_len - 1) or config['activate']:
                         a = self.activate(a)
@@ -737,8 +756,8 @@ class NN:
             # 与第 n 层全连接
             elif _type == 'fc_n':
                 with tf.name_scope(name):
-                    x = tf.reshape(self.net[config['layer_index']], [-1, config['shape'][0]])
-                    a_n = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
+                    x = tf.reshape(net[config['layer_index']], [-1, config['shape'][0]])
+                    a_n = tf.add(tf.matmul(x, w_list[i]), b_list[i])
 
                     if ('activate' not in config and i < model_len - 1) or config['activate']:
                         a_n = self.activate(a_n)
@@ -751,7 +770,7 @@ class NN:
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
-                        output_shape = tf.shape( self.net[ config['output_shape_index'] ] )
+                        output_shape = tf.shape( net[ config['output_shape_index'] ] )
                     elif 'output_shape_x' in config:
                         output_shape = tf.shape(X)
                         for j, val_j in enumerate(config['output_shape_x']):
@@ -765,14 +784,14 @@ class NN:
                         output_shape = None
 
                     stride = config['stride'] if 'stride' in config else 2
-                    a = self.conv2d_transpose_stride(a, self.WList[i], self.bList[i], output_shape, stride)
+                    a = self.conv2d_transpose_stride(a, w_list[i], b_list[i], output_shape, stride)
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
                 with tf.name_scope(name):
-                    a = tf.add(a, self.net[config['layer_index']])
+                    a = tf.add(a, net[config['layer_index']])
 
-            self.net.append(a)
+            net.append(a)
 
         self.echo('Finish building model')
 
@@ -843,10 +862,11 @@ class NN:
     # ************************* 防止 overfitting 的 trick *************************
 
     ''' 正则化，默认采用 l2_loss 正则化 '''
-    def regularize(self, loss, beta):
+    def regularize(self, loss, beta, net_index):
+        w_list = self.WList[net_index]
         with tf.name_scope('regularize'):
             regularizer = 0.0
-            for W in self.WList:
+            for W in w_list:
                 if not W or len(W.shape) != 2:  # 若不是全连接层的权重矩阵，则不进行正则化
                     continue
                 regularizer = tf.add(regularizer, tf.nn.l2_loss(W))
