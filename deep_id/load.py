@@ -113,8 +113,8 @@ class Download:
 
 class Data:
     DATA_ROOT = r'data/TrainImgMore'
-    RESIZE = [39, 39]
-    RATIO = 39.0 / 39.0
+    RESIZE = [224, 224]
+    RATIO = 1.0
     NUM_CLASSES = 30
 
     def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = '', sort_list = []):
