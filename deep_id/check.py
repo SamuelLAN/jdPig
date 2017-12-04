@@ -40,4 +40,6 @@ print 'max:'
 print max(ratio_list)
 print 'min'
 print min(ratio_list)
+print 'std'
+print np.std(ratio_list)
 
