@@ -245,6 +245,8 @@ class DeepId(base.NN):
         # 正则化
         # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
+        self.__get_accuracy()
+
         # 生成训练的 op
         self.__get_train_op_list()
 
