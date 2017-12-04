@@ -114,7 +114,7 @@ class Download:
 
 
 class Data:
-    DATA_ROOT = r'data/TrainImg'
+    DATA_ROOT = r'data/TrainImgMore'
     RESIZE = [55, 31]
     RATIO = 55.0 / 31.0
     NUM_CLASSES = 30
@@ -169,8 +169,8 @@ class Data:
             np_pig_bg = self.__add_padding(file_path)
 
             pig_no = int(split_file_name[0].split('_')[0]) - 1
-            label = np.zeros([1, Data.NUM_CLASSES])
-            label[0, pig_no] = 1
+            label = np.zeros([Data.NUM_CLASSES])
+            label[pig_no] = 1
 
             self.__data.append([split_file_name[0], np_pig, np_pig_bg, label])
 

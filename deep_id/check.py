@@ -12,7 +12,7 @@ if cur_dir_path:
 from PIL import Image
 import numpy as np
 
-data_dir = r'data/TrainImg'
+data_dir = r'data/TrainImgMore'
 
 ratio_list = []
 
