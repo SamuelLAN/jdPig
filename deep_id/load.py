@@ -27,7 +27,7 @@ class Download:
     @staticmethod
     def __changDir():
         cur_dir_path = os.path.split(__file__)[0]
-        if cur_dir_path:
+        if cur_dir_path and os.path.abspath( os.path.curdir ) != os.path.abspath(cur_dir_path):
             os.chdir(cur_dir_path)
             sys.path.append(cur_dir_path)
 
@@ -149,7 +149,7 @@ class Data:
     def __chang_dir():
         # 将运行路径切换到当前文件所在路径
         cur_dir_path = os.path.split(__file__)[0]
-        if cur_dir_path:
+        if cur_dir_path and os.path.abspath(os.path.curdir) != os.path.abspath(cur_dir_path):
             os.chdir(cur_dir_path)
             sys.path.append(cur_dir_path)
 
@@ -347,40 +347,23 @@ class Data:
 
 # Download.run()
 
-train_data = Data(0.0, 0.64, 'train')
-
-batch_x_list , batch_y = train_data.next_batch(4)
-
-print '********************************'
-print train_data.get_size()
-print batch_x_list.shape
-print batch_y.shape
-
-print 'y 0:'
-print batch_y[0]
-
-tmp_x_list = batch_x_list[0]
-
-print 'tmp_x_list'
-for i, x in enumerate(tmp_x_list):
-    print i
-    print x.shape
-    # o_tmp = Image.fromarray(x)
-    # o_tmp.show()
-
-batch_x_list , batch_y = train_data.next_batch(4)
-
-print '\n********************************'
-print train_data.get_size()
-print batch_x_list.shape
-print batch_y.shape
-
-print 'y 0:'
-print batch_y[0]
-
-tmp_x_list = batch_x_list[0]
-
-print 'tmp_x_list'
-for i, x in enumerate(tmp_x_list):
-    print i
-    print x.shape
+# train_data = Data(0.0, 0.64, 'train')
+#
+# batch_x_list , batch_y = train_data.next_batch(4)
+#
+# print '********************************'
+# print train_data.get_size()
+# print batch_x_list.shape
+# print batch_y.shape
+#
+# print 'y 0:'
+# print batch_y[0]
+#
+# tmp_x_list = batch_x_list[0]
+#
+# print 'tmp_x_list'
+# for i, x in enumerate(tmp_x_list):
+#     print i
+#     print x.shape
+#     # o_tmp = Image.fromarray(x)
+#     # o_tmp.show()

@@ -15,31 +15,35 @@ import tensorflow as tf
 
 
 '''
+    DeepID
+    
     原图
     框猪图(带背景)
-    
-    
-    
-    padding 
-    55 * 31
 '''
 class DeepId(base.NN):
     MODEL_NAME = 'deep_id'      # 模型的名称
 
-    BATCH_SIZE = 4              # 迭代的 epoch 次数
+    BATCH_SIZE = 10             # 迭代的 epoch 次数
     EPOCH_TIMES = 100           # 随机梯度下降的 batch 大小
 
-    IMAGE_SHAPE = [39, 39]
+    NUM_CLASSES = 30            # 总共分 NUM_CLASSES 类
+    NUM_CHANNEL = 3             # 输入 channel
 
-    NUM_CLASSES = 30
-    NUM_CHANNEL = 3
+    IMAGE_SHAPE = [39, 39]      # 输入图片的大小
+    IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]    # image 的 placeholder 的 shape
+
+    X_LIST_LEN = 6              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
 
     BASE_LEARNING_RATE = 0.01   # 初始 学习率
     DECAY_RATE = 0.1            # 学习率 的 下降速率
 
+    KEEP_PROB = 0.85            # dropout 的 keep_prob
+
     DEEP_ID_LAYER_INDEX = -2    # 倒数第二层为 deep_id 层
 
-    SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
+    SHOW_PROGRESS_FREQUENCY = 2         # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
+
+    MAX_VAL_ACCURACY_INCR_TIMES = 20    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     MODEL = [
         {   # 39 * 39 => 36 * 36
@@ -125,67 +129,88 @@ class DeepId(base.NN):
         self.__iter_per_epoch = int(self.__train_size // self.BATCH_SIZE)
         self.__steps = self.EPOCH_TIMES * self.__iter_per_epoch
 
-        # 输入 与 label
-        self.__image = tf.placeholder(tf.float32, [None, self.IMAGE_SHAPE[0], self.IMAGE_SHAPE[1],
-                                                   self.NUM_CHANNEL], name='X')
+        # 初始化变量
+        self.__x_list = []
+        self.__output_list = []
+        self.__loss_list = []
+        self.__train_op_list = []
+        self.__learning_rate_list = []
+        self.__global_step_list = []
+
+        for i in range(self.X_LIST_LEN):
+            # 输入
+            self.__x_list.append( tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X_%d' % i) )
+            
+            # 记录训练 step
+            global_step = self.get_global_step()
+            self.__global_step_list.append( global_step )
+
+            # 随训练次数增多而衰减的学习率
+            self.__learning_rate_list.append( self.get_learning_rate(
+                self.BASE_LEARNING_RATE, global_step, self.__steps, self.DECAY_RATE, staircase=False
+            ) )
+
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
         # dropout 的 keep_prob
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-
-        # 随训练次数增多而衰减的学习率
-        self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
-        )
 
         self.__has_rebuild = False
 
 
     ''' 加载数据 '''
     def load(self):
-        pass
-        # sort_list = load.Data.get_sort_list()
-        # self.__train_set = load.Data(0.0, 0.9, 'train', sort_list)
-        # self.__val_set = load.Data(0.9, 1.0, 'validation', sort_list)
-        # # self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
-        #
-        # self.__train_size = self.__train_set.get_size()
+        sort_list = load.Data.get_sort_list()
+        self.__train_set = load.Data(0.0, 0.64, 'train', sort_list)
+        # self.__val_set = load.Data(0.64, 0.8, 'validation', sort_list)
+        # self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
+
+        self.__train_size = self.__train_set.get_size()
         # self.__val_size = self.__val_set.get_size()
-        # # self.__test_size = self.__test_set.get_size()
+        # self.__test_size = self.__test_set.get_size()
 
 
     ''' 模型 '''
     def model(self):
-        self.__output = self.deep_model(self.__image, self.__keep_prob)
+        for i in range(self.X_LIST_LEN):
+            self.__output_list.append( self.deep_model(self.__x_list[i], self.__keep_prob) )
 
 
     ''' 重建模型 '''
     def rebuild_model(self):
-        self.__output = self.deep_model_rebuild(self.__image)
+        self.__output_list = []
+        self.__loss_list = []
+        
+        for i in range(self.X_LIST_LEN):
+            self.__output_list.append( self.deep_model_rebuild(self.__x_list[i]) )
 
 
     ''' 计算 loss '''
     def get_loss(self):
         with tf.name_scope('loss'):
-            self.__loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(logits=self.__output, labels=self.__label, name='entropy')
-            )
+            for i in range(self.X_LIST_LEN):
+                loss = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(logits=self.__output_list[i], labels=self.__label), 
+                    name='entropy'
+                )
+                self.__loss_list.append(loss)
+                tf.summary.scalar('loss_%d' % i, loss)  # 记录 loss 到 tensorboard
 
 
-    ''' 获取 train_op '''
-    def get_train_op(self, loss, learning_rate, global_step):
-        tf.summary.scalar('loss', loss)
-
+    ''' 获取 train_op list '''
+    def __get_train_op_list(self):
         with tf.name_scope('optimizer'):
-            optimizer = tf.train.AdamOptimizer(learning_rate)
-            return optimizer.minimize(loss, global_step=global_step)
+            for i in range(self.X_LIST_LEN):
+                optimizer = tf.train.AdamOptimizer(self.__learning_rate_list[i])
+                self.__train_op_list.append( optimizer.minimize(self.__loss_list[i], 
+                                                                global_step=self.__global_step_list[i]) )
 
 
-    ''' 将图片输出到 tensorboard '''
-    def __summary(self):
-        with tf.name_scope('summary'):
-            # 记录 loss 到 tensorboard
-            self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
-            tf.summary.scalar('mean_loss', self.__loss_placeholder)
+    # ''' 将图片输出到 tensorboard '''
+    # def __summary(self):
+    #     with tf.name_scope('summary'):
+    #         # 记录 loss 到 tensorboard
+    #         self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
+    #         tf.summary.scalar('mean_loss', self.__loss_placeholder)
 
 
     ''' 主函数 '''
@@ -200,7 +225,7 @@ class DeepId(base.NN):
         # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
         # 生成训练的 op
-        train_op = self.get_train_op(self.__loss, self.__learning_rate, self.global_step)
+        self.__get_train_op_list()
 
         # # tensorboard 相关记录
         # self.__summary()
@@ -211,7 +236,7 @@ class DeepId(base.NN):
         # TensorBoard merge summary
         self.merge_summary()
 
-        self.echo('\nepoch:')
+        self.echo('\nStart training ... \nepoch:')
 
         for step in range(self.__steps):
             if step % self.SHOW_PROGRESS_FREQUENCY == 0:
@@ -220,4 +245,25 @@ class DeepId(base.NN):
                 self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
                                                                        self.__steps, step_progress), False)
 
+            batch_x_list, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
+            for i in range(self.X_LIST_LEN):
+                batch_x = batch_x_list[i]
+                train_op = self.__train_op_list[i]
+                loss = self.__loss_list[i]
+
+                feed_dict = {self.__x_list[i]: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
+                _, train_loss = self.sess.run([train_op, loss], feed_dict)
+
+                if step % self.__iter_per_epoch == 0 and step != 0:
+                    epoch = int(step // self.__iter_per_epoch)
+
+                    self.echo('\n epoch: %d \t net: %d \t loss: %d \r ' % (epoch, i, train_loss))
+
+        self.echo('\nFinish training ')
+
+        self.close_summary()  # 关闭 TensorBoard
+
+
+o_deep_id = DeepId()
+o_deep_id.run()
