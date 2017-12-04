@@ -4,10 +4,10 @@ import os
 import sys
 
 # import copy
-# import random
+import random
 import zipfile
-# import numpy as np
-# from PIL import Image
+import numpy as np
+from PIL import Image
 from six.moves.urllib.request import urlretrieve
 
 
@@ -112,216 +112,218 @@ class Download:
         print 'done'
 
 
-# '''
-#  Data: 取数据到基类
-#  对外提供接口:
-#     get_size()
-#     next_batch()
-# '''
-# class Data:
-#     DATA_ROOT = r'data'
-#     IMAGE_SCALE = 2
-#     RESIZE_SIZE = [640, 360]
-#
-#     def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = '', sort_list = []):
-#         # 初始化变量
-#         self.__name = name
-#         self.__data = []
-#         self.__data_dict = {}
-#         self.__data_list = []
-#         self.__y = {}
-#         self.__total_size = 0
-#
-#         self.__sort_list = sort_list
-#
-#         # 加载全部数据
-#         self.__load()
-#         self.__data_len = len(self.__data_list)
-#
-#         # 检查输入参数
-#         start_ratio = min(max(0.0, start_ratio), 1.0)
-#         end_ratio = min(max(0.0, end_ratio), 1.0)
-#
-#         # 根据比例计算数据的位置范围
-#         start_index = int(self.__data_len * start_ratio)
-#         end_index = int(self.__data_len * end_ratio)
-#
-#         # 根据数据的位置范围 取数据
-#         self.__data_list = self.__data_list[start_index: end_index]
-#
-#         for (img_no, data_list) in self.__data_list:
-#             for data in data_list:
-#                 self.__data.append(data)
-#
-#         self.__data_len = len(self.__data)
-#         random.shuffle(self.__data)
-#
-#         self.__cur_index = 0
-#
-#
-#     ''' 加载数据 '''
-#     def __load(self):
-#         self.echo('Loading %s data ...' % self.__name)
-#         file_list = os.listdir(self.DATA_ROOT)
-#         file_len = len(file_list)
-#
-#         for i, file_name in enumerate(file_list):
-#             progress = float(i) / file_len * 100
-#             self.echo('\rprogress: %.2f%% \t' % progress, False)
-#
-#             if os.path.splitext(file_name)[1].lower() != '.jpg':
-#                 continue
-#
-#             if 'mask' in file_name and file_name not in self.__y:
-#                 self.__y[file_name] = self.__get_mask(file_name)
-#
-#             if 'mask' not in file_name:
-#                 img_no = file_name.split('_')[0]
-#                 y_file_name = img_no + '_mask.jpg'
-#
-#                 if y_file_name not in self.__y:
-#                     self.__y[y_file_name] = self.__get_mask(y_file_name)
-#
-#                 image = Image.open(os.path.join(self.DATA_ROOT, file_name))
-#                 # np_image = np.array(image.resize( np.array(image.size) / Data.IMAGE_SCALE ))
-#                 np_image = np.array(image.resize( np.array(Data.RESIZE_SIZE) ))
-#                 # self.__data.append([image, self.__y[y_file_name]])
-#
-#                 self.__total_size += 1
-#
-#                 if img_no not in self.__data_dict:
-#                     self.__data_dict[img_no] = []
-#                 self.__data_dict[img_no].append([np_image, self.__get_same_size_mask(image, y_file_name)])
-#
-#         for img_no, data_list in self.__data_dict.iteritems():
-#             self.__data_list.append([int(img_no), data_list])
-#         self.__data_list.sort(self.__sort) # 按顺序排列
-#
-#         self.echo('\nFinish Loading\n')
-#
-#
-#     def __sort(self, a, b):
-#         if self.__sort_list:
-#             index_a = self.__sort_list.index(a[0])
-#             index_b = self.__sort_list.index(b[0])
-#             if index_a < index_b:
-#                 return -1
-#             elif index_a > index_b:
-#                 return 1
-#             else:
-#                 return 0
-#
-#         if a[0] < b[0]:
-#             return -1
-#         elif a[0] > b[0]:
-#             return 1
-#         else:
-#             return 0
-#
-#
-#     ''' 将 mask 图转为 0 1 像素 '''
-#     @staticmethod
-#     def __get_mask(file_name):
-#         mask = Image.open(os.path.join(Data.DATA_ROOT, file_name)).convert('L')
-#         return mask
-#
-#
-#     ''' 获取跟 image 相同 size 的 mask '''
-#     def __get_same_size_mask(self, image, y_file_name):
-#         mask = self.__y[y_file_name]
-#         # mask = np.array( mask.resize( np.array(image.size) / Data.IMAGE_SCALE ) )
-#         mask = np.array( mask.resize( np.array(Data.RESIZE_SIZE) ) )
-#
-#         background = copy.deepcopy(mask)
-#         background[background != 255] = 0
-#         background[background == 255] = 1
-#
-#         mask[mask == 255] = 0
-#         mask[mask > 0] = 1
-#         return np.array([background, mask]).transpose([1, 2, 0])
-#
-#
-#     ''' 获取下个 batch '''
-#     def next_batch(self, batch_size, loop = True):
-#         if not loop and self.__cur_index >= self.__data_len:
-#             return None, None
-#
-#         start_index = self.__cur_index
-#         end_index = self.__cur_index + batch_size
-#         left_num = 0
-#
-#         if end_index >= self.__data_len:
-#             left_num = end_index - self.__data_len
-#             end_index = self.__data_len
-#
-#         X, y = zip(*self.__data[start_index: end_index])
-#
-#         if not loop:
-#             self.__cur_index = end_index
-#             return np.array(X), np.array(y)
-#
-#         if not left_num:
-#             self.__cur_index = end_index if end_index < self.__data_len else 0
-#             return np.array(X), np.array(y)
-#
-#         while left_num:
-#             end_index = left_num
-#             if end_index > self.__data_len:
-#                 left_num = end_index - self.__data_len
-#                 end_index = self.__data_len
-#             else:
-#                 left_num = 0
-#
-#             left_x, left_y = zip(*self.__data[: end_index])
-#             X += left_x
-#             y += left_y
-#
-#         self.__cur_index = end_index if end_index < self.__data_len else 0
-#         return np.array(X), np.array(y)
-#
-#
-#     ''' 获取数据集大小 '''
-#     def get_size(self):
-#         return self.__data_len
-#
-#
-#     ''' 重置当前 index 位置 '''
-#     def reset_cur_index(self):
-#         self.__cur_index = 0
-#
-#
-#     ''' 输出展示 '''
-#     @staticmethod
-#     def echo(msg, crlf=True):
-#         if crlf:
-#             print msg
-#         else:
-#             sys.stdout.write(msg)
-#             sys.stdout.flush()
-#
-#
-#     @staticmethod
-#     def get_sort_list():
-#         img_no_set = set()
-#         for i, file_name in enumerate(os.listdir(Data.DATA_ROOT)):
-#             if os.path.splitext(file_name)[1].lower() != '.jpg':
-#                 continue
-#
-#             img_no = int(file_name.split('_')[0])
-#             img_no_set.add(img_no)
-#
-#         img_no_list = list(img_no_set)
-#         random.shuffle(img_no_list)
-#         return img_no_list
+
+class Data:
+    DATA_ROOT = r'data/TrainImg'
+    RESIZE = [55, 31]
+    RATIO = 55.0 / 31.0
+    NUM_CLASSES = 30
+
+    def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = '', sort_list = []):
+        # 初始化变量
+        self.__name = name
+        self.__data = []
+        self.__sort_list = sort_list
+
+        # 加载全部数据
+        self.__load()
+        self.__data_len = len(self.__data)
+
+        # 检查输入参数
+        start_ratio = min(max(0.0, start_ratio), 1.0)
+        end_ratio = min(max(0.0, end_ratio), 1.0)
+
+        # 根据比例计算数据的位置范围
+        start_index = int(self.__data_len * start_ratio)
+        end_index = int(self.__data_len * end_ratio)
+
+        # 根据数据的位置范围 取数据
+        self.__data = self.__data[start_index: end_index]
+        self.__data_len = len(self.__data)
+        random.shuffle(self.__data)
+
+        self.__cur_index = 0
+
+
+    ''' 加载数据 '''
+    def __load(self):
+        self.echo('Loading %s data ...' % self.__name)
+        file_list = os.listdir(self.DATA_ROOT)
+        file_len = len(file_list)
+
+        for i, file_name in enumerate(file_list):
+            progress = float(i + 1) / file_len * 100
+            self.echo('\rprogress: %.2f%% \t' % progress, False)
+
+            split_file_name = os.path.splitext(file_name)
+            if split_file_name[1].lower() != '.jpg' or 'pig' in split_file_name[0]:
+                continue
+
+            pig_file_path = os.path.join(self.DATA_ROOT, '%s_pig.jpg' % split_file_name[0])
+            file_path = os.path.join(self.DATA_ROOT, file_name)
+
+            if not os.path.isfile(pig_file_path):
+                continue
+
+            np_pig = self.__add_padding(pig_file_path)
+            np_pig_bg = self.__add_padding(file_path)
+
+            pig_no = int(split_file_name[0].split('_')[0]) - 1
+            label = np.zeros([1, Data.NUM_CLASSES])
+            label[0, pig_no] = 1
+
+            self.__data.append([split_file_name[0], np_pig, np_pig_bg, label])
+
+        self.__data.sort(self.__sort)
+
+        self.echo('\nFinish Loading\n')
+
+    
+    @staticmethod
+    def __add_padding(img_path):
+        image = Image.open(img_path)
+        w, h = image.size
+        ratio = float(w) / h
+
+        if abs(ratio - Data.RATIO) <= 0.1:
+            return np.array( image.resize( Data.RESIZE ) )
+
+        np_image = np.array(image)
+        h, w, c = np_image.shape
+
+        if ratio > Data.RATIO:
+            new_h = float(w) / Data.RATIO
+            padding = int((new_h - h) / 2.0)
+
+            np_new_image = np.zeros([new_h, w, c])
+            np_new_image[padding: padding + h, :, :] = np_image
+
+        else:
+            new_w = float(h) * Data.RATIO
+            padding = int((new_w - w) / 2.0)
+
+            np_new_image = np.zeros([h, new_w, c])
+            np_new_image[:, padding: padding + w, :] = np_image
+
+        new_image = Image.fromarray( np.cast['uint8'](np_new_image) )
+        return np.array( new_image.resize( Data.RESIZE ) )
+
+
+    def __sort(self, a, b):
+        if self.__sort_list:
+            index_a = self.__sort_list.index(a[0])
+            index_b = self.__sort_list.index(b[0])
+            if index_a < index_b:
+                return -1
+            elif index_a > index_b:
+                return 1
+            else:
+                return 0
+
+        if a[0] < b[0]:
+            return -1
+        elif a[0] > b[0]:
+            return 1
+        else:
+            return 0
+
+
+    @staticmethod
+    def get_sort_list():
+        img_no_set = set()
+        for i, file_name in enumerate(os.listdir(Data.DATA_ROOT)):
+            split_file_name = os.path.splitext(file_name)
+            if split_file_name[1].lower() != '.jpg' or 'pig' in split_file_name[0]:
+                continue
+
+            img_no_set.add(split_file_name[0])
+
+        img_no_list = list(img_no_set)
+        random.shuffle(img_no_list)
+        return img_no_list
+
+
+    ''' 获取下个 batch '''
+    def next_batch(self, batch_size, loop = True):
+        if not loop and self.__cur_index >= self.__data_len:
+            return None, None
+
+        start_index = self.__cur_index
+        end_index = self.__cur_index + batch_size
+        left_num = 0
+
+        if end_index >= self.__data_len:
+            left_num = end_index - self.__data_len
+            end_index = self.__data_len
+
+        _, X1, X2, y = zip(*self.__data[start_index: end_index])
+
+        if not loop:
+            self.__cur_index = end_index
+            return np.array(X1), np.array(X2), np.array(y)
+
+        if not left_num:
+            self.__cur_index = end_index if end_index < self.__data_len else 0
+            return np.array(X1), np.array(X2), np.array(y)
+
+        while left_num:
+            end_index = left_num
+            if end_index > self.__data_len:
+                left_num = end_index - self.__data_len
+                end_index = self.__data_len
+            else:
+                left_num = 0
+
+            _, left_x_1, left_x_2, left_y = zip(*self.__data[: end_index])
+            X1 += left_x_1
+            X2 += left_x_2
+            y += left_y
+
+        self.__cur_index = end_index if end_index < self.__data_len else 0
+        return np.array(X1), np.array(X2), np.array(y)
+
+
+    ''' 获取数据集大小 '''
+    def get_size(self):
+        return self.__data_len
+
+
+    ''' 重置当前 index 位置 '''
+    def reset_cur_index(self):
+        self.__cur_index = 0
+
+
+    ''' 输出展示 '''
+    @staticmethod
+    def echo(msg, crlf=True):
+        if crlf:
+            print msg
+        else:
+            sys.stdout.write(msg)
+            sys.stdout.flush()
 
 
 # Download.run()
 
-# train_data = Data(0.0, 0.64)
-# for i in range(4):
-#     batch_x , batch_y = train_data.next_batch(1)
-#     # #
-#     print '********************************'
-#     print train_data.get_size()
-#     print batch_x.shape
-#     print batch_y.shape
+train_data = Data(0.0, 0.64, 'train')
+
+batch_x_1, batch_x_2 , batch_y = train_data.next_batch(4)
+
+print '********************************'
+print train_data.get_size()
+print batch_x_1.shape
+print batch_x_2.shape
+print batch_y.shape
+
+print 'y 0:'
+print batch_y[0]
+
+tmp_x_1 = batch_x_1[0]
+tmp_x_2 = batch_x_2[0]
+
+o_tmp_x1 = Image.fromarray(tmp_x_1)
+o_tmp_x1.show()
+
+o_tmp_x2 = Image.fromarray(tmp_x_2)
+o_tmp_x2.show()
+
