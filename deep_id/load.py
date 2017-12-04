@@ -189,6 +189,7 @@ class Data:
 
             self.__data.append([split_file_name[0], patch_list, label])
 
+        self.echo(' sorting data ... ')
         self.__data.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
