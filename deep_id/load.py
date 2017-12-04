@@ -214,7 +214,12 @@ class Data:
             np_image_2 = np_image[:, padding: padding + _size, :]
             np_image_3 = np_image[:, -_size:, :]
 
-        return [np_image_1, np_image_2, np_image_3]
+        return [Data.__resize_np_img(np_image_1), Data.__resize_np_img(np_image_2), Data.__resize_np_img(np_image_3)]
+
+
+    @staticmethod
+    def __resize_np_img(np_image):
+        return np.array( Image.fromarray(np_image).resize( Data.RESIZE ) )
 
     
     @staticmethod
