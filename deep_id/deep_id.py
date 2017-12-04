@@ -253,6 +253,9 @@ class DeepId(base.NN):
                 train_op = self.__train_op_list[i]
                 loss = self.__loss_list[i]
 
+                print 'batch_x.shape:'
+                print batch_x.shape
+
                 feed_dict = {self.__x_list[i]: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
                 _, train_loss = self.sess.run([train_op, loss], feed_dict)
 
