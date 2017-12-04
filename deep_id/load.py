@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-
-# import copy
 import random
 import zipfile
 import numpy as np
@@ -120,6 +118,8 @@ class Data:
     NUM_CLASSES = 30
 
     def __init__(self, start_ratio = 0.0, end_ratio = 1.0, name = '', sort_list = []):
+        self.__chang_dir()
+
         # 初始化变量
         self.__name = name
         self.__data = []
@@ -143,6 +143,15 @@ class Data:
         random.shuffle(self.__data)
 
         self.__cur_index = 0
+
+
+    @staticmethod
+    def __chang_dir():
+        # 将运行路径切换到当前文件所在路径
+        cur_dir_path = os.path.split(__file__)[0]
+        if cur_dir_path:
+            os.chdir(cur_dir_path)
+            sys.path.append(cur_dir_path)
 
 
     ''' 加载数据 '''
