@@ -210,6 +210,7 @@ class Data:
         while not self.__stop_thread:
             while self.__queue.qsize() <= 1000:
                 img_path = self.__data[self.__cur_index]
+                self.echo(' getting %s ' % img_path)
                 x, y = self.__get_x_y(img_path)
 
                 self.__queue.put([x, y])
@@ -354,12 +355,20 @@ class Data:
         X = []
         y = []
         for i in range(batch_size):
+            print '##########'
+            print i
             while self.__queue.empty():
-                time.sleep(0.3)
+                time.sleep(1)
+            print 'q_size'
+            print self.__queue.qsize()
             if not self.__queue.empty():
                 _x, _y = self.__queue.get()
                 X.append(_x)
                 y.append(_y)
+                print 'x'
+                print _x.shape
+                print 'y'
+                print _y.shape
         return np.array(X), np.array(y)
 
 
@@ -427,8 +436,6 @@ train_data = Data(0.0, 0.64, 'train')
 
 print 'size:'
 print train_data.get_size()
-
-time.sleep(2)
 
 for i in range(10):
     batch_x, batch_y = train_data.next_batch(10)
