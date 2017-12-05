@@ -10,7 +10,7 @@ if cur_dir_path:
     sys.path.append(cur_dir_path)
 
 import base
-import load
+import load3 as load
 import math
 import numpy as np
 import tensorflow as tf

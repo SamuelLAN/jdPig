@@ -3,115 +3,11 @@
 import os
 import sys
 import random
-import zipfile
 import numpy as np
 from PIL import Image
-from six.moves.urllib.request import urlretrieve
 import threading
 import Queue
 import time
-
-
-'''
-    下载数据
-'''
-class Download:
-    URL = 'http://www.lin-baobao.com/pig/TrainImg.zip'
-    DATA_ROOT = r'data/TrainImg'
-    FILE_NAME = 'TrainImg.zip'
-    EXPECTED_BYTES = 973849767
-    FILE_NUM = 2986
-
-    def __init__(self):
-        pass
-
-
-    ''' 将运行路径切换到当前文件所在路径 '''
-    @staticmethod
-    def __changDir():
-        cur_dir_path = os.path.split(__file__)[0]
-        if cur_dir_path and os.path.abspath( os.path.curdir ) != os.path.abspath(cur_dir_path):
-            os.chdir(cur_dir_path)
-            sys.path.append(cur_dir_path)
-
-        # mkdir ./data
-        if not os.path.isdir( os.path.split(Download.DATA_ROOT)[0] ):
-            os.mkdir(os.path.split(Download.DATA_ROOT)[0])
-
-
-    ''' 下载进度 '''
-    @staticmethod
-    def __downloadProgressHook(count, block_size, total_size):
-        sys.stdout.write('\r >> Downloading %.1f%%' % (float(count * block_size) / float(total_size) * 100.0))
-        sys.stdout.flush()
-
-
-    ''' 判断是否需要下载；若需，下载数据压缩包 '''
-    @staticmethod
-    def __maybeDownload(force=False):
-        """Download a file if not present, and make sure it's the right size."""
-        if not os.path.isdir(Download.DATA_ROOT):
-            os.mkdir(Download.DATA_ROOT)
-        file_path = os.path.join(Download.DATA_ROOT, Download.FILE_NAME)
-        if force or not os.path.exists(file_path):
-            print 'Attempting to download: %s' % Download.FILE_NAME
-            filename, _ = urlretrieve(Download.URL, file_path, reporthook=Download.__downloadProgressHook)
-            print '\nDownload Complete!'
-        stat_info = os.stat(file_path)
-        if stat_info.st_size == Download.EXPECTED_BYTES:
-            print 'Found and verified %s' % file_path
-        else:
-            raise Exception(
-                'Failed to verify ' + file_path + '. Can you get to it with a browser?')
-
-
-    @staticmethod
-    def __checkFileNum():
-        if not os.path.isdir(Download.DATA_ROOT):
-            return False
-        file_num = 0
-        for file_name in os.listdir(Download.DATA_ROOT):
-            split_file_name = os.path.splitext(file_name)
-            if split_file_name[1].lower() != '.jpg' or 'pig' in split_file_name[0].lower():
-                continue
-            file_num += 1
-        if file_num != Download.FILE_NUM:
-            return False
-        return True
-
-
-    @staticmethod
-    def __maybeExtract(force=False):
-        file_path = os.path.join(Download.DATA_ROOT, Download.FILE_NAME)
-
-        zip_files = zipfile.ZipFile(file_path, 'r')
-        for filename in zip_files.namelist():
-            if '__MACOSX' in filename:
-                continue
-            print '\t extracting %s ...' % filename
-            data = zip_files.read(filename)
-            with open(os.path.join(Download.DATA_ROOT, filename), 'wb') as f:
-                f.write(data)
-
-
-    @staticmethod
-    def run():
-        Download.__changDir()   # 将路径切换到当前路径
-
-        if Download.__checkFileNum():
-            print 'data exist in %s' % Download.DATA_ROOT
-            return
-
-        Download.__maybeDownload()
-
-        print 'Extracting data ...'
-
-        Download.__maybeExtract()
-
-        print 'Finish Extracting'
-
-        print 'done'
-
 
 
 class Data:
@@ -240,7 +136,8 @@ class Data:
         label = np.zeros([Data.NUM_CLASSES])
         label[pig_no] = 1
 
-        return Data.__add_padding(img_path), label
+        return Data.__get_one_patch(img_path), label
+        # return Data.__add_padding(img_path), label
 
 
     # @staticmethod
@@ -261,6 +158,24 @@ class Data:
     #     return np.array(X), np.array(y)
     #
     #
+
+    @staticmethod
+    def __get_one_patch(img_path):
+        np_image = np.array(Image.open(img_path))
+        h, w, c = np_image.shape
+
+        if h > w:
+            _size = w
+            # padding = int( (h - _size) / 2 )
+            np_image_1 = np_image[:_size, :, :]
+
+        else:
+            _size = h
+            # padding = int( (w - _size) / 2 )
+            np_image_1 = np_image[:, :_size, :]
+
+        return Data.__resize_np_img(np_image_1)
+
     # @staticmethod
     # def __get_three_patch(img_path):
     #     np_image = np.array( Image.open(img_path) )
