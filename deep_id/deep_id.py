@@ -344,7 +344,7 @@ class DeepId(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
-            keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 10 else 1.0
+            keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 15 else 1.0
 
             feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__size: batch_y.shape[0], self.__keep_prob: keep_prob}
             _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
