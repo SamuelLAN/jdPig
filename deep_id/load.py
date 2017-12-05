@@ -442,6 +442,8 @@ for i in range(10):
 
     time.sleep(1)
 
+train_data.stop()
+
 # print 'y 0:'
 # print batch_y[0]
 #
