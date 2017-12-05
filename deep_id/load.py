@@ -208,14 +208,14 @@ class Data:
 
     def __get_data(self):
         while not self.__stop_thread:
-            while self.__queue.qsize() <= 1000:
+            while self.__queue.qsize() <= 2000:
                 file_name, img_path = self.__data[self.__cur_index]
                 x, y = self.__get_x_y(img_path)
 
                 self.__queue.put([x, y])
                 self.__cur_index = (self.__cur_index + 1) % self.__data_len
 
-            time.sleep(5)
+            time.sleep(2)
 
         self.echo('\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
 
