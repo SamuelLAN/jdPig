@@ -208,8 +208,9 @@ class Data:
 
 
     def __get_data(self):
+        max_q_size = min(self.__data_len, 2000)
         while not self.__stop_thread:
-            while self.__queue.qsize() <= 2000:
+            while self.__queue.qsize() <= max_q_size:
                 file_name, img_path = self.__data[self.__cur_index]
                 x, y = self.__get_x_y(img_path)
 

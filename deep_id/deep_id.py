@@ -11,6 +11,7 @@ if cur_dir_path:
 
 import base
 import load
+import math
 import numpy as np
 import tensorflow as tf
 
@@ -44,7 +45,7 @@ class DeepId(base.NN):
 
     SHOW_PROGRESS_FREQUENCY = 2         # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
-    MAX_VAL_ACCURACY_INCR_TIMES = 20    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 20    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     MODEL = [
         {   # 39 * 39 => 36 * 36
@@ -176,12 +177,12 @@ class DeepId(base.NN):
     def load(self):
         sort_list = load.Data.get_sort_list()
         self.__train_set = load.Data(0.0, 0.64, 'train', sort_list)
-        # self.__val_set = load.Data(0.64, 0.8, 'validation', sort_list)
-        # self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
+        self.__val_set = load.Data(0.64, 0.8, 'validation', sort_list)
+        self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
 
         self.__train_size = self.__train_set.get_size()
-        # self.__val_size = self.__val_set.get_size()
-        # self.__test_size = self.__test_set.get_size()
+        self.__val_size = self.__val_set.get_size()
+        self.__test_size = self.__test_set.get_size()
 
 
     ''' 模型 '''
@@ -191,13 +192,14 @@ class DeepId(base.NN):
         #     self.__output_list.append( self.deep_model(self.__x_list[i], self.__keep_prob) )
 
 
-    # ''' 重建模型 '''
-    # def rebuild_model(self):
-    #     self.__output_list = []
-    #     self.__loss_list = []
-    #
-    #     for i in range(self.X_LIST_LEN):
-    #         self.__output_list.append( self.deep_model_rebuild(self.__x_list[i]) )
+    ''' 重建模型 '''
+    def rebuild_model(self):
+        self.__output = self.deep_model_rebuild(self.__X, self.WList[0], self.bList[0])
+        # self.__output_list = []
+        # self.__loss_list = []
+        #
+        # for i in range(self.X_LIST_LEN):
+        #     self.__output_list.append( self.deep_model_rebuild(self.__x_list[i]) )
 
 
     ''' 计算 loss '''
@@ -219,8 +221,6 @@ class DeepId(base.NN):
 
     ''' 获取 train_op '''
     def get_train_op(self, loss, learning_rate, global_step):
-        tf.summary.scalar('loss', loss)
-
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(learning_rate)
             return optimizer.minimize(loss, global_step=global_step)
@@ -241,9 +241,39 @@ class DeepId(base.NN):
             predict = tf.argmax(predict, 1)
             correct = tf.equal(labels, predict) # 返回 predict 与 labels 相匹配的结果
 
-            accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), _size ) # 计算准确率
-            tf.summary.scalar('accuracy', accuracy)
-            return accuracy
+            self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), _size ) # 计算准确率
+
+
+    def __measure(self, data_set):
+        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+
+        mean_accuracy = 0
+        mean_loss = 0
+        for i in range(times):
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            feed_dict = {self.__X: batch_x, self.__label: batch_y,
+                         self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
+            loss, accuracy = self.sess.run([self.__loss, self.__accuracy], feed_dict)
+            mean_accuracy += accuracy
+            mean_loss += loss
+
+            # progress = float(i + 1) / times * 100
+            # self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
+
+        return mean_accuracy / times, mean_loss / times
+
+
+    def __summary(self):
+        with tf.name_scope('summary'):
+            tf.summary.scalar('loss', self.__loss)
+            tf.summary.scalar('accuracy', self.__accuracy)
+
+            self.__mean_accuracy = tf.placeholder(tf.float32, name='mean_accuracy')
+            tf.summary.scalar('mean_accuracy', self.__mean_accuracy)
+
+        self.__mean_loss = tf.placeholder(tf.float32, name='mean_loss')
+        tf.summary.scalar('mean_loss', self.__mean_loss)
+
 
     # ''' 计算准确率 '''
     # def __get_accuracy(self):
@@ -279,7 +309,7 @@ class DeepId(base.NN):
         # 正则化
         # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
-        ret_train_accuracy = self.__get_accuracy(self.__label, self.__output, self.__size)
+        self.__get_accuracy(self.__label, self.__output, self.__size)
 
         # 生成训练的 op
         train_op = self.get_train_op(self.__loss, self.__learning_rat, self.global_step)
@@ -294,6 +324,11 @@ class DeepId(base.NN):
         # TensorBoard merge summary
         self.merge_summary()
 
+        best_val_accuracy = 0
+        decrease_val_accuracy_times = 0
+        mean_train_accuracy = 0
+        mean_train_loss = 0
+
         self.echo('\nStart training ... \nepoch:')
 
         for step in range(self.__steps):
@@ -305,21 +340,44 @@ class DeepId(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
-            feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
-            _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
+            feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__size: batch_y.shape[0], self.__keep_prob: self.KEEP_PROB}
+            _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
+            
+            mean_train_accuracy += train_accuracy
+            mean_train_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
+                mean_train_accuracy /= self.__iter_per_epoch
+                mean_train_loss /= self.__iter_per_epoch
+                self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f \t ' % 
+                          (epoch, mean_train_loss, mean_train_accuracy))
 
-                feed_dict[self.__size] = batch_y.shape[0]
-                train_accuracy = self.sess.run(ret_train_accuracy, feed_dict)
-
-                self.echo('\n epoch: %d  train_loss: %.6f  train_accuracy: %.6f \t ' % (epoch, train_loss, train_accuracy))
-
-                # feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
-                # mean_loss = 0
+                feed_dict[self.__mean_accuracy] = mean_train_accuracy
+                feed_dict[self.__mean_loss] = mean_train_loss
                 self.add_summary_train(feed_dict, epoch)
 
+                mean_train_accuracy = 0
+                mean_train_loss = 0
+                
+                mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set)
+
+                feed_dict[self.__mean_accuracy] = mean_val_accuracy
+                feed_dict[self.__mean_loss] = mean_val_loss
+                self.add_summary_val(feed_dict, epoch)
+                
+                if best_val_accuracy < mean_val_accuracy:
+                    best_val_accuracy = mean_val_accuracy
+                    decrease_val_accuracy_times = 0
+                    
+                    self.echo('\n best_val_accuracy: %.6f \t ' % best_val_accuracy)
+                    self.save_model_w_b()
+                    
+                else:
+                    decrease_val_accuracy_times += 1
+                    if decrease_val_accuracy_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
+                        break
+                
                 # batch_x_list, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
             #
             # for i in range(self.X_LIST_LEN):
@@ -346,7 +404,27 @@ class DeepId(base.NN):
 
         self.close_summary()  # 关闭 TensorBoard
 
+        self.restore_model_w_b()  # 恢复模型
+        self.rebuild_model()  # 重建模型
+        self.get_loss()  # 重新 get loss
+        self.__get_accuracy(self.__label, self.__output, self.__size)
+
+
+        self.init_variables()  # 重新初始化变量
+
+        mean_train_accuracy, mean_train_loss = self.__measure(self.__train_set)
+        mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set)
+        mean_test_accuracy, mean_test_loss = self.__measure(self.__test_set)
+
+        self.echo('\nmean_train_accuracy: %.6f  mean_train_loss: %.6f ' % (mean_train_accuracy, mean_train_loss))
+        self.echo('mean_val_accuracy: %.6f  mean_val_loss: %.6f ' % (mean_val_accuracy, mean_val_loss))
+        self.echo('mean_test_accuracy: %.6f  mean_test_loss: %.6f ' % (mean_test_accuracy, mean_test_loss))
+
         self.__train_set.stop()  # 关闭获取数据线程
+        self.__val_set.stop()  # 关闭获取数据线程
+        self.__test_set.stop()  # 关闭获取数据线程
+
+        self.echo('\ndone')
 
 
 o_deep_id = DeepId()
