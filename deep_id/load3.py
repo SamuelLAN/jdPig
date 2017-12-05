@@ -78,25 +78,6 @@ class Data:
                 continue
 
             self.__data.append( [split_file_name[0], os.path.join(self.DATA_ROOT, file_name)] )
-            #
-            # pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))
-            # pig_file_path = os.path.join(self.DATA_ROOT, file_name)
-            #
-            # if not os.path.isfile(pig_file_path):
-            #     continue
-            #
-            # # np_pig = self.__add_padding(pig_file_path)
-            # # np_pig_bg = self.__add_padding(pig_bg_file_path)
-            #
-            # pig_patch_list = self.__get_three_patch(pig_file_path)
-            # pig_bg_patch_list = self.__get_three_patch(pig_bg_file_path)
-            # patch_list = pig_patch_list + pig_bg_patch_list
-            #
-            # pig_no = int(no_list[0]) - 1
-            # label = np.zeros([Data.NUM_CLASSES])
-            # label[pig_no] = 1
-            #
-            # self.__data.append([split_file_name[0], patch_list, label])
 
         # self.echo(' sorting data ... ')
         # self.__data.sort(self.__sort)
@@ -137,59 +118,26 @@ class Data:
         label = np.zeros([Data.NUM_CLASSES])
         label[pig_no] = 1
 
-        # return Data.__get_three_patch(img_path), label
-        # return Data.__add_padding(img_path), label
-        return Data.__get_kmeans_patch(img_path), label
-
-
-    # @staticmethod
-    # def __read_img_list(img_list):
-    #     X = []
-    #     y = []
-    #
-    #     for img_path in img_list:
-    #         no_list = os.path.splitext( os.path.split(img_path)[1] )[0].split('_')
-    #
-    #         pig_no = int(no_list[0]) - 1
-    #         label = np.zeros([Data.NUM_CLASSES])
-    #         label[pig_no] = 1
-    #
-    #         X.append( Data.__add_padding(img_path) )
-    #         y.append( label )
-    #
-    #     return np.array(X), np.array(y)
-    #
-    #
-
-    # @staticmethod
-    # def __get_one_patch(img_path):
-    #     np_image = np.array(Image.open(img_path))
-    #     h, w, c = np_image.shape
-    #
-    #     if h > w:
-    #         _size = w
-    #         # padding = int( (h - _size) / 2 )
-    #         np_image_1 = np_image[:_size, :, :]
-    #
-    #     else:
-    #         _size = h
-    #         # padding = int( (w - _size) / 2 )
-    #         np_image_1 = np_image[:, :_size, :]
-    #
-    #     return Data.__resize_np_img(np_image_1)
+        return Data.__get_patches(img_path), label
 
 
     @staticmethod
     def __get_patches(img_path):
-        patch_list = Data.__get_three_patch(img_path)
-
+        three_patches = Data.__get_three_patch(img_path)
         patch = Data.__add_padding(img_path)
-        patch_list.append(patch)
 
-        kmeans_patch_list = Data.__get_kmeans_patch(img_path)
-        patch_list += kmeans_patch_list
+        patch_list = []
+        for i in range(3):
+            for _patch in three_patches:
+                patch_list.append(
+                    _patch[:, :, i].reshape( np.hstack( [ _patch.shape[:-1], 1 ] ) )
+                )
 
-        return patch_list
+            patch_list.append(
+                patch[:, :, i].reshape( np.hstack( [ patch.shape[:-1], 1 ] ) )
+            )
+
+        return np.array(patch_list)
 
 
     @staticmethod
@@ -219,77 +167,63 @@ class Data:
         return np.array( Image.fromarray(np_image).resize( Data.RESIZE ), dtype=np.float32 )
 
 
-    @staticmethod
-    def __get_kmeans_patch(img_path):
-        image = Image.open(img_path)
-        if image.size[0] > 320 or image.size[1] > 320:
-            np_image = np.array( image.resize( np.cast['int32']( np.array(image.size) / 2 ) ) )
-        else:
-            np_image = np.array( image )
-        np_tmp_image = ( np_image - (255.0 / 2) ) / 255.0
-
-        h, w, c = np_tmp_image.shape
-
-        if h < 60 or w < 60:
-            return Data.__add_padding(img_path)
-
-        data = []
-        for i in range(h):
-            for j in range(w):
-                pixel = np_tmp_image[i, j, :]
-                data.append([ float(i - (h / 2.0)) / h, float(-j + (w / 2.0)) / w, pixel[0], pixel[1], pixel[2] ])
-
-        data = np.array(data)
-
-        k = 5
-        estimator = KMeans(n_clusters=k)
-        estimator.fit(data)
-
-        center = estimator.cluster_centers_
-        center = center[:, :2]
-
-        center_x = np.cast['int32']( center[:, 0] * h + (h / 2.0) )
-        center_y = np.cast['int32']( -center[:, 1] * w + (w / 2.0) )
-
-        patch_list = []
-
-        for i in range(k):
-            x = center_x[i]
-            y = center_y[i]
-
-            r_x_min = max(h / 10, 20)
-            if x < r_x_min:
-                x += int( r_x_min )
-            elif h - x < max(h / 10, 20):
-                x -= int( r_x_min )
-
-            r_y_min = max(w / 10, 20)
-            if y < r_y_min:
-                y += int( r_y_min )
-            elif w - y < w / 10:
-                y -= int( r_y_min )
-
-            r = int( min(x, y, h - x, w - y, h / 3, w / 3) ) - 1
-
-            # if r < 10:
-            #     print '********************************'
-            #     print center_x
-            #     print center_y
-            #     print h, w, c
-            #     print x, y
-            #     print r
-            #     print '*****'
-
-            np_new_img = np_image[x - r: x + r, y - r: y + r, :]
-
-            # print 'np_new_img'
-            # print np_new_img.shape
-
-            new_img = Image.fromarray(np_new_img)
-            return np.array( new_img.resize(Data.RESIZE) )
-            # patch_list.append( np.array( new_img.resize(Data.RESIZE) ) )
-
-        # return patch_list
+    # @staticmethod
+    # def __get_kmeans_patch(img_path):
+    #     image = Image.open(img_path)
+    #     if image.size[0] > 320 or image.size[1] > 320:
+    #         np_image = np.array( image.resize( np.cast['int32']( np.array(image.size) / 2 ) ) )
+    #     else:
+    #         np_image = np.array( image )
+    #     np_tmp_image = ( np_image - (255.0 / 2) ) / 255.0
+    #
+    #     h, w, c = np_tmp_image.shape
+    #
+    #     if h < 60 or w < 60:
+    #         return Data.__add_padding(img_path)
+    #
+    #     data = []
+    #     for i in range(h):
+    #         for j in range(w):
+    #             pixel = np_tmp_image[i, j, :]
+    #             data.append([ float(i - (h / 2.0)) / h, float(-j + (w / 2.0)) / w, pixel[0], pixel[1], pixel[2] ])
+    #
+    #     data = np.array(data)
+    #
+    #     k = 5
+    #     estimator = KMeans(n_clusters=k)
+    #     estimator.fit(data)
+    #
+    #     center = estimator.cluster_centers_
+    #     center = center[:, :2]
+    #
+    #     center_x = np.cast['int32']( center[:, 0] * h + (h / 2.0) )
+    #     center_y = np.cast['int32']( -center[:, 1] * w + (w / 2.0) )
+    #
+    #     patch_list = []
+    #
+    #     for i in range(k):
+    #         x = center_x[i]
+    #         y = center_y[i]
+    #
+    #         r_x_min = max(h / 10, 20)
+    #         if x < r_x_min:
+    #             x += int( r_x_min )
+    #         elif h - x < max(h / 10, 20):
+    #             x -= int( r_x_min )
+    #
+    #         r_y_min = max(w / 10, 20)
+    #         if y < r_y_min:
+    #             y += int( r_y_min )
+    #         elif w - y < w / 10:
+    #             y -= int( r_y_min )
+    #
+    #         r = int( min(x, y, h - x, w - y, h / 3, w / 3) ) - 1
+    #
+    #         np_new_img = np_image[x - r: x + r, y - r: y + r, :]
+    #         new_img = Image.fromarray(np_new_img)
+    #         # patch_list.append( np.array( new_img.resize(Data.RESIZE) ) )
+    #
+    #     # return patch_list
 
     
     @staticmethod
@@ -299,10 +233,7 @@ class Data:
         ratio = float(w) / h
 
         if abs(ratio - Data.RATIO) <= 0.1:
-            np_image = np.array( image.resize( Data.RESIZE ) )
-            return np_image
-            # h, w, c = np_image.shape
-            # return np.reshape(np_image[:, :, 0], [h, w, 1])
+            return np.array( image.resize( Data.RESIZE ) )
 
         np_image = np.array(image)
         h, w, c = np_image.shape
@@ -312,23 +243,17 @@ class Data:
             padding = int((new_h - h) / 2.0)
 
             np_new_image = np.zeros([new_h, w, c])
-            np_new_image[padding: padding + h, :, :] = np_image[:, :, :]
-            # np_new_image[padding: padding + h, :] = np_image[:, :, 0]
+            np_new_image[padding: padding + h, :, :] = np_image
 
         else:
             new_w = int(float(h) * Data.RATIO)
             padding = int((new_w - w) / 2.0)
 
             np_new_image = np.zeros([h, new_w, c])
-            np_new_image[:, padding: padding + w, :] = np_image[:, :, :]
+            np_new_image[:, padding: padding + w, :] = np_image
 
         new_image = Image.fromarray( np.cast['uint8'](np_new_image) )
-        np_new_image = np.array( new_image.resize( Data.RESIZE ) )
-
-        return np_new_image
-
-        # h, w = np_new_image.shape
-        # return np.reshape(np_new_image, [h, w, 1])
+        return np.array( new_image.resize( Data.RESIZE ) )
 
 
     def __sort(self, a, b):
@@ -378,52 +303,9 @@ class Data:
         return np.array(X), np.array(y)
 
 
-    # ''' 获取下个 batch '''
-    # def next_batch(self, batch_size, loop = True):
-    #     if not loop and self.__cur_index >= self.__data_len:
-    #         return None, None
-    #
-    #     start_index = self.__cur_index
-    #     end_index = self.__cur_index + batch_size
-    #     left_num = 0
-    #
-    #     if end_index >= self.__data_len:
-    #         left_num = end_index - self.__data_len
-    #         end_index = self.__data_len
-    #
-    #     _, path_list = zip(*self.__data[start_index: end_index])
-    #
-    #     if not loop:
-    #         self.__cur_index = end_index
-    #         return Data.__read_img_list(path_list)
-    #
-    #     if not left_num:
-    #         self.__cur_index = end_index if end_index < self.__data_len else 0
-    #         return Data.__read_img_list(path_list)
-    #
-    #     while left_num:
-    #         end_index = left_num
-    #         if end_index > self.__data_len:
-    #             left_num = end_index - self.__data_len
-    #             end_index = self.__data_len
-    #         else:
-    #             left_num = 0
-    #
-    #         _, left_path_list = zip(*self.__data[: end_index])
-    #         path_list += left_path_list
-    #
-    #     self.__cur_index = end_index if end_index < self.__data_len else 0
-    #     return Data.__read_img_list(path_list)
-
-
     ''' 获取数据集大小 '''
     def get_size(self):
         return self.__data_len
-
-
-    # ''' 重置当前 index 位置 '''
-    # def reset_cur_index(self):
-    #     self.__cur_index = 0
 
 
     ''' 输出展示 '''
@@ -438,18 +320,18 @@ class Data:
 
 # Download.run()
 
-# train_data = Data(0.0, 0.64, 'train')
-#
-# print 'size:'
-# print train_data.get_size()
-#
+train_data = Data(0.0, 0.64, 'train')
+
+print 'size:'
+print train_data.get_size()
+
 # for i in range(10):
-#     batch_x, batch_y = train_data.next_batch(10)
-#
-#     print '\n*************** %d *****************' % i
-#     print train_data.get_size()
-#     print batch_x.shape
-#     print batch_y.shape
+batch_x, batch_y = train_data.next_batch(10)
+
+print '\n*************** %d *****************' % i
+print train_data.get_size()
+print batch_x.shape
+print batch_y.shape
 #
 #     tmp_x = batch_x[0]
 #     o_tmp = Image.fromarray(tmp_x)
