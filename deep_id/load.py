@@ -123,12 +123,11 @@ class Data:
         # 初始化变量
         self.__name = name
         self.__data = []
-        self.__img_list = []
         self.__sort_list = sort_list
 
         # 加载全部数据
         self.__load()
-        self.__data_len = len(self.__img_list)
+        self.__data_len = len(self.__data)
 
         # 检查输入参数
         start_ratio = min(max(0.0, start_ratio), 1.0)
@@ -139,9 +138,9 @@ class Data:
         end_index = int(self.__data_len * end_ratio)
 
         # 根据数据的位置范围 取数据
-        self.__img_list = self.__img_list[start_index: end_index]
-        self.__data_len = len(self.__img_list)
-        random.shuffle(self.__img_list)
+        self.__data = self.__data[start_index: end_index]
+        self.__data_len = len(self.__data)
+        random.shuffle(self.__data)
 
         self.__cur_index = 0
 
@@ -171,7 +170,7 @@ class Data:
             if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) == 1:
                 continue
 
-            self.__img_list.append( [split_file_name[0], os.path.join(self.DATA_ROOT, file_name)] )
+            self.__data.append( [split_file_name[0], os.path.join(self.DATA_ROOT, file_name)] )
             #
             # pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))
             # pig_file_path = os.path.join(self.DATA_ROOT, file_name)
@@ -193,7 +192,7 @@ class Data:
             # self.__data.append([split_file_name[0], patch_list, label])
 
         self.echo(' sorting data ... ')
-        self.__img_list.sort(self.__sort)
+        self.__data.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
 
