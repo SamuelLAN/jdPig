@@ -39,7 +39,7 @@ class DeepId(base.NN):
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
     DECAY_RATE = 0.3            # 学习率 的 下降速率
 
-    KEEP_PROB = 0.5             # dropout 的 keep_prob
+    KEEP_PROB = 0.75             # dropout 的 keep_prob
 
     DEEP_ID_LAYER_INDEX = -2    # 倒数第二层为 deep_id 层
 
