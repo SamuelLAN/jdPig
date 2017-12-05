@@ -114,10 +114,10 @@ class DeepId(base.NN):
             'shape': [9680, 720],
             'layer_index': 1,
         },
-        {
-            'name': 'dropout',
-            'type': 'dropout',
-        },
+        # {
+        #     'name': 'dropout',
+        #     'type': 'dropout',
+        # },
         {   # softmax 层
             'name': 'softmax',
             'type': 'fc',
