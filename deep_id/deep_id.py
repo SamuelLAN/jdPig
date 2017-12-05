@@ -315,8 +315,8 @@ class DeepId(base.NN):
         train_op = self.get_train_op(self.__loss, self.__learning_rat, self.global_step)
         # self.__get_train_op_list()
 
-        # # tensorboard 相关记录
-        # self.__summary()
+        # tensorboard 相关记录
+        self.__summary()
 
         # 初始化所有变量
         self.init_variables()
