@@ -253,15 +253,17 @@ class Data:
             x = center_x[i]
             y = center_y[i]
 
-            if x < h / 10:
-                x += int(h / 10)
-            elif h - x < h / 10:
-                x -= int(h / 10)
+            r_x_min = max(h / 10, 20)
+            if x < r_x_min:
+                x += int( r_x_min )
+            elif h - x < max(h / 10, 20):
+                x -= int( r_x_min )
 
-            if y < w / 10:
-                y += int(w / 10)
+            r_y_min = max(w / 10, 20)
+            if y < r_y_min:
+                y += int( r_y_min )
             elif w - y < w / 10:
-                y -= int(w / 10)
+                y -= int( r_y_min )
 
             r = int( min(x, y, h - x, w - y, h / 3, w / 3) ) - 1
 
