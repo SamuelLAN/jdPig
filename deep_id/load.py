@@ -117,7 +117,7 @@ class Download:
 class Data:
     DATA_ROOT = r'data/TrainImgMore'
     # RESIZE = [224, 224]
-    RESIZE = [47, 47]
+    RESIZE = [39, 39]
     RATIO = 1.0
     NUM_CLASSES = 30
 
