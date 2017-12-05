@@ -39,7 +39,7 @@ class DeepId(base.NN):
     BASE_LEARNING_RATE = 0.01   # 初始 学习率
     DECAY_RATE = 0.1            # 学习率 的 下降速率
 
-    KEEP_PROB = 0.85            # dropout 的 keep_prob
+    KEEP_PROB = 0.5            # dropout 的 keep_prob
 
     DEEP_ID_LAYER_INDEX = -2    # 倒数第二层为 deep_id 层
 
@@ -49,11 +49,18 @@ class DeepId(base.NN):
 
     MODEL = [
         {   # 39 * 39 => 36 * 36
-            'name': 'conv_1',
+            'name': 'conv_1_1',
             'type': 'conv',
             'shape': [NUM_CHANNEL, 20],
             'k_size': [4, 4],
             'padding': 'VALID',
+        },
+        {  # 36 * 36 => 36 * 36
+            'name': 'conv_1_2',
+            'type': 'conv',
+            'shape': [20, 20],
+            'k_size': [4, 4],
+            'padding': 'SAME',
         },
         {   # 36 * 36 => 18 * 18
             'name': 'pool_1',
@@ -61,11 +68,18 @@ class DeepId(base.NN):
             'k_size': [2, 2],
         },
         {   # 18 * 18 => 16 * 16
-            'name': 'conv_2',
+            'name': 'conv_2_1',
             'type': 'conv',
             'shape': [20, 40],
             'k_size': [3, 3],
             'padding': 'VALID',
+        },
+        {  # 18 * 18 => 16 * 16
+            'name': 'conv_2_2',
+            'type': 'conv',
+            'shape': [40, 40],
+            'k_size': [3, 3],
+            'padding': 'SAME',
         },
         {   # 16 * 16 => 8 * 8
             'name': 'pool_2',
@@ -73,11 +87,25 @@ class DeepId(base.NN):
             'k_size': [2, 2],
         },
         {   # 8 * 8 => 6 * 6
-            'name': 'conv_3',
+            'name': 'conv_3_1',
             'type': 'conv',
             'shape': [40, 60],
             'k_size': [3, 3],
             'padding': 'VALID',
+        },
+        {  # 8 * 8 => 6 * 6
+            'name': 'conv_3_2',
+            'type': 'conv',
+            'shape': [60, 60],
+            'k_size': [3, 3],
+            'padding': 'SAME',
+        },
+        {  # 8 * 8 => 6 * 6
+            'name': 'conv_3_3',
+            'type': 'conv',
+            'shape': [60, 60],
+            'k_size': [3, 3],
+            'padding': 'SAME',
         },
         {   # 6 * 6 => 3 * 3
             'name': 'pool_3',
@@ -113,6 +141,10 @@ class DeepId(base.NN):
             'type': 'fc_n',
             'shape': [6480, 320],
             'layer_index': 1,
+        },
+        {
+            'name': 'dropout',
+            'type': 'dropout',
         },
         {   # softmax 层
             'name': 'softmax',
