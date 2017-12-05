@@ -31,7 +31,7 @@ class DeepId(base.NN):
     NUM_CLASSES = 30            # 总共分 NUM_CLASSES 类
     NUM_CHANNEL = 3             # 输入 channel
 
-    IMAGE_SHAPE = [39, 39]      # 输入图片的大小
+    IMAGE_SHAPE = [43, 43]      # 输入图片的大小
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]    # image 的 placeholder 的 shape
 
     X_LIST_LEN = 6              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
@@ -39,7 +39,7 @@ class DeepId(base.NN):
     BASE_LEARNING_RATE = 0.1    # 初始 学习率
     DECAY_RATE = 0.1            # 学习率 的 下降速率
 
-    KEEP_PROB = 0.5            # dropout 的 keep_prob
+    KEEP_PROB = 0.85            # dropout 的 keep_prob
 
     DEEP_ID_LAYER_INDEX = -2    # 倒数第二层为 deep_id 层
 
@@ -48,99 +48,71 @@ class DeepId(base.NN):
     MAX_VAL_ACCURACY_DECR_TIMES = 20    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     MODEL = [
-        {   # 39 * 39 => 36 * 36
-            'name': 'conv_1_1',
+        {   # 47 * 47 => 44 * 44
+            'name': 'conv_1',
             'type': 'conv',
             'shape': [NUM_CHANNEL, 20],
             'k_size': [4, 4],
             'padding': 'VALID',
         },
-        {  # 36 * 36 => 36 * 36
-            'name': 'conv_1_2',
-            'type': 'conv',
-            'shape': [20, 20],
-            'k_size': [4, 4],
-            'padding': 'SAME',
-        },
-        {   # 36 * 36 => 18 * 18
+        {   # 44 * 44 => 22 * 22
             'name': 'pool_1',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 18 * 18 => 16 * 16
-            'name': 'conv_2_1',
+        {   # 22 * 22 => 20 * 20
+            'name': 'conv_2',
             'type': 'conv',
             'shape': [20, 40],
             'k_size': [3, 3],
             'padding': 'VALID',
         },
-        {  # 18 * 18 => 16 * 16
-            'name': 'conv_2_2',
-            'type': 'conv',
-            'shape': [40, 40],
-            'k_size': [3, 3],
-            'padding': 'SAME',
-        },
-        {   # 16 * 16 => 8 * 8
+        {   # 20 * 20 => 10 * 10
             'name': 'pool_2',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 8 * 8 => 6 * 6
-            'name': 'conv_3_1',
+        {   # 10 * 10 => 8 * 8
+            'name': 'conv_3',
             'type': 'conv',
             'shape': [40, 60],
             'k_size': [3, 3],
             'padding': 'VALID',
         },
-        {  # 8 * 8 => 6 * 6
-            'name': 'conv_3_2',
-            'type': 'conv',
-            'shape': [60, 60],
-            'k_size': [3, 3],
-            'padding': 'SAME',
-        },
-        {  # 8 * 8 => 6 * 6
-            'name': 'conv_3_3',
-            'type': 'conv',
-            'shape': [60, 60],
-            'k_size': [3, 3],
-            'padding': 'SAME',
-        },
-        {   # 6 * 6 => 3 * 3
+        {   # 8 * 8 => 4 * 4
             'name': 'pool_3',
             'type': 'pool',
             'k_size': [2, 2],
         },
-        {   # 3 * 3 => 2 * 2
+        {   # 4 * 4 => 3 * 3
             'name': 'conv_4',
             'type': 'conv',
             'shape': [60, 80],
             'k_size': [2, 2],
             'padding': 'VALID',
         },
-        {   # 2 * 2 * 80 => 320 ; 与前一层全连接
+        {   # 3 * 3 * 80 => 720 ; 与前一层全连接
             'name': 'fc_4',
             'type': 'fc',
-            'shape': [320, 320],
+            'shape': [720, 720],
         },
-        {   # 3 * 3 * 60 => 320 与 pool_3 层全连接
+        {   # 4 * 4 * 60 => 320 与 pool_3 层全连接
             'name': 'fc_3',
             'type': 'fc_n',
-            'shape': [540, 320],
-            'layer_index': 9,
-        },
-        {   # 8 * 8 * 40 => 320 与 pool_2 层全连接
-            'name': 'fc_2',
-            'type': 'fc_n',
-            'shape': [2560, 320],
+            'shape': [960, 720],
             'layer_index': 5,
         },
-        {   # 18 * 18 * 20 => 320 与 pool_1 层全连接
+        {   # 10 * 10 * 40 => 320 与 pool_2 层全连接
+            'name': 'fc_2',
+            'type': 'fc_n',
+            'shape': [4000, 720],
+            'layer_index': 3,
+        },
+        {   # 22 * 22 * 20 => 320 与 pool_1 层全连接
             'name': 'fc_1',
             'type': 'fc_n',
-            'shape': [6480, 320],
-            'layer_index': 2,
+            'shape': [9680, 720],
+            'layer_index': 1,
         },
         {
             'name': 'dropout',
@@ -149,7 +121,7 @@ class DeepId(base.NN):
         {   # softmax 层
             'name': 'softmax',
             'type': 'fc',
-            'shape': [320, NUM_CLASSES],
+            'shape': [720, NUM_CLASSES],
             'activate': False,
         }
     ]
