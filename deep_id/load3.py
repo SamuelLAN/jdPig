@@ -221,7 +221,8 @@ class Data:
 
     @staticmethod
     def __get_kmeans_patch(img_path):
-        np_image = np.array( Image.open(img_path) )
+        image = Image.open(img_path)
+        np_image = np.array( image.resize( np.cast['int32']( np.array(image.size) / 3 ) ) )
         np_tmp_image = ( np_image - (255.0 / 2) ) / 255.0
 
         h, w, c = np_tmp_image.shape
