@@ -428,6 +428,8 @@ train_data = Data(0.0, 0.64, 'train')
 print 'size:'
 print train_data.get_size()
 
+time.sleep(2)
+
 for i in range(10):
     batch_x, batch_y = train_data.next_batch(10)
 
