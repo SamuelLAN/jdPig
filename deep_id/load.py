@@ -123,11 +123,12 @@ class Data:
         # 初始化变量
         self.__name = name
         self.__data = []
+        self.__img_list = []
         self.__sort_list = sort_list
 
         # 加载全部数据
         self.__load()
-        self.__data_len = len(self.__data)
+        self.__data_len = len(self.__img_list)
 
         # 检查输入参数
         start_ratio = min(max(0.0, start_ratio), 1.0)
@@ -138,9 +139,9 @@ class Data:
         end_index = int(self.__data_len * end_ratio)
 
         # 根据数据的位置范围 取数据
-        self.__data = self.__data[start_index: end_index]
-        self.__data_len = len(self.__data)
-        random.shuffle(self.__data)
+        self.__img_list = self.__img_list[start_index: end_index]
+        self.__data_len = len(self.__img_list)
+        random.shuffle(self.__img_list)
 
         self.__cur_index = 0
 
@@ -167,33 +168,52 @@ class Data:
             split_file_name = os.path.splitext(file_name)
             no_list = split_file_name[0].split('_')
 
-            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) == 1 or int(no_list[-1]) > 4:
+            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) == 1:
                 continue
 
-            pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))
-            pig_file_path = os.path.join(self.DATA_ROOT, file_name)
+            self.__img_list.append( [split_file_name[0], os.path.join(self.DATA_ROOT, file_name)] )
+            #
+            # pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))
+            # pig_file_path = os.path.join(self.DATA_ROOT, file_name)
+            #
+            # if not os.path.isfile(pig_file_path):
+            #     continue
+            #
+            # # np_pig = self.__add_padding(pig_file_path)
+            # # np_pig_bg = self.__add_padding(pig_bg_file_path)
+            #
+            # pig_patch_list = self.__get_three_patch(pig_file_path)
+            # pig_bg_patch_list = self.__get_three_patch(pig_bg_file_path)
+            # patch_list = pig_patch_list + pig_bg_patch_list
+            #
+            # pig_no = int(no_list[0]) - 1
+            # label = np.zeros([Data.NUM_CLASSES])
+            # label[pig_no] = 1
+            #
+            # self.__data.append([split_file_name[0], patch_list, label])
 
-            if not os.path.isfile(pig_file_path):
-                continue
+        self.echo(' sorting data ... ')
+        self.__img_list.sort(self.__sort)
 
-            # np_pig = self.__add_padding(pig_file_path)
-            # np_pig_bg = self.__add_padding(pig_bg_file_path)
+        self.echo('\nFinish Loading\n')
 
-            pig_patch_list = self.__get_three_patch(pig_file_path)
-            pig_bg_patch_list = self.__get_three_patch(pig_bg_file_path)
-            patch_list = pig_patch_list + pig_bg_patch_list
+
+    @staticmethod
+    def __read_img_list(img_list):
+        X = []
+        y = []
+
+        for img_path in img_list:
+            no_list = os.path.splitext( os.path.split(img_path)[1] )[0].split('_')
 
             pig_no = int(no_list[0]) - 1
             label = np.zeros([Data.NUM_CLASSES])
             label[pig_no] = 1
 
-            self.__data.append([split_file_name[0], patch_list, label])
+            X.append( Data.__add_padding(img_path) )
+            y.append( label )
 
-        self.echo(' sorting data ... ')
-        self.__data.sort(self.__sort)
-
-        self.echo('\nFinish Loading\n')
-
+        return np.array(X), np.array(y)
 
 
     @staticmethod
@@ -300,15 +320,15 @@ class Data:
             left_num = end_index - self.__data_len
             end_index = self.__data_len
 
-        _, x_list, y = zip(*self.__data[start_index: end_index])
+        _, path_list = zip(*self.__data[start_index: end_index])
 
         if not loop:
             self.__cur_index = end_index
-            return np.array(x_list).transpose([1, 0, 2, 3, 4]), np.array(y)
+            return Data.__read_img_list(path_list)
 
         if not left_num:
             self.__cur_index = end_index if end_index < self.__data_len else 0
-            return np.array(x_list).transpose([1, 0, 2, 3, 4]), np.array(y)
+            return Data.__read_img_list(path_list)
 
         while left_num:
             end_index = left_num
@@ -318,12 +338,11 @@ class Data:
             else:
                 left_num = 0
 
-            _, left_x_list, left_y = zip(*self.__data[: end_index])
-            x_list += left_x_list
-            y += left_y
+            _, left_path_list = zip(*self.__data[: end_index])
+            path_list += left_path_list
 
         self.__cur_index = end_index if end_index < self.__data_len else 0
-        return np.array(x_list).transpose([1, 0, 2, 3, 4]), np.array(y)
+        return Data.__read_img_list(path_list)
 
 
     ''' 获取数据集大小 '''
@@ -348,15 +367,19 @@ class Data:
 
 # Download.run()
 
-# train_data = Data(0.0, 0.64, 'train')
-#
-# batch_x_list , batch_y = train_data.next_batch(4)
-#
-# print '********************************'
-# print train_data.get_size()
-# print batch_x_list.shape
-# print batch_y.shape
-#
+train_data = Data(0.0, 0.64, 'train')
+
+batch_x , batch_y = train_data.next_batch(4)
+
+print '********************************'
+print train_data.get_size()
+print batch_x.shape
+print batch_y.shape
+
+tmp_x = batch_x[0]
+o_tmp = Image.fromarray(tmp_x)
+o_tmp.show()
+
 # print 'y 0:'
 # print batch_y[0]
 #
