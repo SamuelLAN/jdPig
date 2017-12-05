@@ -371,6 +371,8 @@ class DeepId(base.NN):
 
         self.close_summary()        # 关闭 TensorBoard
 
+        self.__train_set.stop()     # 关闭获取数据线程
+
         # self.restore_model_w_b()    # 恢复模型
         # self.rebuild_model()        # 重建模型
         # self.get_loss()             # 重新 get loss

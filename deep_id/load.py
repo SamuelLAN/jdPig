@@ -210,7 +210,6 @@ class Data:
         while not self.__stop_thread:
             while self.__queue.qsize() <= 1000:
                 file_name, img_path = self.__data[self.__cur_index]
-                self.echo(' getting %s ' % img_path)
                 x, y = self.__get_x_y(img_path)
 
                 self.__queue.put([x, y])
@@ -356,7 +355,7 @@ class Data:
         y = []
         for i in range(batch_size):
             while self.__queue.empty():
-                time.sleep(1)
+                time.sleep(0.2)
             if not self.__queue.empty():
                 _x, _y = self.__queue.get()
                 X.append(_x)
@@ -424,26 +423,26 @@ class Data:
 
 # Download.run()
 
-train_data = Data(0.0, 0.64, 'train')
-
-print 'size:'
-print train_data.get_size()
-
-for i in range(10):
-    batch_x, batch_y = train_data.next_batch(10)
-
-    print '\n*************** %d *****************' % i
-    print train_data.get_size()
-    print batch_x.shape
-    print batch_y.shape
-
-    tmp_x = batch_x[0]
-    o_tmp = Image.fromarray(tmp_x)
-    o_tmp.show()
-
-    time.sleep(1)
-
-train_data.stop()
+# train_data = Data(0.0, 0.64, 'train')
+#
+# print 'size:'
+# print train_data.get_size()
+#
+# for i in range(10):
+#     batch_x, batch_y = train_data.next_batch(10)
+#
+#     print '\n*************** %d *****************' % i
+#     print train_data.get_size()
+#     print batch_x.shape
+#     print batch_y.shape
+#
+#     tmp_x = batch_x[0]
+#     o_tmp = Image.fromarray(tmp_x)
+#     o_tmp.show()
+#
+#     time.sleep(1)
+#
+# train_data.stop()
 
 # print 'y 0:'
 # print batch_y[0]
