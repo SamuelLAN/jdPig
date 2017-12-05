@@ -116,7 +116,8 @@ class Download:
 
 class Data:
     DATA_ROOT = r'data/TrainImgMore'
-    RESIZE = [224, 224]
+    # RESIZE = [224, 224]
+    RESIZE = [39, 39]
     RATIO = 1.0
     NUM_CLASSES = 30
 
@@ -215,7 +216,7 @@ class Data:
                 self.__queue.put([x, y])
                 self.__cur_index = (self.__cur_index + 1) % self.__data_len
 
-            time.sleep(2)
+            time.sleep(1)
 
         self.echo('\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
 
