@@ -128,19 +128,19 @@ class DeepId(base.NN):
             'name': 'fc_3',
             'type': 'fc_n',
             'shape': [540, 320],
-            'layer_index': 5,
+            'layer_index': 9,
         },
         {   # 8 * 8 * 40 => 320 与 pool_2 层全连接
             'name': 'fc_2',
             'type': 'fc_n',
             'shape': [2560, 320],
-            'layer_index': 3,
+            'layer_index': 5,
         },
         {   # 18 * 18 * 20 => 320 与 pool_1 层全连接
             'name': 'fc_1',
             'type': 'fc_n',
             'shape': [6480, 320],
-            'layer_index': 1,
+            'layer_index': 2,
         },
         {
             'name': 'dropout',
