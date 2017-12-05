@@ -43,6 +43,7 @@ class DeepId(base.NN):
 
     PARAM_DIR = r'param'            # 动态参数目录地址
     LR_FILE_PATH = r'param/lr.tmp'  # 动态设置学习率的文件地址
+    DROPOUT_FILE_PATH = r'param/dropout.tmp'  # 动态设置学习率的文件地址
 
     DEEP_ID_LAYER_INDEX = -2    # 倒数第二层为 deep_id 层
 
@@ -179,6 +180,7 @@ class DeepId(base.NN):
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
         # dropout 的 keep_prob
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+        self.__keep_prob_value = 0.9
 
         self.__has_rebuild = False
 
@@ -316,10 +318,17 @@ class DeepId(base.NN):
             with open(self.LR_FILE_PATH, 'wb') as f:
                 f.write('%.6f' % self.BASE_LEARNING_RATE)
 
+        if not os.path.isfile(self.DROPOUT_FILE_PATH):
+            with open(self.DROPOUT_FILE_PATH, 'wb') as f:
+                f.write('%.6f' % self.__keep_prob_value)
 
-    def __get_learning_rate(self):
+
+    def __update_param(self):
         with open(self.LR_FILE_PATH, 'rb') as f:
             self.__learning_rate_value = float(f.read())
+
+        with open(self.DROPOUT_FILE_PATH, 'rb') as f:
+            self.__keep_prob_value = float(f.read())
 
 
     ''' 主函数 '''
@@ -376,7 +385,7 @@ class DeepId(base.NN):
             mean_train_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
-                self.__get_learning_rate()
+                self.__update_param()
 
                 epoch = int(step // self.__iter_per_epoch)
                 mean_train_accuracy /= self.__iter_per_epoch
