@@ -209,7 +209,7 @@ class Data:
     def __get_data(self):
         while not self.__stop_thread:
             while self.__queue.qsize() <= 1000:
-                img_path = self.__data[self.__cur_index]
+                file_name, img_path = self.__data[self.__cur_index]
                 self.echo(' getting %s ' % img_path)
                 x, y = self.__get_x_y(img_path)
 
@@ -355,20 +355,12 @@ class Data:
         X = []
         y = []
         for i in range(batch_size):
-            print '##########'
-            print i
             while self.__queue.empty():
                 time.sleep(1)
-            print 'q_size'
-            print self.__queue.qsize()
             if not self.__queue.empty():
                 _x, _y = self.__queue.get()
                 X.append(_x)
                 y.append(_y)
-                print 'x'
-                print _x.shape
-                print 'y'
-                print _y.shape
         return np.array(X), np.array(y)
 
 
