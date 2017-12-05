@@ -31,7 +31,7 @@ class DeepId(base.NN):
     NUM_CLASSES = 30            # 总共分 NUM_CLASSES 类
     NUM_CHANNEL = 3             # 输入 channel
 
-    IMAGE_SHAPE = [43, 43]      # 输入图片的大小
+    IMAGE_SHAPE = [47, 47]      # 输入图片的大小
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]    # image 的 placeholder 的 shape
 
     X_LIST_LEN = 6              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
@@ -96,19 +96,19 @@ class DeepId(base.NN):
             'type': 'fc',
             'shape': [720, 720],
         },
-        {   # 4 * 4 * 60 => 320 与 pool_3 层全连接
+        {   # 4 * 4 * 60 => 720 与 pool_3 层全连接
             'name': 'fc_3',
             'type': 'fc_n',
             'shape': [960, 720],
             'layer_index': 5,
         },
-        {   # 10 * 10 * 40 => 320 与 pool_2 层全连接
+        {   # 10 * 10 * 40 => 720 与 pool_2 层全连接
             'name': 'fc_2',
             'type': 'fc_n',
             'shape': [4000, 720],
             'layer_index': 3,
         },
-        {   # 22 * 22 * 20 => 320 与 pool_1 层全连接
+        {   # 22 * 22 * 20 => 720 与 pool_1 层全连接
             'name': 'fc_1',
             'type': 'fc_n',
             'shape': [9680, 720],
