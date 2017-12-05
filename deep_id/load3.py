@@ -231,14 +231,14 @@ class Data:
             padding = int((new_h - h) / 2.0)
 
             np_new_image = np.zeros([new_h, w, 1])
-            np_new_image[padding: padding + h, :, 0] = np_image
+            np_new_image[padding: padding + h, :, :] = np_image[:, :, 0]
 
         else:
             new_w = int(float(h) * Data.RATIO)
             padding = int((new_w - w) / 2.0)
 
             np_new_image = np.zeros([h, new_w, 1])
-            np_new_image[:, padding: padding + w, 0] = np_image
+            np_new_image[:, padding: padding + w, :] = np_image[:, :, 0]
 
         new_image = Image.fromarray( np.cast['uint8'](np_new_image) )
         return np.array( new_image.resize( Data.RESIZE ) )
