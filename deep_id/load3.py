@@ -267,6 +267,8 @@ class Data:
 
             if r < 10:
                 print '********************************'
+                print center_x
+                print center_y
                 print h, w, c
                 print x, y
                 print r
