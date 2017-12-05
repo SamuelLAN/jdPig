@@ -265,7 +265,20 @@ class Data:
 
             r = int( min(x, y, h - x, w - y, h / 3, w / 3) ) - 1
 
+            if r < 10:
+                print '********************************'
+                print center_x
+                print center_y
+                print h, w, c
+                print x, y
+                print r
+                print '*****'
+
             np_new_img = np_image[x - r: x + r, y - r: y + r, :]
+
+            print 'np_new_img'
+            print np_new_img.shape
+
             new_img = Image.fromarray(np_new_img)
             return np.array( new_img.resize(Data.RESIZE) )
             # patch_list.append( np.array( new_img.resize(Data.RESIZE) ) )
