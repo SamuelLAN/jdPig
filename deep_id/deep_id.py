@@ -314,13 +314,11 @@ class DeepId(base.NN):
         if not os.path.isdir(self.PARAM_DIR):
             os.mkdir(self.PARAM_DIR)
 
-        if not os.path.isfile(self.LR_FILE_PATH):
-            with open(self.LR_FILE_PATH, 'wb') as f:
-                f.write('%.6f' % self.BASE_LEARNING_RATE)
+        with open(self.LR_FILE_PATH, 'wb') as f:
+            f.write('%.6f' % self.BASE_LEARNING_RATE)
 
-        if not os.path.isfile(self.DROPOUT_FILE_PATH):
-            with open(self.DROPOUT_FILE_PATH, 'wb') as f:
-                f.write('%.6f' % self.__keep_prob_value)
+        with open(self.DROPOUT_FILE_PATH, 'wb') as f:
+            f.write('%.6f' % self.__keep_prob_value)
 
 
     def __update_param(self):
