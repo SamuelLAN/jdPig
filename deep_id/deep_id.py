@@ -37,7 +37,7 @@ class DeepId(base.NN):
     X_LIST_LEN = 6              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
 
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
-    DECAY_RATE = 0.3            # 学习率 的 下降速率
+    DECAY_RATE = 0.1            # 学习率 的 下降速率
 
     KEEP_PROB = 0.75             # dropout 的 keep_prob
 
@@ -154,11 +154,6 @@ class DeepId(base.NN):
 
         self.__size = tf.placeholder(tf.float32, name='size')
 
-        # 随训练次数增多而衰减的学习率
-        # self.__learning_rate = self.get_learning_rate(
-        #     self.BASE_LEARNING_RATE, self.global_step, self.__iter_per_epoch * 10, self.DECAY_RATE, staircase=True
-        # )
-
         # for i in range(self.X_LIST_LEN):
         #     # 输入
         #     self.__x_list.append( tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X_%d' % i) )
@@ -174,8 +169,13 @@ class DeepId(base.NN):
         #         self.BASE_LEARNING_RATE, global_step, self.__steps, self.DECAY_RATE, staircase=False
         #     ) )
         
-        self.__learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-        self.__learning_rate_value = self.BASE_LEARNING_RATE
+        # self.__learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+        # self.__learning_rate_value = self.BASE_LEARNING_RATE
+
+        # 随训练次数增多而衰减的学习率
+        self.__learning_rate = self.get_learning_rate(
+            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
+        )
 
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
         # dropout 的 keep_prob
@@ -349,7 +349,7 @@ class DeepId(base.NN):
         # tensorboard 相关记录
         self.__summary()
 
-        self.__build_param_dir()
+        # self.__build_param_dir()
 
         # 初始化所有变量
         self.init_variables()
@@ -373,17 +373,19 @@ class DeepId(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
-            keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 15 else 1.0
+            # keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 15 else 1.0
 
             feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__size: batch_y.shape[0],
-                         self.__learning_rate: self.__learning_rate_value, self.__keep_prob: self.__keep_prob_value}
+                         self.__keep_prob: self.KEEP_PROB,
+                         # self.__learning_rate: self.__learning_rate_value, self.__keep_prob: self.__keep_prob_value,
+                         }
             _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
             
             mean_train_accuracy += train_accuracy
             mean_train_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
-                self.__update_param()
+                # self.__update_param()
 
                 epoch = int(step // self.__iter_per_epoch)
                 mean_train_accuracy /= self.__iter_per_epoch
