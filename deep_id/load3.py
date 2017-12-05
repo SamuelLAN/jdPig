@@ -221,7 +221,9 @@ class Data:
         ratio = float(w) / h
 
         if abs(ratio - Data.RATIO) <= 0.1:
-            return np.array( image.resize( Data.RESIZE ) )
+            np_image = np.array( image.resize( Data.RESIZE ) )
+            h, w, c = np_image.shape
+            return np.reshape(np_image[:, :, 0], [h, w, 1])
 
         np_image = np.array(image)
         h, w, c = np_image.shape
@@ -230,18 +232,21 @@ class Data:
             new_h = int(float(w) / Data.RATIO)
             padding = int((new_h - h) / 2.0)
 
-            np_new_image = np.zeros([new_h, w, 1])
-            np_new_image[padding: padding + h, :, :] = np_image[:, :, 0]
+            np_new_image = np.zeros([new_h, w])
+            np_new_image[padding: padding + h, :] = np_image[:, :, 0]
 
         else:
             new_w = int(float(h) * Data.RATIO)
             padding = int((new_w - w) / 2.0)
 
-            np_new_image = np.zeros([h, new_w, 1])
-            np_new_image[:, padding: padding + w, :] = np_image[:, :, 0]
+            np_new_image = np.zeros([h, new_w])
+            np_new_image[:, padding: padding + w] = np_image[:, :, 0]
 
         new_image = Image.fromarray( np.cast['uint8'](np_new_image) )
-        return np.array( new_image.resize( Data.RESIZE ) )
+        np_new_image = np.array( new_image.resize( Data.RESIZE ) )
+
+        h, w = np_new_image.shape
+        return np.reshape(np_new_image, [h, w, 1])
 
 
     def __sort(self, a, b):
