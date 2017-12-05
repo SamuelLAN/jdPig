@@ -221,7 +221,7 @@ class Data:
 
 
     def __start_thread(self):
-        self.__thread = threading.Thread(target=self.__get_data, name='get_%s_data' % self.__name)
+        self.__thread = threading.Thread(target=self.__get_data, name=('get_%s_data' % self.__name))
         self.__thread.start()
         self.echo('Thread "get_%s_data" is running ... ' % self.__name)
 
@@ -359,7 +359,7 @@ class Data:
             if not self.__queue.empty():
                 _x, _y = self.__queue.get()
                 X.append(_x)
-                y.append(y)
+                y.append(_y)
         return np.array(X), np.array(y)
 
 
