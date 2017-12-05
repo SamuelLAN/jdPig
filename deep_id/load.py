@@ -366,18 +366,18 @@ class Data:
 
 # Download.run()
 
-train_data = Data(0.0, 0.64, 'train')
-
-batch_x , batch_y = train_data.next_batch(4)
-
-print '********************************'
-print train_data.get_size()
-print batch_x.shape
-print batch_y.shape
-
-tmp_x = batch_x[0]
-o_tmp = Image.fromarray(tmp_x)
-o_tmp.show()
+# train_data = Data(0.0, 0.64, 'train')
+#
+# batch_x , batch_y = train_data.next_batch(4)
+#
+# print '********************************'
+# print train_data.get_size()
+# print batch_x.shape
+# print batch_y.shape
+#
+# tmp_x = batch_x[0]
+# o_tmp = Image.fromarray(tmp_x)
+# o_tmp.show()
 
 # print 'y 0:'
 # print batch_y[0]

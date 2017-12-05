@@ -332,8 +332,7 @@ class DeepId(base.NN):
                 self.echo('\r step: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
                                                                        self.__steps, step_progress), False)
 
-            batch_x_list, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
-            batch_x = batch_x_list[0]
+            batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
             _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
