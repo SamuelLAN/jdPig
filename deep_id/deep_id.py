@@ -391,7 +391,8 @@ class DeepId(base.NN):
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
                 feed_dict = {self.__X: batch_val_x, self.__label: batch_val_y,
                              self.__size: batch_val_y.shape[0], self.__keep_prob: 1.0,
-                             self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss}
+                             self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss
+                             self.__learning_rate: self.__learning_rate_value}
                 self.add_summary_val(feed_dict, epoch)
 
                 self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f  mean_val_loss: %.6f  mean_val_accuracy: %.6f \t ' %
