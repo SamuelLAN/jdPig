@@ -37,7 +37,7 @@ class DeepId(base.NN):
     X_LIST_LEN = 6              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
 
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
-    DECAY_RATE = 0.8            # 学习率 的 下降速率
+    DECAY_RATE = 0.3            # 学习率 的 下降速率
 
     KEEP_PROB = 0.5             # dropout 的 keep_prob
 
@@ -152,7 +152,7 @@ class DeepId(base.NN):
 
         # 随训练次数增多而衰减的学习率
         self.__learning_rat = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
+            self.BASE_LEARNING_RATE, self.global_step, self.__iter_per_epoch * 10, self.DECAY_RATE, staircase=True
         )
 
         # for i in range(self.X_LIST_LEN):
