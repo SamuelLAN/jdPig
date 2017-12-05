@@ -29,7 +29,7 @@ class DeepId(base.NN):
     EPOCH_TIMES = 500           # 随机梯度下降的 batch 大小
 
     NUM_CLASSES = 30            # 总共分 NUM_CLASSES 类
-    NUM_CHANNEL = 1             # 输入 channel
+    NUM_CHANNEL = 3             # 输入 channel
 
     IMAGE_SHAPE = [39, 39]      # 输入图片的大小
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]    # image 的 placeholder 的 shape

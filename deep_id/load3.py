@@ -8,6 +8,7 @@ from PIL import Image
 import threading
 import Queue
 import time
+from sklearn.cluster import KMeans
 
 
 class Data:
@@ -137,7 +138,8 @@ class Data:
         label[pig_no] = 1
 
         # return Data.__get_three_patch(img_path), label
-        return Data.__add_padding(img_path), label
+        # return Data.__add_padding(img_path), label
+        return Data.__get_kmeans_patch(img_path), label
 
 
     # @staticmethod
@@ -184,6 +186,9 @@ class Data:
         patch = Data.__add_padding(img_path)
         patch_list.append(patch)
 
+        kmeans_patch_list = Data.__get_kmeans_patch(img_path)
+        patch_list += kmeans_patch_list
+
         return patch_list
 
 
@@ -212,6 +217,56 @@ class Data:
     @staticmethod
     def __resize_np_img(np_image):
         return np.array( Image.fromarray(np_image).resize( Data.RESIZE ), dtype=np.float32 )
+
+
+    @staticmethod
+    def __get_kmeans_patch(img_path):
+        np_image = np.array( Image.open(img_path) )
+        np_tmp_image = ( np_image - (255.0 / 2) ) / 255.0
+
+        h, w, c = np_tmp_image.shape
+        data = []
+        for i in range(h):
+            for j in range(w):
+                pixel = np_tmp_image[i, j, :]
+                data.append([ float(i - (h / 2.0)) / h, float(-j + (w / 2.0)) / w, pixel[0], pixel[1], pixel[2] ])
+
+        data = np.array(data)
+
+        k = 5
+        estimator = KMeans(n_clusters=k)
+        estimator.fit(data)
+
+        center = estimator.cluster_centers_
+        center = center[:, :2]
+
+        center_x = np.cast['int32']( center * h + (h / 2.0) )
+        center_y = np.cast['int32']( -center * w + (h / 2.0) )
+
+        patch_list = []
+
+        for i in range(k):
+            x = center_x[i]
+            y = center_y[i]
+
+            if x < h / 10:
+                x += int(h / 10)
+            elif h - x < h / 10:
+                x -= int(h / 10)
+
+            if y < w / 10:
+                y += int(w / 10)
+            elif w - y < w / 10:
+                y -= int(w / 10)
+
+            r = int( min(x, y, h - x, w - y, h / 3, w / 3) ) - 1
+
+            np_new_img = np_image[x - r: x + r, y - r: y + r, :]
+            new_img = Image.fromarray(np_new_img)
+            return np.array( new_img.resize(Data.RESIZE) )
+            # patch_list.append( np.array( new_img.resize(Data.RESIZE) ) )
+
+        # return patch_list
 
     
     @staticmethod
