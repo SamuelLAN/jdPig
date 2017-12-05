@@ -350,22 +350,23 @@ class DeepId(base.NN):
                 epoch = int(step // self.__iter_per_epoch)
                 mean_train_accuracy /= self.__iter_per_epoch
                 mean_train_loss /= self.__iter_per_epoch
-                self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f \t ' % 
-                          (epoch, mean_train_loss, mean_train_accuracy))
 
                 feed_dict[self.__mean_accuracy] = mean_train_accuracy
                 feed_dict[self.__mean_loss] = mean_train_loss
                 self.add_summary_train(feed_dict, epoch)
-
-                mean_train_accuracy = 0
-                mean_train_loss = 0
                 
                 mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set)
 
                 feed_dict[self.__mean_accuracy] = mean_val_accuracy
                 feed_dict[self.__mean_loss] = mean_val_loss
                 self.add_summary_val(feed_dict, epoch)
-                
+
+                self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f \n\t mean_val_loss: %.6f  mean_val_accuracy: %.6f \t ' %
+                          (epoch, mean_train_loss, mean_train_accuracy, mean_val_loss, mean_val_accuracy))
+
+                mean_train_accuracy = 0
+                mean_train_loss = 0
+
                 if best_val_accuracy < mean_val_accuracy:
                     best_val_accuracy = mean_val_accuracy
                     decrease_val_accuracy_times = 0
