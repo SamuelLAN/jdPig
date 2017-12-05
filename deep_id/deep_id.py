@@ -257,8 +257,8 @@ class DeepId(base.NN):
             mean_accuracy += accuracy
             mean_loss += loss
 
-            # progress = float(i + 1) / times * 100
-            # self.echo('\r measuring loss progress: %.2f%% | %d \t' % (progress, times), False)
+            progress = float(i + 1) / times * 100
+            self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
 
         return mean_accuracy / times, mean_loss / times
 
@@ -361,7 +361,7 @@ class DeepId(base.NN):
                 feed_dict[self.__mean_loss] = mean_val_loss
                 self.add_summary_val(feed_dict, epoch)
 
-                self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f \n\t mean_val_loss: %.6f  mean_val_accuracy: %.6f \t ' %
+                self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f  mean_val_loss: %.6f  mean_val_accuracy: %.6f \t ' %
                           (epoch, mean_train_loss, mean_train_accuracy, mean_val_loss, mean_val_accuracy))
 
                 mean_train_accuracy = 0
@@ -371,8 +371,10 @@ class DeepId(base.NN):
                     best_val_accuracy = mean_val_accuracy
                     decrease_val_accuracy_times = 0
                     
-                    self.echo('\n best_val_accuracy: %.6f \t ' % best_val_accuracy)
-                    self.save_model_w_b()
+                    self.echo(' \t best_val_accuracy: %.6f \t ' % best_val_accuracy)
+
+                    if best_val_accuracy > 0.8:
+                        self.save_model_w_b()
                     
                 else:
                     decrease_val_accuracy_times += 1
