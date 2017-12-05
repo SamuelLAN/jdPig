@@ -300,7 +300,7 @@ class Data:
                 _x, _y = self.__queue.get()
                 X.append(_x)
                 y.append(_y)
-        return np.array(X), np.array(y)
+        return np.array(X).transpose([1, 0, 2, 3, 4]), np.array(y)
 
 
     ''' 获取数据集大小 '''
@@ -319,19 +319,19 @@ class Data:
 
 
 # Download.run()
-
-train_data = Data(0.0, 0.64, 'train')
-
-print 'size:'
-print train_data.get_size()
+#
+# train_data = Data(0.0, 0.64, 'train')
+#
+# print 'size:'
+# print train_data.get_size()
 
 # for i in range(10):
-batch_x, batch_y = train_data.next_batch(10)
+# batch_x, batch_y = train_data.next_batch(10)
 
 # print '\n*************** %d *****************' % i
-print train_data.get_size()
-print batch_x.shape
-print batch_y.shape
+# print train_data.get_size()
+# print batch_x.shape
+# print batch_y.shape
 #
 #     tmp_x = batch_x[0]
 #     o_tmp = Image.fromarray(tmp_x)
