@@ -7,6 +7,9 @@ import zipfile
 import numpy as np
 from PIL import Image
 from six.moves.urllib.request import urlretrieve
+import threading
+import Queue
+import time
 
 
 '''
@@ -142,6 +145,10 @@ class Data:
         self.__data_len = len(self.__data)
         random.shuffle(self.__data)
 
+        self.__queue = Queue.Queue()
+        self.__stop_thread = False
+        self.__thread = None
+
         self.__cur_index = 0
 
 
@@ -196,45 +203,82 @@ class Data:
 
         self.echo('\nFinish Loading\n')
 
+        self.__start_thread()
+
+
+    def __get_data(self):
+        while not self.__stop_thread:
+            while self.__queue.qsize() <= 1000:
+                img_path = self.__data[self.__cur_index]
+                x, y = self.__get_x_y(img_path)
+
+                self.__queue.put([x, y])
+                self.__cur_index = (self.__cur_index + 1) % self.__data_len
+
+            time.sleep(5)
+
+        self.echo('\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
+
+
+    def __start_thread(self):
+        self.__thread = threading.Thread(target=self.__get_data, name='get_%s_data' % self.__name)
+        self.__thread.start()
+        self.echo('Thread "get_%s_data" is running ... ' % self.__name)
+
+
+    def stop(self):
+        self.__stop_thread = True
+
 
     @staticmethod
-    def __read_img_list(img_list):
-        X = []
-        y = []
+    def __get_x_y(img_path):
+        no_list = os.path.splitext(os.path.split(img_path)[1])[0].split('_')
 
-        for img_path in img_list:
-            no_list = os.path.splitext( os.path.split(img_path)[1] )[0].split('_')
+        pig_no = int(no_list[0]) - 1
+        label = np.zeros([Data.NUM_CLASSES])
+        label[pig_no] = 1
 
-            pig_no = int(no_list[0]) - 1
-            label = np.zeros([Data.NUM_CLASSES])
-            label[pig_no] = 1
-
-            X.append( Data.__add_padding(img_path) )
-            y.append( label )
-
-        return np.array(X), np.array(y)
+        return Data.__add_padding(img_path), label
 
 
-    @staticmethod
-    def __get_three_patch(img_path):
-        np_image = np.array( Image.open(img_path) )
-        h, w, c = np_image.shape
-
-        if h > w:
-            _size = w
-            padding = int( (h - _size) / 2 )
-            np_image_1 = np_image[:_size, :, :]
-            np_image_2 = np_image[padding: padding + _size, :, :]
-            np_image_3 = np_image[-_size:, :, :]
-
-        else:
-            _size = h
-            padding = int( (w - _size) / 2 )
-            np_image_1 = np_image[:, :_size, :]
-            np_image_2 = np_image[:, padding: padding + _size, :]
-            np_image_3 = np_image[:, -_size:, :]
-
-        return [Data.__resize_np_img(np_image_1), Data.__resize_np_img(np_image_2), Data.__resize_np_img(np_image_3)]
+    # @staticmethod
+    # def __read_img_list(img_list):
+    #     X = []
+    #     y = []
+    #
+    #     for img_path in img_list:
+    #         no_list = os.path.splitext( os.path.split(img_path)[1] )[0].split('_')
+    #
+    #         pig_no = int(no_list[0]) - 1
+    #         label = np.zeros([Data.NUM_CLASSES])
+    #         label[pig_no] = 1
+    #
+    #         X.append( Data.__add_padding(img_path) )
+    #         y.append( label )
+    #
+    #     return np.array(X), np.array(y)
+    #
+    #
+    # @staticmethod
+    # def __get_three_patch(img_path):
+    #     np_image = np.array( Image.open(img_path) )
+    #     h, w, c = np_image.shape
+    #
+    #     if h > w:
+    #         _size = w
+    #         padding = int( (h - _size) / 2 )
+    #         np_image_1 = np_image[:_size, :, :]
+    #         np_image_2 = np_image[padding: padding + _size, :, :]
+    #         np_image_3 = np_image[-_size:, :, :]
+    #
+    #     else:
+    #         _size = h
+    #         padding = int( (w - _size) / 2 )
+    #         np_image_1 = np_image[:, :_size, :]
+    #         np_image_2 = np_image[:, padding: padding + _size, :]
+    #         np_image_3 = np_image[:, -_size:, :]
+    #
+    #     return [Data.__resize_np_img(np_image_1), Data.__resize_np_img(np_image_2), Data.__resize_np_img(np_image_3)]
 
 
     @staticmethod
@@ -306,42 +350,55 @@ class Data:
         return img_no_list
 
 
-    ''' 获取下个 batch '''
-    def next_batch(self, batch_size, loop = True):
-        if not loop and self.__cur_index >= self.__data_len:
-            return None, None
+    def next_batch(self, batch_size):
+        X = []
+        y = []
+        for i in range(batch_size):
+            while self.__queue.empty():
+                time.sleep(0.3)
+            if not self.__queue.empty():
+                _x, _y = self.__queue.get()
+                X.append(_x)
+                y.append(y)
+        return np.array(X), np.array(y)
 
-        start_index = self.__cur_index
-        end_index = self.__cur_index + batch_size
-        left_num = 0
 
-        if end_index >= self.__data_len:
-            left_num = end_index - self.__data_len
-            end_index = self.__data_len
-
-        _, path_list = zip(*self.__data[start_index: end_index])
-
-        if not loop:
-            self.__cur_index = end_index
-            return Data.__read_img_list(path_list)
-
-        if not left_num:
-            self.__cur_index = end_index if end_index < self.__data_len else 0
-            return Data.__read_img_list(path_list)
-
-        while left_num:
-            end_index = left_num
-            if end_index > self.__data_len:
-                left_num = end_index - self.__data_len
-                end_index = self.__data_len
-            else:
-                left_num = 0
-
-            _, left_path_list = zip(*self.__data[: end_index])
-            path_list += left_path_list
-
-        self.__cur_index = end_index if end_index < self.__data_len else 0
-        return Data.__read_img_list(path_list)
+    # ''' 获取下个 batch '''
+    # def next_batch(self, batch_size, loop = True):
+    #     if not loop and self.__cur_index >= self.__data_len:
+    #         return None, None
+    #
+    #     start_index = self.__cur_index
+    #     end_index = self.__cur_index + batch_size
+    #     left_num = 0
+    #
+    #     if end_index >= self.__data_len:
+    #         left_num = end_index - self.__data_len
+    #         end_index = self.__data_len
+    #
+    #     _, path_list = zip(*self.__data[start_index: end_index])
+    #
+    #     if not loop:
+    #         self.__cur_index = end_index
+    #         return Data.__read_img_list(path_list)
+    #
+    #     if not left_num:
+    #         self.__cur_index = end_index if end_index < self.__data_len else 0
+    #         return Data.__read_img_list(path_list)
+    #
+    #     while left_num:
+    #         end_index = left_num
+    #         if end_index > self.__data_len:
+    #             left_num = end_index - self.__data_len
+    #             end_index = self.__data_len
+    #         else:
+    #             left_num = 0
+    #
+    #         _, left_path_list = zip(*self.__data[: end_index])
+    #         path_list += left_path_list
+    #
+    #     self.__cur_index = end_index if end_index < self.__data_len else 0
+    #     return Data.__read_img_list(path_list)
 
 
     ''' 获取数据集大小 '''
@@ -349,9 +406,9 @@ class Data:
         return self.__data_len
 
 
-    ''' 重置当前 index 位置 '''
-    def reset_cur_index(self):
-        self.__cur_index = 0
+    # ''' 重置当前 index 位置 '''
+    # def reset_cur_index(self):
+    #     self.__cur_index = 0
 
 
     ''' 输出展示 '''
@@ -366,18 +423,24 @@ class Data:
 
 # Download.run()
 
-# train_data = Data(0.0, 0.64, 'train')
-#
-# batch_x , batch_y = train_data.next_batch(4)
-#
-# print '********************************'
-# print train_data.get_size()
-# print batch_x.shape
-# print batch_y.shape
-#
-# tmp_x = batch_x[0]
-# o_tmp = Image.fromarray(tmp_x)
-# o_tmp.show()
+train_data = Data(0.0, 0.64, 'train')
+
+print 'size:'
+print train_data.get_size()
+
+for i in range(10):
+    batch_x, batch_y = train_data.next_batch(10)
+
+    print '\n*************** %d *****************' % i
+    print train_data.get_size()
+    print batch_x.shape
+    print batch_y.shape
+
+    tmp_x = batch_x[0]
+    o_tmp = Image.fromarray(tmp_x)
+    o_tmp.show()
+
+    time.sleep(1)
 
 # print 'y 0:'
 # print batch_y[0]
