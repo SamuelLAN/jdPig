@@ -240,8 +240,8 @@ class Data:
         center = estimator.cluster_centers_
         center = center[:, :2]
 
-        center_x = np.cast['int32']( center * h + (h / 2.0) )
-        center_y = np.cast['int32']( -center * w + (h / 2.0) )
+        center_x = np.cast['int32']( center[:, 0] * h + (h / 2.0) )
+        center_y = np.cast['int32']( -center[:, 1] * w + (h / 2.0) )
 
         patch_list = []
 
