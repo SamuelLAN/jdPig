@@ -37,7 +37,7 @@ class DeepId(base.NN):
     X_LIST_LEN = 6              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
 
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
-    DECAY_RATE = 0.9            # 学习率 的 下降速率
+    DECAY_RATE = 0.05            # 学习率 的 下降速率
 
     KEEP_PROB = 0.95            # dropout 的 keep_prob
 
