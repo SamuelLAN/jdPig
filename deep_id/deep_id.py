@@ -39,7 +39,7 @@ class DeepId(base.NN):
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
     DECAY_RATE = 0.1            # 学习率 的 下降速率
 
-    KEEP_PROB = 0.75             # dropout 的 keep_prob
+    KEEP_PROB = 0.95             # dropout 的 keep_prob
 
     PARAM_DIR = r'param'            # 动态参数目录地址
     LR_FILE_PATH = r'param/lr.tmp'  # 动态设置学习率的文件地址
