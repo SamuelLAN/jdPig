@@ -177,7 +177,7 @@ class Data:
             split_file_name = os.path.splitext(file_name)
             no_list = split_file_name[0].split('_')
 
-            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) != 0:
+            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) > 8:
                 continue
 
             self.__data.append( [split_file_name[0], os.path.join(self.DATA_ROOT, file_name)] )
