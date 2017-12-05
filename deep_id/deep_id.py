@@ -282,7 +282,7 @@ class DeepId(base.NN):
 
         tf.summary.scalar('loss', self.__loss)
         tf.summary.scalar('accuracy', self.__accuracy)
-        tf.summary.scalar('learning_rate', self.__learning_rate)
+        # tf.summary.scalar('learning_rate', self.__learning_rate)
         tf.summary.scalar('mean_accuracy', self.__mean_accuracy)
         tf.summary.scalar('mean_loss', self.__mean_loss)
 
@@ -401,7 +401,8 @@ class DeepId(base.NN):
                 feed_dict = {self.__X: batch_val_x, self.__label: batch_val_y,
                              self.__size: batch_val_y.shape[0], self.__keep_prob: 1.0,
                              self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
-                             self.__learning_rate: self.__learning_rate_value}
+                             # self.__learning_rate: self.__learning_rate_value,
+                             }
                 self.add_summary_val(feed_dict, epoch)
 
                 self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f  mean_val_loss: %.6f  mean_val_accuracy: %.6f \t ' %
