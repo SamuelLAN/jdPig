@@ -151,6 +151,8 @@ class Data:
 
         self.__cur_index = 0
 
+        self.__start_thread()
+
 
     @staticmethod
     def __chang_dir():
@@ -202,8 +204,6 @@ class Data:
         # self.__data.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
-
-        self.__start_thread()
 
 
     def __get_data(self):
