@@ -222,7 +222,10 @@ class Data:
     @staticmethod
     def __get_kmeans_patch(img_path):
         image = Image.open(img_path)
-        np_image = np.array( image.resize( np.cast['int32']( np.array(image.size) / 3 ) ) )
+        if image.size[0] > 320 or image.size[1] > 320:
+            np_image = np.array( image.resize( np.cast['int32']( np.array(image.size) / 2 ) ) )
+        else:
+            np_image = np.array( image )
         np_tmp_image = ( np_image - (255.0 / 2) ) / 255.0
 
         h, w, c = np_tmp_image.shape
@@ -264,6 +267,10 @@ class Data:
 
             if r < 10:
                 print '********************************'
+                print h, w, c
+                print x, y
+                print r
+                print '*****'
 
             np_new_img = np_image[x - r: x + r, y - r: y + r, :]
 
