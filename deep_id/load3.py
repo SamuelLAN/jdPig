@@ -328,7 +328,7 @@ print train_data.get_size()
 # for i in range(10):
 batch_x, batch_y = train_data.next_batch(10)
 
-print '\n*************** %d *****************' % i
+# print '\n*************** %d *****************' % i
 print train_data.get_size()
 print batch_x.shape
 print batch_y.shape
