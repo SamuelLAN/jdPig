@@ -169,13 +169,13 @@ class DeepId(base.NN):
         #         self.BASE_LEARNING_RATE, global_step, self.__steps, self.DECAY_RATE, staircase=False
         #     ) )
         
-        # self.__learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-        # self.__learning_rate_value = self.BASE_LEARNING_RATE
+        self.__learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+        self.__learning_rate_value = self.BASE_LEARNING_RATE
 
-        # 随训练次数增多而衰减的学习率
-        self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
-        )
+        # # 随训练次数增多而衰减的学习率
+        # self.__learning_rate = self.get_learning_rate(
+        #     self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
+        # )
 
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
         # dropout 的 keep_prob
@@ -280,9 +280,10 @@ class DeepId(base.NN):
             self.__mean_accuracy = tf.placeholder(tf.float32, name='mean_accuracy')
             self.__mean_loss = tf.placeholder(tf.float32, name='mean_loss')
 
-        tf.summary.scalar('loss', self.__loss)
-        tf.summary.scalar('accuracy', self.__accuracy)
-        # tf.summary.scalar('learning_rate', self.__learning_rate)
+        # tf.summary.scalar('loss', self.__loss)
+        # tf.summary.scalar('accuracy', self.__accuracy)
+        tf.summary.scalar('learning_rate', self.__learning_rate)
+        tf.summary.scalar('keep_prob', self.__keep_prob)
         tf.summary.scalar('mean_accuracy', self.__mean_accuracy)
         tf.summary.scalar('mean_loss', self.__mean_loss)
 
@@ -349,7 +350,7 @@ class DeepId(base.NN):
         # tensorboard 相关记录
         self.__summary()
 
-        # self.__build_param_dir()
+        self.__build_param_dir()
 
         # 初始化所有变量
         self.init_variables()
@@ -376,8 +377,8 @@ class DeepId(base.NN):
             # keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 15 else 1.0
 
             feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__size: batch_y.shape[0],
-                         self.__keep_prob: self.KEEP_PROB,
-                         # self.__learning_rate: self.__learning_rate_value, self.__keep_prob: self.__keep_prob_value,
+                         # self.__keep_prob: self.KEEP_PROB,
+                         self.__learning_rate: self.__learning_rate_value, self.__keep_prob: self.__keep_prob_value,
                          }
             _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
             
@@ -385,7 +386,7 @@ class DeepId(base.NN):
             mean_train_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
-                # self.__update_param()
+                self.__update_param()
 
                 epoch = int(step // self.__iter_per_epoch)
                 mean_train_accuracy /= self.__iter_per_epoch
@@ -401,7 +402,7 @@ class DeepId(base.NN):
                 feed_dict = {self.__X: batch_val_x, self.__label: batch_val_y,
                              self.__size: batch_val_y.shape[0], self.__keep_prob: 1.0,
                              self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
-                             # self.__learning_rate: self.__learning_rate_value,
+                             self.__learning_rate: self.__learning_rate_value,
                              }
                 self.add_summary_val(feed_dict, epoch)
 
