@@ -49,7 +49,7 @@ class DeepId(base.NN):
 
     SHOW_PROGRESS_FREQUENCY = 2         # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
-    MAX_VAL_ACCURACY_DECR_TIMES = 20    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 30    # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     MODEL = [
         {   # 39 * 39 => 36 * 36
