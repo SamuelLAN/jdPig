@@ -378,7 +378,7 @@ class DeepId(base.NN):
             keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 15 else 1.0
 
             feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__size: batch_y.shape[0],
-                         self.__learning_rate: self.__learning_rate_value, self.__keep_prob: keep_prob}
+                         self.__learning_rate: self.__learning_rate_value, self.__keep_prob: self.__keep_prob_value}
             _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
             
             mean_train_accuracy += train_accuracy
