@@ -136,8 +136,8 @@ class Data:
         label = np.zeros([Data.NUM_CLASSES])
         label[pig_no] = 1
 
-        return Data.__get_one_patch(img_path), label
-        # return Data.__add_padding(img_path), label
+        # return Data.__get_three_patch(img_path), label
+        return Data.__add_padding(img_path), label
 
 
     # @staticmethod
@@ -159,43 +159,54 @@ class Data:
     #
     #
 
-    @staticmethod
-    def __get_one_patch(img_path):
-        np_image = np.array(Image.open(img_path))
-        h, w, c = np_image.shape
-
-        if h > w:
-            _size = w
-            # padding = int( (h - _size) / 2 )
-            np_image_1 = np_image[:_size, :, :]
-
-        else:
-            _size = h
-            # padding = int( (w - _size) / 2 )
-            np_image_1 = np_image[:, :_size, :]
-
-        return Data.__resize_np_img(np_image_1)
-
     # @staticmethod
-    # def __get_three_patch(img_path):
-    #     np_image = np.array( Image.open(img_path) )
+    # def __get_one_patch(img_path):
+    #     np_image = np.array(Image.open(img_path))
     #     h, w, c = np_image.shape
     #
     #     if h > w:
     #         _size = w
-    #         padding = int( (h - _size) / 2 )
+    #         # padding = int( (h - _size) / 2 )
     #         np_image_1 = np_image[:_size, :, :]
-    #         np_image_2 = np_image[padding: padding + _size, :, :]
-    #         np_image_3 = np_image[-_size:, :, :]
     #
     #     else:
     #         _size = h
-    #         padding = int( (w - _size) / 2 )
+    #         # padding = int( (w - _size) / 2 )
     #         np_image_1 = np_image[:, :_size, :]
-    #         np_image_2 = np_image[:, padding: padding + _size, :]
-    #         np_image_3 = np_image[:, -_size:, :]
     #
-    #     return [Data.__resize_np_img(np_image_1), Data.__resize_np_img(np_image_2), Data.__resize_np_img(np_image_3)]
+    #     return Data.__resize_np_img(np_image_1)
+
+
+    @staticmethod
+    def __get_patches(img_path):
+        patch_list = Data.__get_three_patch(img_path)
+
+        patch = Data.__add_padding(img_path)
+        patch_list.append(patch)
+
+        return patch_list
+
+
+    @staticmethod
+    def __get_three_patch(img_path):
+        np_image = np.array( Image.open(img_path) )
+        h, w, c = np_image.shape
+
+        if h > w:
+            _size = w
+            padding = int( (h - _size) / 2 )
+            np_image_1 = np_image[:_size, :, :]
+            np_image_2 = np_image[padding: padding + _size, :, :]
+            np_image_3 = np_image[-_size:, :, :]
+
+        else:
+            _size = h
+            padding = int( (w - _size) / 2 )
+            np_image_1 = np_image[:, :_size, :]
+            np_image_2 = np_image[:, padding: padding + _size, :]
+            np_image_3 = np_image[:, -_size:, :]
+
+        return [Data.__resize_np_img(np_image_1), Data.__resize_np_img(np_image_2), Data.__resize_np_img(np_image_3)]
 
 
     @staticmethod
@@ -219,15 +230,15 @@ class Data:
             new_h = int(float(w) / Data.RATIO)
             padding = int((new_h - h) / 2.0)
 
-            np_new_image = np.zeros([new_h, w, c])
-            np_new_image[padding: padding + h, :, :] = np_image
+            np_new_image = np.zeros([new_h, w, 1])
+            np_new_image[padding: padding + h, :, 0] = np_image
 
         else:
             new_w = int(float(h) * Data.RATIO)
             padding = int((new_w - w) / 2.0)
 
-            np_new_image = np.zeros([h, new_w, c])
-            np_new_image[:, padding: padding + w, :] = np_image
+            np_new_image = np.zeros([h, new_w, 1])
+            np_new_image[:, padding: padding + w, 0] = np_image
 
         new_image = Image.fromarray( np.cast['uint8'](np_new_image) )
         return np.array( new_image.resize( Data.RESIZE ) )
