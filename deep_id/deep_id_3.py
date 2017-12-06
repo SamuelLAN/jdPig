@@ -550,5 +550,5 @@ class DeepId(base.NN):
 
 
 o_deep_id = DeepId()
-# o_deep_id.run()
-o_deep_id.save_deep_id()
+o_deep_id.run()
+# o_deep_id.save_deep_id()
