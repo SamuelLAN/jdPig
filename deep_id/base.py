@@ -225,6 +225,34 @@ class NN:
         self.graph = self.sess.graph
 
 
+    def save_model_i(self, net_index):
+        model_path = self.get_model_path() + '_net_%d.pkl' % net_index
+        self.echo('Saving model to %s ... ' % model_path)
+
+        w_list = []
+        for j, w in enumerate(self.WList[net_index]):
+            if type(w) == type(None):
+                w_list.append(None)
+                continue
+            name = w.name.split(':')[0]
+            w_value = self.sess.run(w)
+            w_list.append([name, w_value])
+
+        b_list = []
+        for j, b in enumerate(self.bList[net_index]):
+            if type(b) == type(None):
+                b_list.append(None)
+                continue
+            name = b.name.split(':')[0]
+            b_value = self.sess.run(b)
+            b_list.append([name, b_value])
+
+        with open(model_path, 'wb') as f:
+            pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
+
+        self.echo('Finish saving model net_%d ' % net_index)
+
+
     ''' 自己实现的 save model '''
     def save_model_w_b(self):
         model_path = self.get_model_path() + '.pkl'
@@ -235,7 +263,7 @@ class NN:
             w_one_list = []
             for j, w in enumerate(_w_list):
                 if type(w) == type(None):
-                    _w_list.append(None)
+                    w_one_list.append(None)
                     continue
                 name = w.name.split(':')[0]
                 w_value = self.sess.run(w)
@@ -248,7 +276,7 @@ class NN:
             b_one_list = []
             for j, b in enumerate(_b_list):
                 if type(b) == type(None):
-                    _b_list.append(None)
+                    b_one_list.append(None)
                     continue
                 name = b.name.split(':')[0]
                 b_value = self.sess.run(b)
@@ -260,6 +288,33 @@ class NN:
             pickle.dump([w_all_list, b_all_list], f, pickle.HIGHEST_PROTOCOL)
 
         self.echo('Finish saving model ')
+
+
+    def restore_model_i(self, net_index):
+        model_path = self.get_model_path() + '_net_%d.pkl' % net_index
+        self.echo('Restoring from %s ...' % model_path)
+        with open(model_path, 'rb') as f:
+            w_list, b_list = pickle.load(f)
+
+        w_i_list = []
+        for j, w_val in enumerate(w_list):
+            if type(w_val) == type(None):
+                w_i_list.append(None)
+                continue
+            name, w_value = w_val
+            w_i_list.append(tf.Variable(w_value, trainable=False, name=name))
+        self.WList[net_index] = w_i_list
+
+        b_i_list = []
+        for j, b_val in enumerate(b_list):
+            if type(b_val) == type(None):
+                b_i_list.append(None)
+                continue
+            name, b_value = b_val
+            b_i_list.append(tf.Variable(b_value, trainable=False, name=name))
+        self.bList[net_index] = b_i_list
+
+        self.echo('Finish restoring net_%d ' % net_index)
 
 
     def restore_model_w_b(self):
