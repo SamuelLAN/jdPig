@@ -413,6 +413,7 @@ class DeepId(base.NN):
 
                         if decr_val_accu_times_list[i] > self.MAX_VAL_ACCURACY_DECR_TIMES:
                             stop_training_list[i] = True
+                self.echo('')
 
                 for i in range(self.X_LIST_LEN):
                     if stop_training_list[i]:

@@ -227,7 +227,7 @@ class NN:
 
     def save_model_i(self, net_index):
         model_path = self.get_model_path() + '_net_%d.pkl' % net_index
-        self.echo('Saving model to %s ... ' % os.path.split(model_path)[1])
+        self.echo('Saving model to %s ... ' % os.path.split(model_path)[1], False)
 
         w_list = []
         for j, w in enumerate(self.WList[net_index]):
@@ -250,7 +250,7 @@ class NN:
         with open(model_path, 'wb') as f:
             pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
 
-        self.echo('Finish saving model net_%d ' % net_index)
+        # self.echo('Finish saving model net_%d ' % net_index)
 
 
     ''' 自己实现的 save model '''
