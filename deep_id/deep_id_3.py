@@ -37,14 +37,14 @@ class DeepId(base.NN):
     X_LIST_LEN = 12              # 总共有 X_LIST_LEN 个输入，需要训练 X_LIST_LEN 个 CNN
 
     BASE_LEARNING_RATE_LIST = [0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03]
-    DECAY_RATE_LIST = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    DECAY_RATE_LIST = [0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03]
     KEEP_PROB_LIST = [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9]
 
     PARAM_DIR = r'param'            # 动态参数目录地址
     LR_FILE_PATH = r'param/lr.tmp'  # 动态设置学习率的文件地址
     DROPOUT_FILE_PATH = r'param/dropout.tmp'  # 动态设置学习率的文件地址
 
-    DEEP_ID_LAYER_INDEX = -2            # 倒数第二层为 deep_id 层
+    DEEP_ID_LAYER_INDEX = -3            # 倒数第二层为 deep_id 层
 
     SHOW_PROGRESS_FREQUENCY = 2         # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
@@ -111,6 +111,7 @@ class DeepId(base.NN):
             'shape': [2560, 320],
             'layer_index': 3,
         },
+        # deep_id 层
         {   # 18 * 18 * 20 => 320 与 pool_1 层全连接
             'name': 'fc_1',
             'type': 'fc_n',
@@ -208,9 +209,12 @@ class DeepId(base.NN):
         self.__output_list = []
         self.__loss_list = []
         self.__accuracy_list = []
+        self.net = []
 
         for i in range(self.X_LIST_LEN):
-            self.__output_list.append( self.deep_model_rebuild(self.__x_list[i], self.WList[i], self.bList[i]) )
+            net = []
+            self.__output_list.append( self.deep_model_rebuild(self.__x_list[i], self.WList[i], self.bList[i], net) )
+            self.net.append(net)
 
 
     ''' 计算 loss '''
@@ -440,8 +444,7 @@ class DeepId(base.NN):
         self.bList = []
         self.net = []
 
-        # 恢复模型
-        for i in range(self.X_LIST_LEN):
+        for i in range(self.X_LIST_LEN):    # 恢复模型
             self.restore_model_i(i)
 
         self.rebuild_model()    # 重建模型
@@ -466,6 +469,45 @@ class DeepId(base.NN):
         self.__test_set.stop()  # 关闭获取数据线程
 
         self.echo('\ndone')
+
+
+    '''
+     np_patch 需为灰度图片, shape : (h, w, 1)
+    '''
+    def generate_deep_id(self, np_patch):
+        if not self.__has_rebuild:
+            self.WList = []
+            self.bList = []
+
+            for i in range(self.X_LIST_LEN):    # 恢复模型
+                self.restore_model_i(i)
+
+            self.rebuild_model()    # 重建模型
+
+            self.init_variables()   # 重新初始化变量
+            self.__has_rebuild = True
+
+        np_patch = np.expand_dims(np_patch, axis=0)
+
+        deep_id_list = []
+        for i in range(self.X_LIST_LEN):
+            deep_id_layer = self.net[i][self.DEEP_ID_LAYER_INDEX]
+            feed_dict = {self.__x_list[i]: np_patch, self.__keep_prob_list[i]: 1.0}
+
+            deep_id = self.sess.run(deep_id_layer, feed_dict)
+
+            print '*******************'
+            print deep_id.shape
+
+            deep_id_list.append( deep_id.reshape([-1,]) )
+
+        deep_id = np.hstack(deep_id_list)
+        print deep_id.shape
+
+        return deep_id
+
+
+
 
 
 o_deep_id = DeepId()
