@@ -344,12 +344,14 @@ class DeepId(base.NN):
                 self.echo('\r step: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
                                                                        self.__steps, step_progress), False)
 
-            batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+            batch_x_list, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
             # 遍历每个网络；总共有 X_LIST_LEN 个网络需要训练
             for i in range(self.X_LIST_LEN):
                 if stop_training_list[i]:
                     continue
+
+                batch_x = batch_x_list[i]
 
                 feed_dict = {self.__x_list[i]: batch_x, self.__label: batch_y,
                              self.__size_list[i]: batch_y.shape[0], self.__keep_prob_list[i]: self.KEEP_PROB_LIST[i]}
