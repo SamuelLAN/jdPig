@@ -227,7 +227,7 @@ class NN:
 
     def save_model_i(self, net_index):
         model_path = self.get_model_path() + '_net_%d.pkl' % net_index
-        self.echo('Saving model to %s ... ' % model_path)
+        self.echo('Saving model to %s ... ' % os.path.split(model_path)[1])
 
         w_list = []
         for j, w in enumerate(self.WList[net_index]):
