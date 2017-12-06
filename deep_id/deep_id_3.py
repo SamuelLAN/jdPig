@@ -243,8 +243,10 @@ class DeepId(base.NN):
                 )
 
 
-    def __measure(self, data_set, net_index):
+    def __measure(self, data_set, net_index, max_times=None):
         times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+        if max_times:
+            times = min(max_times, times)
 
         mean_accuracy = 0
         mean_loss = 0
@@ -383,7 +385,7 @@ class DeepId(base.NN):
 
                 for i in range(self.X_LIST_LEN):
                     if not stop_training_list[i]:
-                        mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, i)
+                        mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, i, 5)
                         mean_val_loss_list[i] = mean_val_loss
                         mean_val_accuracy_list[i] = mean_val_accuracy
 
