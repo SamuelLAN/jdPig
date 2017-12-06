@@ -14,6 +14,7 @@ import load3 as load
 import math
 import numpy as np
 import tensorflow as tf
+from six.moves import cPickle as pickle
 
 
 '''
@@ -43,6 +44,9 @@ class DeepId(base.NN):
     PARAM_DIR = r'param'            # 动态参数目录地址
     LR_FILE_PATH = r'param/lr.tmp'  # 动态设置学习率的文件地址
     DROPOUT_FILE_PATH = r'param/dropout.tmp'  # 动态设置学习率的文件地址
+
+    FEATURE_DIR = r'feature'
+    DEEP_ID_PER_FILE = 10000            # 每个文件存储 DEEP_ID_PER_FILE
 
     DEEP_ID_LAYER_INDEX = -3            # 倒数第二层为 deep_id 层
 
@@ -472,9 +476,9 @@ class DeepId(base.NN):
 
 
     '''
-     np_patch 需为灰度图片, shape : (h, w, 1)
+     np_patch 需为灰度图片, shape : (patch_num, h, w, 1)
     '''
-    def generate_deep_id(self, np_patch):
+    def generate_deep_id(self, np_patch_list):
         if not self.__has_rebuild:
             self.WList = []
             self.bList = []
@@ -487,13 +491,12 @@ class DeepId(base.NN):
             self.init_variables()   # 重新初始化变量
             self.__has_rebuild = True
 
-        np_patch = np.expand_dims(np_patch, axis=0)
-
         deep_id_list = []
         for i in range(self.X_LIST_LEN):
+            np_patch = np.expand_dims(np_patch_list[i], axis=0)
             deep_id_layer = self.net[i][self.DEEP_ID_LAYER_INDEX]
-            feed_dict = {self.__x_list[i]: np_patch, self.__keep_prob_list[i]: 1.0}
 
+            feed_dict = {self.__x_list[i]: np_patch, self.__keep_prob_list[i]: 1.0}
             deep_id = self.sess.run(deep_id_layer, feed_dict)
 
             print '*******************'
@@ -507,5 +510,47 @@ class DeepId(base.NN):
         return deep_id
 
 
+    def __save_deep_id(self, data_set, name):
+        if not os.path.isdir(self.FEATURE_DIR):
+            os.mkdir(self.FEATURE_DIR)
+
+        deep_id_list = []
+        file_no = 0
+
+        self.echo('\nSaving %s deep_id ... ' % name)
+
+        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+        for i in range(times):
+            progress = float(i + 1) / times * 100
+            self.echo('\r >> saving progress: %.2f \t ' % progress)
+
+            batch_x_list, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            batch_x_list = batch_x_list.transpose([1, 0, 2, 3, 4])
+
+            for x_list in batch_x_list:
+                deep_id = self.generate_deep_id(x_list)
+                deep_id_list.append(deep_id)
+
+                if len(deep_id_list) >= self.DEEP_ID_PER_FILE:
+                    with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)) ) as f:
+                        pickle.dump(deep_id_list, f, pickle.HIGHEST_PROTOCOL)
+
+                    deep_id_list = []
+                    file_no += 1
+
+        if len(deep_id_list):
+            with open(os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no))) as f:
+                pickle.dump(deep_id_list, f, pickle.HIGHEST_PROTOCOL)
+
+        self.echo('Finish saving %s deep_id ' % name)
+
+
+    def save_deep_id(self):
+        self.__save_deep_id(self.__test_set, 'train')
+        self.__save_deep_id(self.__val_set, 'val')
+        self.__save_deep_id(self.__test_set, 'test')
+
+
 o_deep_id = DeepId()
-o_deep_id.run()
+# o_deep_id.run()
+o_deep_id.save_deep_id()
