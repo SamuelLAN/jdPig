@@ -249,8 +249,8 @@ class DeepId(base.NN):
         mean_accuracy = 0
         mean_loss = 0
         for i in range(times):
-            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
-            feed_dict = {self.__x_list[net_index]: batch_x, self.__label: batch_y,
+            batch_x_list, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            feed_dict = {self.__x_list[net_index]: batch_x_list[net_index], self.__label: batch_y,
                          self.__size_list[net_index]: batch_y.shape[0], self.__keep_prob_list[net_index]: 1.0}
             loss, accuracy = self.sess.run([self.__loss_list[net_index], self.__accuracy_list[net_index]], feed_dict)
             mean_accuracy += accuracy
