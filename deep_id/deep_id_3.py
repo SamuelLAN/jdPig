@@ -542,6 +542,10 @@ class DeepId(base.NN):
         self.__save_deep_id(self.__val_set, 'val')
         self.__save_deep_id(self.__test_set, 'test')
 
+        self.__train_set.stop()
+        self.__val_set.stop()
+        self.__test_set.stop()
+
         self.echo('\ndone')
 
 
