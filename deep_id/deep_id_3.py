@@ -443,10 +443,8 @@ class DeepId(base.NN):
 
         self.close_summary()  # 关闭 TensorBoard
 
-
-        self.WList = []
-        self.bList = []
-        self.net = []
+        self.WList = [None for i in range(self.X_LIST_LEN)]
+        self.bList = [None for i in range(self.X_LIST_LEN)]
 
         for i in range(self.X_LIST_LEN):    # 恢复模型
             self.restore_model_i(i)
@@ -480,8 +478,8 @@ class DeepId(base.NN):
     '''
     def generate_deep_id(self, np_patch_list):
         if not self.__has_rebuild:
-            self.WList = []
-            self.bList = []
+            self.WList = [None for i in range(self.X_LIST_LEN)]
+            self.bList = [None for i in range(self.X_LIST_LEN)]
 
             for i in range(self.X_LIST_LEN):    # 恢复模型
                 self.restore_model_i(i)
