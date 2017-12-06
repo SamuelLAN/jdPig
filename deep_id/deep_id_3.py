@@ -497,15 +497,9 @@ class DeepId(base.NN):
             feed_dict = {self.__x_list[i]: np_patch, self.__keep_prob_list[i]: 1.0}
             deep_id = self.sess.run(deep_id_layer, feed_dict)
 
-            print '*******************'
-            print deep_id.shape
-
             deep_id_list.append( deep_id.reshape([-1,]) )
 
-        deep_id = np.hstack(deep_id_list)
-        print deep_id.shape
-
-        return deep_id
+        return np.hstack(deep_id_list)
 
 
     def __save_deep_id(self, data_set, name):
