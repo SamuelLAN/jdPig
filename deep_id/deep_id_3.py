@@ -514,7 +514,7 @@ class DeepId(base.NN):
         times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
         for i in range(times):
             progress = float(i + 1) / times * 100
-            self.echo('\r >> saving progress: %.2f \t ' % progress)
+            self.echo('\r >> saving progress: %.2f \t ' % progress, False)
 
             batch_x_list, batch_y = data_set.next_batch(self.BATCH_SIZE)
             batch_x_list = batch_x_list.transpose([1, 0, 2, 3, 4])
