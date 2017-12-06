@@ -524,14 +524,14 @@ class DeepId(base.NN):
                 deep_id_list.append(deep_id)
 
                 if len(deep_id_list) >= self.DEEP_ID_PER_FILE:
-                    with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)) ) as f:
+                    with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)), 'wb' ) as f:
                         pickle.dump(deep_id_list, f, pickle.HIGHEST_PROTOCOL)
 
                     deep_id_list = []
                     file_no += 1
 
         if len(deep_id_list):
-            with open(os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no))) as f:
+            with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)), 'wb' ) as f:
                 pickle.dump(deep_id_list, f, pickle.HIGHEST_PROTOCOL)
 
         self.echo('Finish saving %s deep_id ' % name)
