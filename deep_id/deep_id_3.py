@@ -506,7 +506,7 @@ class DeepId(base.NN):
         if not os.path.isdir(self.FEATURE_DIR):
             os.mkdir(self.FEATURE_DIR)
 
-        deep_id_list = []
+        data = []
         file_no = 0
 
         self.echo('\nSaving %s deep_id ... ' % name)
@@ -519,20 +519,20 @@ class DeepId(base.NN):
             batch_x_list, batch_y = data_set.next_batch(self.BATCH_SIZE)
             batch_x_list = batch_x_list.transpose([1, 0, 2, 3, 4])
 
-            for x_list in batch_x_list:
+            for j, x_list in enumerate(batch_x_list):
                 deep_id = self.generate_deep_id(x_list)
-                deep_id_list.append(deep_id)
+                data.append([deep_id, batch_y[j]])
 
-                if len(deep_id_list) >= self.DEEP_ID_PER_FILE:
+                if len(data) >= self.DEEP_ID_PER_FILE:
                     with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)), 'wb' ) as f:
-                        pickle.dump(deep_id_list, f, pickle.HIGHEST_PROTOCOL)
+                        pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
-                    deep_id_list = []
+                    data = []
                     file_no += 1
 
-        if len(deep_id_list):
+        if len(data):
             with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)), 'wb' ) as f:
-                pickle.dump(deep_id_list, f, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
         self.echo('Finish saving %s deep_id ' % name)
 
