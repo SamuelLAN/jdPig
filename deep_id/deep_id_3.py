@@ -318,7 +318,7 @@ class DeepId(base.NN):
         # tensorboard 相关记录
         self.__summary()
 
-        self.__build_param_dir()
+        # self.__build_param_dir()
 
         # 初始化所有变量
         self.init_variables()
