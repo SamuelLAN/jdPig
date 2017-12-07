@@ -178,9 +178,9 @@ class BP(base.NN):
         accuracy_val = self.evaluation(self.__valSet, self.__valSize)
         accuracy_test = self.evaluation(self.__testSet, self.__testSize)
 
-        print '\ntraining set accuracy: %.6f%%' % accuracy_train
-        print 'validation set accuracy: %.6f%%' % accuracy_val
-        print 'test set accuracy: %.6f%%' % accuracy_test
+        print '\ntraining set accuracy: %.6f%%' % (accuracy_train * 100.0)
+        print 'validation set accuracy: %.6f%%' % (accuracy_val * 100.0)
+        print 'test set accuracy: %.6f%%' % (accuracy_test * 100.0)
 
 
 o_nn = BP()
