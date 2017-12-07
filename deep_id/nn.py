@@ -28,11 +28,11 @@ class BP(base.NN):
     NUM_CLASSES = 2
     IMAGE_SIZE = 28
     IMAGE_PIXELS = 840
-    SHAPE_LIST = [(IMAGE_PIXELS, 1024), (1024, 840), (840, 840), (840, NUM_CLASSES)]
+    SHAPE_LIST = [(IMAGE_PIXELS, 840), (840, 420), (420, NUM_CLASSES)]
     MODEL_NAME = 'bp_deep'
     REGULAR_BETA = 0.01
     BATCH_SIZE = 100
-    DROPOUT_LIST = [0.75, 0.75, 0.75]
+    DROPOUT_LIST = [0.5, 0.5]
     DECAY_RATE = 0.98
     EPOCH_TIMES = 200
 
@@ -122,7 +122,7 @@ class BP(base.NN):
         self.getLoss()
 
         # 正则化
-        # self.__loss = self.regularize(self.__loss, self.REGULAR_BETA)
+        self.__loss = self.regularize(self.__loss, self.REGULAR_BETA)
 
         # 生成训练的 op
         train_op = self.getTrainOp(self.__loss, self.__learningRate, self.globalStep)
