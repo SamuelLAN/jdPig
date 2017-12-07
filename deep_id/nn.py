@@ -63,9 +63,11 @@ class BP(base.NN):
 
     ''' 加载数据 '''
     def load(self):
-        self.__trainSet = load.Data('train')          # 按 0.64 的比例划分训练集
-        self.__valSet = load.Data('val')            # 按 0.16 的比例划分校验集
-        self.__testSet = load.Data('test')                 # 按 0.2  的比例划分测试集
+        self.__trainSet = load.Data('train')
+        train_id_list, train_label_list, label_index_dict = self.__trainSet.get_train_list()
+
+        self.__valSet = load.Data('val', train_id_list, train_label_list, label_index_dict)
+        self.__testSet = load.Data('test', train_id_list, train_label_list, label_index_dict)
 
         self.__trainSize = self.__trainSet.get_size()
         self.__valSize = self.__valSet.get_size()

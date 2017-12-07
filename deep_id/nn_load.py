@@ -13,13 +13,17 @@ class Data:
     DATA_ROOT = r'feature'
     PCA_DIMENSION = 420
 
-    def __init__(self, prefix='train'):
+    def __init__(self, prefix='train', train_id_list = [], train_lable_list = [], label_index_dict = {}):
         self.__prefix = prefix
         self.__deep_id_list = []
         self.__y_list = []
         self.__data_len = 0
         self.__index_list = []
         self.__cur_index = 0
+
+        self.__train_id_list = train_id_list
+        self.__train_label_list = train_lable_list
+        self.__label_index_dict = label_index_dict
 
         self.__chang_dir()
         self.__load()
@@ -51,29 +55,33 @@ class Data:
         self.echo('Finish loading ')
 
 
+    def get_train_list(self):
+        return self.__deep_id_list, self.__y_list, self.__label_index_dict
+
+
     ''' 生成数据索引 '''
     def __generate_index(self):
         self.echo('\nGenerating %s data index ... ' % self.__prefix)
-        self.__label_index_dict = {}
 
-        self.echo('  generating label_index_dict ... ')
-        for i in range(self.__data_len):
-            y = self.__y_list[i]
-            if y not in self.__label_index_dict:
-                self.__label_index_dict[y] = []
-            self.__label_index_dict[y].append(i)
+        if not self.__label_index_dict:
+            self.echo('  generating label_index_dict ... ')
+            for i in range(self.__data_len):
+                y = self.__y_list[i]
+                if y not in self.__label_index_dict:
+                    self.__label_index_dict[y] = []
+                self.__label_index_dict[y].append(i)
 
-        self.echo('  shuffling label_index_dict ... ')
-        for k, v in self.__label_index_dict.iteritems():
-            random.shuffle(v)
+            self.echo('  shuffling label_index_dict ... ')
+            for k, v in self.__label_index_dict.iteritems():
+                random.shuffle(v)
 
         diff_num = 3
 
         self.echo('  generating data index ...')
         for i in range(self.__data_len):
             y = self.__y_list[i]
-            rand = random.randrange(0, len(self.__label_index_dict[y]) - diff_num * 30)
-            index_list = self.__label_index_dict[y][rand: rand + diff_num * 30]
+            rand = random.randrange(0, len(self.__label_index_dict[y]) - diff_num * 29)
+            index_list = self.__label_index_dict[y][rand: rand + diff_num * 29]
 
             for k, v in self.__label_index_dict.iteritems():
                 if k == y:
@@ -93,8 +101,8 @@ class Data:
         x_list = []
         y_list = []
         for i, j in index_list:
-            x = np.hstack([self.__deep_id_list[i], self.__deep_id_list[j]])
-            y = [0, 1] if self.__y_list[i] == self.__y_list[j] else [1, 0]
+            x = np.hstack([self.__deep_id_list[i], self.__train_id_list[j]])
+            y = [0, 1] if self.__y_list[i] == self.__train_label_list[j] else [1, 0]
             x_list.append(x)
             y_list.append(y)
         return np.array(x_list), np.array(y_list)
