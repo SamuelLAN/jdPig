@@ -13,7 +13,7 @@ class Data:
     DATA_ROOT = r'feature'
     PCA_DIMENSION = 420
 
-    def __init__(self, prefix='train', train_id_list = None, train_lable_list = None, label_index_dict = None):
+    def __init__(self, prefix='train', train_id_list = None, train_lable_list = None, label_index_dict = {}):
         self.__prefix = prefix
         self.__deep_id_list = []
         self.__y_list = []
@@ -63,7 +63,7 @@ class Data:
     def __generate_index(self):
         self.echo('\nGenerating %s data index ... ' % self.__prefix)
 
-        if type(self.__label_index_dict) == type(None):
+        if type(self.__train_id_list) == type(None):
             self.echo('  generating label_index_dict ... ')
             for i in range(self.__data_len):
                 y = self.__y_list[i]
