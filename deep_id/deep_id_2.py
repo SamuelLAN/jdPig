@@ -27,7 +27,7 @@ class DeepId(base.NN):
     BATCH_SIZE = 128 # 迭代的 epoch 次数
     EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
 
-    NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
+    NUM_CHANNEL = 1  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 30  # 输出的类别
 
     IMAGE_SHAPE = [224, 224]
@@ -38,7 +38,7 @@ class DeepId(base.NN):
     DECAY_RATE = 0.05  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01  # 正则化的 beta 参数
-    KEEP_PROB = 0.5  # dropout 的 keep_prob
+    KEEP_PROB = 0.95  # dropout 的 keep_prob
 
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
@@ -239,8 +239,8 @@ class DeepId(base.NN):
 
     ''' 加载数据 '''
     def load(self):
-        sort_list = load.Data.get_sort_list()
-        self.__train_set = load.Data(0.0, 0.64, 'train', sort_list)
+        # sort_list = load.Data.get_sort_list()
+        self.__train_set = load.Data(0.0, 0.64, 'train')
         # self.__val_set = load.Data(0.9, 1.0, 'validation', sort_list)
         # self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
 
