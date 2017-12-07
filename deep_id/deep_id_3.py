@@ -521,7 +521,8 @@ class DeepId(base.NN):
 
             for j, x_list in enumerate(batch_x_list):
                 deep_id = self.generate_deep_id(x_list)
-                data.append([deep_id, batch_y[j]])
+                y = np.argmax(batch_y[j])
+                data.append([deep_id, y])
 
                 if len(data) >= self.DEEP_ID_PER_FILE:
                     with open( os.path.join(self.FEATURE_DIR, '%s_%d.pkl' % (name, file_no)), 'wb' ) as f:
@@ -550,5 +551,5 @@ class DeepId(base.NN):
 
 
 o_deep_id = DeepId()
-o_deep_id.run()
-# o_deep_id.save_deep_id()
+# o_deep_id.run()
+o_deep_id.save_deep_id()
