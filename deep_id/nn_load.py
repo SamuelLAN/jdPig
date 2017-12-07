@@ -139,9 +139,11 @@ print '***************************'
 print 'size:'
 print o_data.get_size()
 
-batch_x, batch_y = o_data.next_batch(10)
+batch_x, batch_y = o_data.next_batch(5)
 print 'batch_x.shape:'
 print batch_x.shape
 print 'batch_y.shape:'
 print batch_y.shape
+
+print batch_y
 
