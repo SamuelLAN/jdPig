@@ -40,6 +40,7 @@ class Data:
 
         self.__deep_id_list = np.array(self.__deep_id_list)
         self.__y_list = np.array(self.__y_list)
+        self.__data_len = self.__y_list.shape[0]
 
         # pca 降维
         self.echo(' pca %s data ... ' % self.__prefix)
