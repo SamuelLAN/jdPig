@@ -14,7 +14,7 @@ import base2 as base
 import load
 import vgg
 # import Queue
-# import numpy as np
+import numpy as np
 # from PIL import Image
 import tensorflow as tf
 
@@ -333,6 +333,9 @@ class DeepId(base.NN):
                                                                        self.__steps, step_progress), False)
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+
+            reduce_axis = list(range(len(batch_x.shape)))
+            batch_x = ( batch_x - np.mean(batch_x, axis=reduce_axis) ) / ( np.std(batch_x, axis=reduce_axis) + 0.00001 )
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
             _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
