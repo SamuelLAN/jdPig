@@ -380,9 +380,6 @@ class DeepId(base.NN):
                 feed_dict[self.__mean_loss] = mean_train_loss
                 self.add_summary_train(feed_dict, epoch)
 
-                mean_train_accuracy = 0
-                mean_train_loss = 0
-
                 # 测试 校验集 的 loss
                 mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, 5)
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
@@ -391,16 +388,24 @@ class DeepId(base.NN):
                              self.__mean_loss: mean_val_loss}
                 self.add_summary_val(feed_dict, epoch)
 
+                echo_str = '\n\t train_loss: %.6f  train_accuracy: %.6f  val_loss: %.6f  val_accuracy: %.6f' % (
+                    mean_train_loss, mean_train_accuracy, mean_val_loss, mean_val_accuracy)
+
+                mean_train_accuracy = 0
+                mean_train_loss = 0
+
                 if best_val_accuracy > mean_val_accuracy:
                     best_val_accuracy = mean_val_accuracy
                     decr_val_accu_times = 0
 
-                    self.echo('\n best_val_loss: %.2f \t ' % best_val_accuracy)
+                    self.echo('%s  best \t ' % echo_str, False)
                     self.save_model_w_b()
                     # self.save_model()  # 保存模型
 
                 else:
                     decr_val_accu_times += 1
+                    self.echo('%s  decr_times: %d ' % (echo_str, decr_val_accu_times), False)
+
                     if decr_val_accu_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
                         break
 
