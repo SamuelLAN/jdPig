@@ -7,6 +7,7 @@ import numpy as np
 from six.moves import cPickle as pickle
 from sklearn.decomposition import PCA
 
+
 class Data:
     DATA_ROOT = r'feature'
     PCA_DIMENSION = 420
@@ -65,8 +66,10 @@ class Data:
         y_list = []
         for i, j in index_list:
             x = np.hstack([self.__deep_id_list[i], self.__deep_id_list[j]])
+            y = [0, 1] if self.__y_list[i] == self.__y_list[j] else [1, 0]
             x_list.append(x)
-        return np.array(x_list)
+            y_list.append(y)
+        return np.array(x_list), np.array(y_list)
 
 
     ''' 获取下个 batch '''
