@@ -381,7 +381,7 @@ class DeepId(base.NN):
                 self.add_summary_train(feed_dict, epoch)
 
                 # 测试 校验集 的 loss
-                mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, 5)
+                mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, 20)
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
                 feed_dict = {self.__image: batch_val_x, self.__label: batch_val_y, self.__keep_prob: 1.0,
                              self.__size: batch_val_y.shape[0], self.__mean_accuracy: mean_val_accuracy,
