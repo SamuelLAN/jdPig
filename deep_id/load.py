@@ -315,7 +315,7 @@ class Data:
             np_new_image[:, padding: padding + w, :] = np_image
 
         new_image = Image.fromarray( np.cast['uint8'](np_new_image) )
-        return np.array( new_image.resize( Data.RESIZE ) )[:, :, 2]
+        return np.array( new_image.resize( Data.RESIZE ) )
 
 
     def __sort(self, a, b):

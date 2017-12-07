@@ -27,7 +27,7 @@ class DeepId(base.NN):
     BATCH_SIZE = 128 # 迭代的 epoch 次数
     EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
 
-    NUM_CHANNEL = 1  # 输入图片为 3 通道，彩色
+    NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 30  # 输出的类别
 
     IMAGE_SHAPE = [224, 224]
