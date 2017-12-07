@@ -334,9 +334,7 @@ class DeepId(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
-            reduce_axis = list(range(len(batch_x.shape)))
-            m = batch_x - np.mean(batch_x, axis=reduce_axis)
-            batch_x = m / ( np.std(batch_x, axis=reduce_axis) + 0.00001 )
+            batch_x = ( batch_x - np.mean(batch_x) ) / ( np.std(batch_x) + 0.00001 )
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
             _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
