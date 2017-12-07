@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import copy
 import random
 import numpy as np
 from six.moves import cPickle as pickle
@@ -53,9 +54,33 @@ class Data:
     ''' 生成数据索引 '''
     def __generate_index(self):
         self.echo('\nGenerating %s data index ... ' % self.__prefix)
+        self.__label_index_dict = {}
+
+        self.echo('  generating label_index_dict ... ')
         for i in range(self.__data_len):
-            for j in range(self.__data_len):
-                self.__index_list.append([i, j])
+            y = self.__y_list[i]
+            if y not in self.__label_index_dict:
+                self.__label_index_dict[y] = []
+            self.__label_index_dict[y].append(i)
+
+        self.echo('  shuffling label_index_dict ... ')
+        for k, v in self.__label_index_dict.iteritems():
+            random.shuffle(v)
+
+        self.echo('  generating data index ...')
+        for i in range(self.__data_len):
+            y = self.__y_list[i]
+            rand = random.randrange(0, len(self.__label_index_dict[y]) - 60)
+            index_list = self.__label_index_dict[y][rand: rand + 60]
+
+            for k, v in self.__label_index_dict.iteritems():
+                if k == y:
+                    continue
+                rand = random.randrange(0, len(v) - 2)
+                index_list += v[rand: rand + 2]
+
+            self_list = [i for j in range(len(index_list))]
+            self.__index_list += zip(self_list, index_list )
 
         self.__data_len = len(self.__index_list)
         random.shuffle(self.__index_list)
