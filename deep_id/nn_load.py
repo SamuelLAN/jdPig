@@ -110,6 +110,10 @@ class Data:
         return self.__get_data_from_index(index_list)
 
 
+    def get_size(self):
+        return self.__data_len
+
+
     ''' 将运行路径切换到当前文件所在路径 '''
     @staticmethod
     def __chang_dir():
@@ -130,3 +134,14 @@ class Data:
 
 
 o_data = Data('train')
+
+print '***************************'
+print 'size:'
+print o_data.get_size()
+
+batch_x, batch_y = o_data.next_batch(10)
+print 'batch_x.shape:'
+print batch_x.shape
+print 'batch_y.shape:'
+print batch_y.shape
+
