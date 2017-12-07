@@ -63,7 +63,7 @@ class Data:
     def __generate_index(self):
         self.echo('\nGenerating %s data index ... ' % self.__prefix)
 
-        if not self.__label_index_dict:
+        if not self.__train_id_list:
             self.echo('  generating label_index_dict ... ')
             for i in range(self.__data_len):
                 y = self.__y_list[i]
@@ -100,9 +100,17 @@ class Data:
     def __get_data_from_index(self, index_list):
         x_list = []
         y_list = []
+
+        if self.__train_id_list:
+            train_id_list = self.__train_id_list
+            train_label_list = self.__train_label_list
+        else:
+            train_id_list = self.__deep_id_list
+            train_label_list = self.__y_list
+
         for i, j in index_list:
-            x = np.hstack([self.__deep_id_list[i], self.__train_id_list[j]])
-            y = [0, 1] if self.__y_list[i] == self.__train_label_list[j] else [1, 0]
+            x = np.hstack([self.__deep_id_list[i], train_id_list[j]])
+            y = [0, 1] if self.__y_list[i] == train_label_list[j] else [1, 0]
             x_list.append(x)
             y_list.append(y)
         return np.array(x_list), np.array(y_list)
