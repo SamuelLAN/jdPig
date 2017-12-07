@@ -67,17 +67,19 @@ class Data:
         for k, v in self.__label_index_dict.iteritems():
             random.shuffle(v)
 
+        diff_num = 3
+
         self.echo('  generating data index ...')
         for i in range(self.__data_len):
             y = self.__y_list[i]
-            rand = random.randrange(0, len(self.__label_index_dict[y]) - 60)
-            index_list = self.__label_index_dict[y][rand: rand + 60]
+            rand = random.randrange(0, len(self.__label_index_dict[y]) - diff_num * 30)
+            index_list = self.__label_index_dict[y][rand: rand + diff_num * 30]
 
             for k, v in self.__label_index_dict.iteritems():
                 if k == y:
                     continue
-                rand = random.randrange(0, len(v) - 2)
-                index_list += v[rand: rand + 2]
+                rand = random.randrange(0, len(v) - diff_num)
+                index_list += v[rand: rand + diff_num]
 
             self_list = [i for j in range(len(index_list))]
             self.__index_list += zip(self_list, index_list )
