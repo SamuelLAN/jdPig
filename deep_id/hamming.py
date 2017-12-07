@@ -11,10 +11,10 @@ from sklearn.neighbors import KNeighborsClassifier
 
 class Hamming:
     DATA_ROOT = r'feature'
-    PCA_DIMENSION = 520
+    PCA_DIMENSION = 840
     # K_NEIGHBORS_LIST = [10, 50, 100, 200, 300, 500, 1000, 2000, 3000, 5000, 10000]
 
-    THRESHOLD = 0.7
+    THRESHOLD = 0.5
 
     def __init__(self):
         self.__deep_id_list = []
