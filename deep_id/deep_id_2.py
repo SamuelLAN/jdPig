@@ -13,6 +13,7 @@ if cur_dir_path:
 import base2 as base
 import load
 import vgg
+import math
 # import Queue
 import numpy as np
 # from PIL import Image
@@ -38,7 +39,7 @@ class DeepId(base.NN):
     DECAY_RATE = 0.001  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.01  # 正则化的 beta 参数
-    KEEP_PROB = 0.95  # dropout 的 keep_prob
+    KEEP_PROB = 0.5  # dropout 的 keep_prob
 
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
@@ -47,6 +48,8 @@ class DeepId(base.NN):
     TENSORBOARD_SHOW_IMAGE = False  # 默认不将 image 显示到 TensorBoard，以免影响性能
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
+
+    MAX_VAL_ACCURACY_DECR_TIMES = 15  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [
@@ -241,21 +244,21 @@ class DeepId(base.NN):
     def load(self):
         # sort_list = load.Data.get_sort_list()
         self.__train_set = load.Data(0.0, 0.64, 'train')
-        # self.__val_set = load.Data(0.9, 1.0, 'validation', sort_list)
-        # self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
+        self.__val_set = load.Data(0.9, 1.0, 'validation')
+        self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_size = self.__train_set.get_size()
-        # self.__val_size = self.__val_set.get_size()
-        # self.__test_size = self.__test_set.get_size()
+        self.__val_size = self.__val_set.get_size()
+        self.__test_size = self.__test_set.get_size()
 
 
     ''' 模型 '''
     def model(self):
         self.__output = self.deep_model(self.__image, self.__keep_prob)
 
-    # ''' 重建模型 '''
-    # def rebuild_model(self):
-    #     self.__output = self.deep_model_rebuild(self.__image)
+    ''' 重建模型 '''
+    def rebuild_model(self):
+        self.__output = self.deep_model_rebuild(self.__image)
 
 
     ''' 计算 loss '''
@@ -268,30 +271,51 @@ class DeepId(base.NN):
 
     ''' 获取 train_op '''
     def get_train_op(self, loss, learning_rate, global_step):
-        tf.summary.scalar('loss', loss)
-
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(learning_rate)
             return optimizer.minimize(loss, global_step=global_step)
 
 
-    # ''' 将图片输出到 tensorboard '''
-    # def __summary(self):
-    #     with tf.name_scope('summary'):
-    #         # 记录 loss 到 tensorboard
-    #         self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
-    #         tf.summary.scalar('mean_loss', self.__loss_placeholder)
+    ''' 将图片输出到 tensorboard '''
+    def __summary(self):
+        with tf.name_scope('summary'):
+            self.__mean_accuracy = tf.placeholder(tf.float32, name='mean_accuracy')
+            self.__mean_loss = tf.placeholder(tf.float32, name='mean_loss')
+
+            tf.summary.scalar('learning_rate', self.__learning_rate)
+            tf.summary.scalar('keep_prob', self.__keep_prob)
+            tf.summary.scalar('mean_accuracy', self.__mean_accuracy)
+            tf.summary.scalar('mean_loss', self.__mean_loss)
 
 
-    def __get_accuracy(self, labels, predict, _size):
+    def __get_accuracy(self):
         with tf.name_scope('accuracy'):
-            labels = tf.argmax(labels, 1)
-            predict = tf.argmax(predict, 1)
+            labels = tf.argmax(self.__label, 1)
+            predict = tf.argmax(self.__output, 1)
             correct = tf.equal(labels, predict) # 返回 predict 与 labels 相匹配的结果
 
-            accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), _size ) # 计算准确率
-            tf.summary.scalar('accuracy', accuracy)
-            return accuracy
+            self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), self.__size ) # 计算准确率
+
+
+    def __measure(self, data_set, max_times=None):
+        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+        if max_times:
+            times = min(max_times, times)
+
+        mean_accuracy = 0
+        mean_loss = 0
+        for i in range(times):
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            feed_dict = {self.__image: batch_x, self.__label: batch_y,
+                         self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
+            loss, accuracy = self.sess.run([self.__loss, self.__accuracy], feed_dict)
+            mean_accuracy += accuracy
+            mean_loss += loss
+
+            progress = float(i + 1) / times * 100
+            self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
+
+        return mean_accuracy / times, mean_loss / times
 
 
     ''' 主函数 '''
@@ -308,10 +332,10 @@ class DeepId(base.NN):
         # 生成训练的 op
         train_op = self.get_train_op(self.__loss, self.__learning_rate, self.global_step)
 
-        ret_accuracy_train = self.__get_accuracy(self.__label, self.__output, self.__size)
+        self.__get_accuracy()
 
         # # tensorboard 相关记录
-        # self.__summary()
+        self.__summary()
 
         # 初始化所有变量
         self.init_variables()
@@ -319,9 +343,11 @@ class DeepId(base.NN):
         # TensorBoard merge summary
         self.merge_summary()
 
-        # best_val_loss = 999999  # 校验集 loss 最好的情况
-        # increase_val_loss_times = 0  # 校验集 loss 连续上升次数
-        # mean_loss = 0
+        mean_train_loss = 0
+        mean_train_accuracy = 0
+
+        best_val_accuracy = 0
+        decr_val_accu_times = 0
 
         self.echo('\nepoch:')
 
@@ -336,78 +362,72 @@ class DeepId(base.NN):
 
             batch_x = ( batch_x - np.mean(batch_x) ) / ( np.std(batch_x) + 0.00001 )
 
-            feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB}
-            _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
+            feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB, self.__size: batch_y.shape[0]}
+            _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
+
+            mean_train_accuracy += train_accuracy
+            mean_train_loss += train_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
 
-                feed_dict[self.__size] = batch_y.shape[0]
-                train_accuracy = self.sess.run(ret_accuracy_train, feed_dict)
+                mean_train_accuracy /= self.__iter_per_epoch
+                mean_train_loss /= self.__iter_per_epoch
 
-                self.echo('\n epoch: %d  train_loss: %.6f  train_accuracy: %.6f \t ' % (epoch, train_loss, train_accuracy))
+                self.echo('\n epoch: %d  train_loss: %.6f  train_accuracy: %.6f \t ' % (epoch, mean_train_loss, mean_train_accuracy))
 
-                # feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
-                # mean_loss = 0
+                feed_dict[self.__mean_accuracy] = mean_train_accuracy
+                feed_dict[self.__mean_loss] = mean_train_loss
                 self.add_summary_train(feed_dict, epoch)
 
-                # # 测试 校验集 的 loss
-                # mean_val_loss = self.__measure_loss(self.__val_set)
-                # batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
-                # feed_dict = {self.__image: batch_val_x, self.__mask: batch_val_y, self.__keep_prob: 1.0,
-                #              self.__loss_placeholder: mean_val_loss}
-                # self.add_summary_val(feed_dict, epoch)
-                #
-                # if best_val_loss > mean_val_loss:
-                #     best_val_loss = mean_val_loss
-                #     increase_val_loss_times = 0
-                #
-                #     self.echo('\n best_val_loss: %.2f \t ' % best_val_loss)
-                #     self.save_model_w_b()
-                #     # self.save_model()  # 保存模型
-                #
-                # else:
-                #     increase_val_loss_times += 1
-                #     if increase_val_loss_times > self.MAX_VAL_LOSS_INCR_TIMES:
-                #         break
+                mean_train_accuracy = 0
+                mean_train_loss = 0
+
+                # 测试 校验集 的 loss
+                mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, 5)
+                batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+                feed_dict = {self.__image: batch_val_x, self.__label: batch_val_y, self.__keep_prob: 1.0,
+                             self.__size: batch_val_y.shape[0], self.__mean_accuracy: mean_val_accuracy,
+                             self.__mean_loss: mean_val_loss}
+                self.add_summary_val(feed_dict, epoch)
+
+                if best_val_accuracy > mean_val_accuracy:
+                    best_val_accuracy = mean_val_accuracy
+                    decr_val_accu_times = 0
+
+                    self.echo('\n best_val_loss: %.2f \t ' % best_val_accuracy)
+                    self.save_model_w_b()
+                    # self.save_model()  # 保存模型
+
+                else:
+                    decr_val_accu_times += 1
+                    if decr_val_accu_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
+                        break
 
         self.close_summary()        # 关闭 TensorBoard
 
         self.__train_set.stop()     # 关闭获取数据线程
+        self.__val_set.stop()     # 关闭获取数据线程
+        self.__test_set.stop()     # 关闭获取数据线程
 
-        # self.restore_model_w_b()    # 恢复模型
-        # self.rebuild_model()        # 重建模型
-        # self.get_loss()             # 重新 get loss
-        #
-        # self.init_variables()       # 重新初始化变量
-        #
-        # train_loss = self.__measure_loss(self.__train_set)
-        # val_loss = self.__measure_loss(self.__val_set)
-        # # test_loss = self.__measure_loss(self.__test_set)
-        #
-        # self.echo('\ntrain mean loss: %.6f' % train_loss)
-        # self.echo('validation mean loss: %.6f' % val_loss)
-        # # self.echo('test mean loss: %.6f' % test_loss)
-        #
-        # self.echo('\ndone')
-        #
-        # batch_x, batch_y = self.__val_set.next_batch(self.BATCH_SIZE)
-        # feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
-        # output_mask = self.sess.run(self.__output_mask, feed_dict)
-        #
-        # output_mask = np.expand_dims(output_mask, axis=3)
-        # for i in range(3):
-        #     mask = output_mask[i]
-        #     image = batch_x[i]
-        #     new_image = np.cast['uint8'](mask * image)
-        #
-        #     o_image = Image.fromarray(np.cast['uint8'](image))
-        #     o_image.show()
-        #
-        #     o_new_image = Image.fromarray(new_image)
-        #     o_new_image.show()
+        self.restore_model_w_b()    # 恢复模型
+        self.rebuild_model()        # 重建模型
+        self.get_loss()             # 重新 get loss
+        self.__get_accuracy()
 
-    #
+        self.init_variables()       # 重新初始化变量
+
+        mean_train_accuracy, mean_train_loss = self.__measure(self.__train_set)
+        mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set)
+        mean_test_accuracy, mean_test_loss = self.__measure(self.__test_set)
+
+        self.echo('train_accuracy: %.6f  train_loss: %.6f ' % (mean_train_accuracy, mean_train_loss))
+        self.echo('val_accuracy: %.6f  val_loss: %.6f ' % (mean_val_accuracy, mean_val_loss))
+        self.echo('test_accuracy: %.6f  test_loss: %.6f ' % (mean_test_accuracy, mean_test_loss))
+
+        self.echo('\ndone')
+
+
     # def use_model(self, np_image):
     #     if not self.__has_rebuild:
     #         self.restore_model_w_b()    # 恢复模型

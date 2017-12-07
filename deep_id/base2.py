@@ -198,7 +198,7 @@ class NN:
             decay_rate,             # Decay rate.
             staircase=staircase
         )
-        tf.summary.scalar('learning_rate', learning_rate)
+        # tf.summary.scalar('learning_rate', learning_rate)
         return learning_rate
 
     # *************************** 保存模型 ***************************
