@@ -394,7 +394,7 @@ class DeepId(base.NN):
                 mean_train_accuracy = 0
                 mean_train_loss = 0
 
-                if best_val_accuracy > mean_val_accuracy:
+                if best_val_accuracy < mean_val_accuracy:
                     best_val_accuracy = mean_val_accuracy
                     decr_val_accu_times = 0
 
