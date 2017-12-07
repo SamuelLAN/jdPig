@@ -141,7 +141,7 @@ class BP(base.NN):
         decrease_acu_val_times = 0  # 校验集准确率连续下降次数
 
         for step in range(self.__steps):
-            if step % 10 == 0:                          # 输出进度
+            if step % 50 == 0:                          # 输出进度
                 self.echo('step: %d (%d|%.2f%%) / %d|%.2f%%     \r' % (step, self.__iterPerEpoch, 1.0 * step % self.__iterPerEpoch / self.__iterPerEpoch * 100.0, self.__steps, 1.0 * step / self.__steps * 100.0), False)
 
             batch_x, batch_y = self.__trainSet.next_batch(self.BATCH_SIZE)
