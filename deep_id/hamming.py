@@ -74,14 +74,23 @@ class Hamming:
 
         self.echo('  binary x ... ')
         threshold = self.THRESHOLD
+
         self.__x_train[self.__x_train >= threshold] = 1
         self.__x_train[self.__x_train < threshold] = 0
+
+        self.__x_val[self.__x_val >= threshold] = 1
+        self.__x_val[self.__x_val < threshold] = 0
+
+        self.__x_test[self.__x_test >= threshold] = 1
+        self.__x_test[self.__x_test < threshold] = 0
 
         same_hamming_list = []
         diff_hamming_list = []
 
-        same_num = 60
-        diff_pre_y_num = 3
+        same_num = 500
+        diff_pre_y_num = 20
+
+        self.echo('  training hamming ... ')
 
         for i in range(self.__train_size):
             x = self.__x_train[i]
@@ -104,10 +113,56 @@ class Hamming:
         same_hamming_list = np.array(same_hamming_list)
         diff_hamming_list = np.array(diff_hamming_list)
 
-        self.echo('mean_same_hamming: %.6f' % np.mean(same_hamming_list))
-        self.echo('mean_diff_hamming: %.6f' % np.mean(diff_hamming_list))
+        mean_same_hamming = np.mean(same_hamming_list)
+        mean_diff_hamming = np.mean(diff_hamming_list)
+
+        self.echo('mean_same_hamming: %.6f' % mean_same_hamming)
+        self.echo('mean_diff_hamming: %.6f' % mean_diff_hamming)
+
+        self.__threshold = (mean_same_hamming + mean_diff_hamming) / 2.0
 
         self.echo('Finish training ')
+
+
+    def __test(self, x_list, y_list, _size, name = ''):
+
+        self.echo('  generating %s label_index_dict ... ' % name)
+        label_index_dict = {}
+        for i in range(_size):
+            y = y_list[i]
+            if y not in label_index_dict:
+                label_index_dict[y] = []
+            label_index_dict[y].append(i)
+
+        self.echo('  shuffling %s label_index_dict ... ' % name)
+        for k, v in label_index_dict.iteritems():
+            random.shuffle(v)
+
+        result_list = []
+        test_num = 5
+
+        self.echo('  testing %s hamming distance ... ' % name)
+        for i in range(_size):
+            x = x_list[i]
+            y = y_list[i]
+
+            for k, v in label_index_dict.iteritems():
+                for j in range(test_num):
+                    index = v[random.randrange(0, len(v))]
+                    rand_x = x_list[index]
+                    rand_y = y_list[index]
+                    hamming = np.mean(np.equal(x, rand_x))
+
+                    predict_is_same = (hamming >= self.__threshold)
+                    label_is_same = (y == rand_y)
+
+                    result_list.append(predict_is_same == label_is_same)
+
+        result_list = np.array(result_list)
+        accuracy = float( np.mean(result_list) )
+
+        self.echo('%s accuracy: %.6f ' % (name, accuracy))
+
 
     # def __get_accuracy(self, batch_x, batch_y, batch_size):
     #     output = self.__classifier.predict(batch_x)
@@ -120,6 +175,10 @@ class Hamming:
         # best_test_k = 0
 
         self.__train()
+
+        self.__test(self.__x_train, self.__y_train, self.__train_size, 'training')
+        self.__test(self.__x_val, self.__y_val, self.__val_size, 'validation')
+        self.__test(self.__x_test, self.__y_test, self.__test_size, 'test')
 
         # for k in self.K_NEIGHBORS_LIST:
         #     self.__train(k)
