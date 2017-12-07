@@ -41,6 +41,8 @@ class DeepId(base.NN):
     REGULAR_BETA = 0.01  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
+    EPLISION = 0.00001
+
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
     # MAX_VAL_LOSS_INCR_TIMES = 20  # 校验集 val_loss 连续 100 次没有降低，则 early stop
@@ -306,6 +308,9 @@ class DeepId(base.NN):
         mean_loss = 0
         for i in range(times):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+
+            batch_x = (batch_x - self.__mean_x) / (self.__std_x + self.EPLISION)
+
             feed_dict = {self.__image: batch_x, self.__label: batch_y,
                          self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
             loss, accuracy = self.sess.run([self.__loss, self.__accuracy], feed_dict)
@@ -351,6 +356,12 @@ class DeepId(base.NN):
 
         self.echo('\nepoch:')
 
+        self.__mean_list = []
+        self.__std_list = []
+
+        best_mean = 0
+        best_std = 0.1
+
         for step in range(self.__steps):
             if step % self.SHOW_PROGRESS_FREQUENCY == 0:
                 epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
@@ -360,7 +371,12 @@ class DeepId(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
-            batch_x = ( batch_x - np.mean(batch_x) ) / ( np.std(batch_x) + 0.00001 )
+            reduce_axis = tuple(range(len(batch_x.shape) - 1))
+            _mean = np.mean(batch_x, axis=reduce_axis)
+            _std = np.std(batch_x, axis=reduce_axis)
+            self.__mean_list.append(_mean)
+            self.__std_list.append(_std)
+            batch_x = ( batch_x - _mean ) / (_std + self.EPLISION)
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB, self.__size: batch_y.shape[0]}
             _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
@@ -370,6 +386,9 @@ class DeepId(base.NN):
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
+
+                self.__mean_x = np.mean( np.array(self.__mean_list), axis=0 )
+                self.__std_x = np.mean( np.array(self.__mean_list), axis=0 ) * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
                 mean_train_accuracy /= self.__iter_per_epoch
                 mean_train_loss /= self.__iter_per_epoch
@@ -398,6 +417,9 @@ class DeepId(base.NN):
                     best_val_accuracy = mean_val_accuracy
                     decr_val_accu_times = 0
 
+                    best_mean = self.__mean_x
+                    best_std = self.__std_x
+
                     self.echo('%s  best \t ' % echo_str, False)
                     self.save_model_w_b()
                     # self.save_model()  # 保存模型
@@ -419,6 +441,9 @@ class DeepId(base.NN):
         self.rebuild_model()        # 重建模型
         self.get_loss()             # 重新 get loss
         self.__get_accuracy()
+
+        self.__mean_x = best_mean
+        self.__std_x = best_std
 
         self.init_variables()       # 重新初始化变量
 
