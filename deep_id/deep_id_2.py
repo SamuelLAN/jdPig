@@ -378,6 +378,11 @@ class DeepId(base.NN):
             self.__std_list.append(_std)
             batch_x = ( batch_x - _mean ) / (_std + self.EPLISION)
 
+            print _mean.shape
+            print _std.shape
+            print batch_x.shape
+            exit()
+
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB, self.__size: batch_y.shape[0]}
             _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
 
