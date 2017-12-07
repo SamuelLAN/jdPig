@@ -52,7 +52,7 @@ class Data:
 
     ''' 生成数据索引 '''
     def __generate_index(self):
-        self.echo('\n Generating %s data index ... ' % self.__prefix)
+        self.echo('\nGenerating %s data index ... ' % self.__prefix)
         for i in range(self.__data_len):
             for j in range(self.__data_len):
                 self.__index_list.append([i, j])
