@@ -11,7 +11,7 @@ from sklearn.neighbors import KNeighborsClassifier
 class KNN:
     DATA_ROOT = r'feature'
     PCA_DIMENSION = 420
-    K_NEIGHBORS = 100
+    K_NEIGHBORS_LIST = [10, 50, 100, 200, 300, 500, 1000, 2000, 3000, 5000, 10000]
 
     def __init__(self):
         self.__deep_id_list = []
@@ -25,8 +25,6 @@ class KNN:
         self.__x_train, self.__y_train, self.__train_size = self.__load('train')
         self.__x_val, self.__y_val, self.__val_size = self.__load('val')
         self.__x_test, self.__y_test, self.__test_size = self.__load('test')
-
-        self.__classifier = KNeighborsClassifier(n_neighbors=self.K_NEIGHBORS)
 
 
     def __load(self, prefix='train'):
@@ -58,7 +56,8 @@ class KNN:
         return deep_id_list, y_list, data_len
 
 
-    def __train(self):
+    def __train(self, k):
+        self.__classifier = KNeighborsClassifier(n_neighbors=k)
         self.echo('\nTraining knn classifier ... ')
         self.__classifier.fit(self.__x_train, self.__y_train)
         self.echo('Finish knn classifier ')
@@ -70,17 +69,36 @@ class KNN:
 
 
     def run(self):
-        self.__train()
+        best_val_accuracy = 0
+        best_val_k = 0
+        best_test_accuracy = 0
+        best_test_k = 0
 
-        self.echo('\nMeasuring val accuracy ... ')
-        val_accuracy = self.__get_accuracy(self.__x_val, self.__y_val, self.__val_size)
-        self.echo('Finish measuring ')
-        self.echo('val accuracy: %.6f%% ' % val_accuracy)
+        for k in self.K_NEIGHBORS_LIST:
+            self.__train(k)
 
-        self.echo('\nMeasuring test accuracy ... ')
-        test_accuracy = self.__get_accuracy(self.__x_test, self.__y_test, self.__test_size)
-        self.echo('Finish measuring ')
-        self.echo('test accuracy: %.6f%% ' % test_accuracy)
+            self.echo('\nMeasuring val accuracy ... ')
+            val_accuracy = self.__get_accuracy(self.__x_val, self.__y_val, self.__val_size)
+            self.echo('Finish measuring ')
+            self.echo('val accuracy: %.6f%% ' % val_accuracy)
+
+            if val_accuracy > best_val_accuracy:
+                best_val_accuracy = val_accuracy
+                best_val_k = k
+                self.echo('best k: %d ' % k)
+
+            self.echo('\nMeasuring test accuracy ... ')
+            test_accuracy = self.__get_accuracy(self.__x_test, self.__y_test, self.__test_size)
+            self.echo('Finish measuring ')
+            self.echo('test accuracy: %.6f%% ' % test_accuracy)
+
+            if test_accuracy > best_test_accuracy:
+                best_test_accuracy = test_accuracy
+                best_test_k = k
+                self.echo('best k: %d ' % k)
+
+        self.echo('\nbest val accuracy: %.6f  k: %d ' % (best_val_accuracy, best_val_k))
+        self.echo('best test accuracy: %.6f  k: %d ' % (best_test_accuracy, best_test_k))
 
 
     ''' 获取下个 batch '''
