@@ -823,7 +823,13 @@ class NN:
         with tf.name_scope('regularize'):
             regularizer = 0.0
             for var in trainable_var:
-                regularizer = tf.add( regularizer, tf.nn.l2_loss( tf.cast(var, tf.float32) ) )
+                print var
+                print var.shape
+
+
+
+                # regularizer = tf.add( regularizer, tf.nn.l2_loss( tf.cast(var, tf.float32) ) )
+            exit()
         return tf.reduce_mean(loss + beta * regularizer)
 
 
