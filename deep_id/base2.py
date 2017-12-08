@@ -285,7 +285,8 @@ class NN:
 
         self.echo('Restoring from %s ...' % model_path)
         with open(model_path, 'rb') as f:
-            w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
+            # w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
+            w_list, b_list = pickle.load(f)
 
         self.WList = []
         self.bList = []
