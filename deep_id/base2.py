@@ -829,6 +829,8 @@ class NN:
 
         update_moving_mean = moving_mean.assign_moving_average(moving_mean, mean, self.BN_DECAY)
         update_moving_variance = moving_variance.assign_moving_average(moving_variance, variance, self.BN_DECAY)
+        tf.add_to_collection(UPDATE_OPS_COLLECTION, update_moving_mean)
+        tf.add_to_collection(UPDATE_OPS_COLLECTION, update_moving_variance)
 
         mean, variance = control_flow_ops.cond(config['is_train'], lambda : (mean, variance),
                                                lambda : (moving_mean, moving_variance))

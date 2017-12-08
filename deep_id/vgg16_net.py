@@ -249,6 +249,9 @@ class VGG16(base.NN):
         self.__val_set = load.Data(0.9, 1.0, 'validation')
         self.__test_set = load.Data(0.8, 1.0, 'test')
 
+        self.__train_set.start_thread()
+        self.__val_set.start_thread()
+
         self.__train_size = self.__train_set.get_size()
         self.__val_size = self.__val_set.get_size()
         self.__test_size = self.__test_set.get_size()
@@ -402,6 +405,9 @@ class VGG16(base.NN):
                 feed_dict[self.__mean_loss] = mean_train_loss
                 self.add_summary_train(feed_dict, epoch)
 
+                del batch_x
+                del batch_y
+
                 # 测试 校验集 的 loss
                 mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set, 20)
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
@@ -409,6 +415,9 @@ class VGG16(base.NN):
                              self.__size: batch_val_y.shape[0], self.__mean_accuracy: mean_val_accuracy,
                              self.__mean_loss: mean_val_loss}
                 self.add_summary_val(feed_dict, epoch)
+
+                del batch_val_x
+                del batch_val_y
 
                 echo_str = '\n\t train_loss: %.6f  train_accuracy: %.6f  val_loss: %.6f  val_accuracy: %.6f' % (
                     mean_train_loss, mean_train_accuracy, mean_val_loss, mean_val_accuracy)
@@ -434,11 +443,13 @@ class VGG16(base.NN):
                     if decr_val_accu_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
                         break
 
+            else:
+                del batch_x
+                del batch_y
+
         self.close_summary()        # 关闭 TensorBoard
 
-        self.__train_set.stop()     # 关闭获取数据线程
-        self.__val_set.stop()     # 关闭获取数据线程
-        self.__test_set.stop()     # 关闭获取数据线程
+        self.__test_set.start_thread()
 
         self.restore_model_w_b()    # 恢复模型
         self.rebuild_model()        # 重建模型
@@ -457,6 +468,10 @@ class VGG16(base.NN):
         self.echo('train_accuracy: %.6f  train_loss: %.6f ' % (mean_train_accuracy, mean_train_loss))
         self.echo('val_accuracy: %.6f  val_loss: %.6f ' % (mean_val_accuracy, mean_val_loss))
         self.echo('test_accuracy: %.6f  test_loss: %.6f ' % (mean_test_accuracy, mean_test_loss))
+
+        self.__train_set.stop()  # 关闭获取数据线程
+        self.__val_set.stop()  # 关闭获取数据线程
+        self.__test_set.stop()  # 关闭获取数据线程
 
         self.echo('\ndone')
 

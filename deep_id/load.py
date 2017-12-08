@@ -152,8 +152,6 @@ class Data:
 
         self.__cur_index = 0
 
-        self.__start_thread()
-
 
     @staticmethod
     def __chang_dir():
@@ -222,7 +220,7 @@ class Data:
         self.echo('\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
 
 
-    def __start_thread(self):
+    def start_thread(self):
         self.__thread = threading.Thread(target=self.__get_data, name=('get_%s_data' % self.__name))
         self.__thread.start()
         self.echo('Thread "get_%s_data" is running ... ' % self.__name)
