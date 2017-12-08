@@ -191,7 +191,11 @@ class Data:
         iter_items = self.__data_dict.iteritems() if '2.7' in sys.version else self.__data_dict.items()
         for img_no, data_list in iter_items:
             self.__data_list.append([int(img_no), data_list])
-        self.__data_list.sort(self.__sort) # 按顺序排列
+
+        if '2.7' in sys.version:
+            self.__data_list.sort(self.__sort) # 按顺序排列
+        else:
+            self.__data_list.sort(key=lambda x: self.__sort_list.index(x[0]) if self.__sort_list else x[0])
 
         self.echo('\nFinish Loading\n')
 
