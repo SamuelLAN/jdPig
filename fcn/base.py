@@ -72,10 +72,10 @@ class NN:
 
     ''' 析构函数 '''
     def __del__(self):
-        # pass
-        NN.kill_tensorboard_if_runing()
-        self.tbProcess.join(10)
-        self.tbProcess.terminate()
+        pass
+        # NN.kill_tensorboard_if_runing()
+        # self.tbProcess.join(10)
+        # self.tbProcess.terminate()
 
 
     ''' 初始化 '''
@@ -87,13 +87,13 @@ class NN:
         self.mean_x = 0
         self.std_x = 0.0001
 
-        self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+        # self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
 
-        self.__summaryPath = ''
-        self.__get_summary_path()
+        # self.__summaryPath = ''
+        # self.__get_summary_path()
 
         self.global_step = self.get_global_step()            # 记录全局训练状态的 global step
 
@@ -255,7 +255,8 @@ class NN:
             b_list.append([name, b_value])
 
         with open(model_path, 'wb') as f:
-            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, pickle.HIGHEST_PROTOCOL)
+            # pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
 
         self.echo('Finish saving model ')
 
@@ -265,7 +266,8 @@ class NN:
 
         self.echo('Restoring from %s ...' % model_path)
         with open(model_path, 'rb') as f:
-            w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
+            # w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
+            w_list, b_list = pickle.load(f)
 
         self.WList = []
         self.bList = []
@@ -307,7 +309,8 @@ class NN:
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
 
-        self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
+        self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        # self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
         return self.modelPath
 
     # ************************** TensorBoard summary ************************

@@ -15,8 +15,9 @@ import fcn
 
 
 class GetImage:
-    IMG_DIR = r'../deep_id/data/TrainImg'
-    RESIZE_SIZE = [640, 360]
+    IMG_DIR = r'../deep_id/data/Test'
+    # RESIZE_SIZE = [640, 360]
+    SCALE = 2.0
 
     def __init__(self):
         self.__img_list = []
@@ -42,7 +43,7 @@ class GetImage:
             self.echo('\r Progress: %.2f | %d / %d \t ' % (progress, i + 1, self.__img_len), False)
 
             image = Image.open(img_path)
-            image = np.array(image.resize(self.RESIZE_SIZE))
+            image = np.array(image.resize( np.cast['int32']( image.size / self.SCALE ) ))
 
             np_pig = self.__o_fcn.use_model(image)
             im_pig = Image.fromarray(np_pig)
