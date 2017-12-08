@@ -477,9 +477,6 @@ class VGG16(base.NN):
         self.__get_accuracy()
         self.__get_log_loss()
 
-        self.mean_x = best_mean
-        self.std_x = best_std
-
         self.init_variables()       # 重新初始化变量
 
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set)
@@ -521,5 +518,36 @@ class VGG16(base.NN):
         return output
 
 
+    def test(self):
+
+        self.restore_model_w_b()  # 恢复模型
+        self.rebuild_model()  # 重建模型
+        self.get_loss()  # 重新 get loss
+        self.__get_accuracy()
+        self.__get_log_loss()
+
+        self.init_variables()  # 重新初始化变量
+        self.__has_rebuild = True
+
+        mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set)
+        mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
+
+        self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
+                                                                                      mean_train_loss,
+                                                                                      mean_train_log_loss))
+        self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
+                                                                                mean_val_loss, mean_val_log_loss))
+
+        batch_x, batch_y = self.__val_set.next_batch(3)
+
+        for x in batch_x:
+            self.echo('\n************************')
+            self.echo(self.use_model(x))
+
+        self.echo('\ndone')
+
+
+
 o_vgg = VGG16()
-o_vgg.run()
+# o_vgg.run()
+o_vgg.test()
