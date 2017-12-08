@@ -439,8 +439,10 @@ class VGG16(base.NN):
                 del batch_val_x
                 del batch_val_y
 
-                echo_str = '\n\t train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  val_loss: %.6f val_log_loss: %.6f  val_accuracy: %.6f' % (
-                    mean_train_loss, mean_train_log_loss, mean_train_accuracy, mean_val_loss, mean_val_log_loss, mean_val_accuracy)
+                echo_str = '\n\t epoch: %d  train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  ' \
+                           'val_loss: %.6f val_log_loss: %.6f  val_accuracy: %.6f' % (epoch, mean_train_loss,
+                                                                    mean_train_log_loss, mean_train_accuracy,
+                                                            mean_val_loss, mean_val_log_loss, mean_val_accuracy)
 
                 mean_train_accuracy = 0
                 mean_train_loss = 0
