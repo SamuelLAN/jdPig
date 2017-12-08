@@ -539,7 +539,8 @@ class VGG16(base.NN):
         self.__running_mean = None
         self.__running_std = None
 
-        times = int(math.ceil(float(self.__train_size) / self.BATCH_SIZE) * 7)
+        times = int(math.ceil(float(self.__train_size) / self.BATCH_SIZE))
+        times = min(times, 1000)
         for i in range(times):
             progress = float(i + 1) / times * 100
             self.echo('\r  >> progress: %.6f ' % progress, False)
