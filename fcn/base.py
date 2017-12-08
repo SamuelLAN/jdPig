@@ -455,14 +455,17 @@ class NN:
     def __run_tensorboard_sync(path, port=6006):
         try:
             # NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
-            NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
+            if '2.7' in sys.version:
+                NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
+            else:
+                NN.cmd('activate tensor3.5;tensorboard --logdir=%s --port=%d' % (path, port))
         except:
             NN.echo('run tensorboard sync error ')
 
 
     ''' 异步状态，自动在终端打开 cmd (默认端口为 6006，port 参数可以自己指定端口) '''
     def run_tensorboard(self, path, port=6006):
-        NN.kill_tensorboard_if_runing()
+        # NN.kill_tensorboard_if_runing()
         self.tbProcess = Process(target=NN.__run_tensorboard_sync, args=(path, port))
         self.tbProcess.start()
 
