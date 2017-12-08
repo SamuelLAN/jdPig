@@ -867,6 +867,8 @@ class NN:
             for i, var in enumerate(trainable_var):
                 if i == 0:
                     continue
+                print '\n**************************'
+                print i, var
                 regularizer = tf.add( regularizer, tf.nn.l2_loss( tf.cast(var, tf.float32) ) )
         return tf.reduce_mean(loss + beta * regularizer)
 
