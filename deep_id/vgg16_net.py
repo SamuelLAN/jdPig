@@ -306,8 +306,7 @@ class VGG16(base.NN):
 
     def __get_log_loss(self):
         with tf.name_scope('log_loss'):
-            self.__log_loss = - tf.divide( tf.reduce_sum( self.__label * tf.log(self.__output) ),
-                       tf.cast(self.__label.shape[0], tf.float64) )
+            self.__log_loss = - tf.divide( tf.reduce_sum( self.__label * tf.log(self.__output) ), self.__size )
 
 
     def __measure(self, data_set, max_times=None):
