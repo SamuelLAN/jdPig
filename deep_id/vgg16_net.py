@@ -51,7 +51,7 @@ class VGG16(base.NN):
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
 
-    MAX_VAL_ACCURACY_DECR_TIMES = 15  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 30  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [
