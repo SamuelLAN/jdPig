@@ -595,6 +595,9 @@ class VGG16(base.NN):
         #     self.echo('\n************************')
         #     self.echo(self.use_model(x))
 
+        self.__train_set.stop()
+        self.__val_set.stop()
+
         self.echo('\ndone')
 
 
