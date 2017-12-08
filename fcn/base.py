@@ -466,8 +466,9 @@ class NN:
     ''' 异步状态，自动在终端打开 cmd (默认端口为 6006，port 参数可以自己指定端口) '''
     def run_tensorboard(self, path, port=6006):
         # NN.kill_tensorboard_if_runing()
-        self.tbProcess = Process(target=NN.__run_tensorboard_sync, args=(path, port))
-        self.tbProcess.start()
+        if __name__ == '__main__':
+            self.tbProcess = Process(target=NN.__run_tensorboard_sync, args=(path, port))
+            self.tbProcess.start()
 
     # **************************** 常用模型 ***************************
 
