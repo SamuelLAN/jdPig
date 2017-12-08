@@ -321,7 +321,7 @@ class VGG16(base.NN):
         for i in range(times):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
 
-            batch_x = (batch_x - self.__mean_x) / (self.__std_x + self.EPLISION)
+            batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y,
                          self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
@@ -371,8 +371,8 @@ class VGG16(base.NN):
         mean_train_log_loss = 0
         mean_train_accuracy = 0
 
-        best_val_accuracy = 0
-        decr_val_accu_times = 0
+        best_val_log_loss = 999999
+        incr_val_log_loss_times = 0
 
         self.echo('\nepoch:')
 
@@ -408,8 +408,8 @@ class VGG16(base.NN):
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
-                self.__mean_x = self.__running_mean
-                self.__std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
+                self.mean_x = self.__running_mean
+                self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
                 mean_train_accuracy /= self.__iter_per_epoch
                 mean_train_loss /= self.__iter_per_epoch
@@ -428,6 +428,9 @@ class VGG16(base.NN):
                 # 测试 校验集 的 loss
                 mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set, 20)
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+
+                batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
+                
                 feed_dict = {self.__image: batch_val_x, self.__label: batch_val_y, self.__keep_prob: 1.0,
                              self.__size: batch_val_y.shape[0], self.__mean_accuracy: mean_val_accuracy,
                              self.__mean_loss: mean_val_loss, self.__mean_log_loss: mean_val_log_loss}
@@ -442,22 +445,22 @@ class VGG16(base.NN):
                 mean_train_accuracy = 0
                 mean_train_loss = 0
 
-                if best_val_accuracy < mean_val_accuracy:
-                    best_val_accuracy = mean_val_accuracy
-                    decr_val_accu_times = 0
+                if best_val_log_loss > mean_val_log_loss:
+                    best_val_log_loss = mean_val_log_loss
+                    incr_val_log_loss_times = 0
 
-                    best_mean = self.__mean_x
-                    best_std = self.__std_x
+                    best_mean = self.mean_x
+                    best_std = self.std_x
 
                     self.echo('%s  best  ' % echo_str, False)
                     self.save_model_w_b()
                     # self.save_model()  # 保存模型
 
                 else:
-                    decr_val_accu_times += 1
-                    self.echo('%s  decr_times: %d \n' % (echo_str, decr_val_accu_times), False)
+                    incr_val_log_loss_times += 1
+                    self.echo('%s  incr_times: %d \n' % (echo_str, incr_val_log_loss_times), False)
 
-                    if decr_val_accu_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
+                    if incr_val_log_loss_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
                         break
 
             else:
@@ -472,9 +475,10 @@ class VGG16(base.NN):
         self.rebuild_model()        # 重建模型
         self.get_loss()             # 重新 get loss
         self.__get_accuracy()
+        self.__get_log_loss()
 
-        self.__mean_x = best_mean
-        self.__std_x = best_std
+        self.mean_x = best_mean
+        self.std_x = best_std
 
         self.init_variables()       # 重新初始化变量
 
@@ -496,19 +500,25 @@ class VGG16(base.NN):
         self.echo('\ndone')
 
 
-    # def use_model(self, np_image):
-    #     if not self.__has_rebuild:
-    #         self.restore_model_w_b()    # 恢复模型
-    #         self.rebuild_model()        # 重建模型
-    #
-    #         self.init_variables()       # 初始化所有变量
-    #         self.__has_rebuild = True
-    #
-    #     np_image = np.expand_dims(np_image, axis=0)
-    #     feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
-    #     output_mask = self.sess.run(self.__output_mask, feed_dict)
-    #
-    #     return self.__mask2img(output_mask[0], np_image[0])    # 将 mask 待人 image 并去掉外部的点点
+    def use_model(self, np_image):
+        if not self.__has_rebuild:
+            self.restore_model_w_b()    # 恢复模型
+            self.rebuild_model()        # 重建模型
+            self.get_loss()  # 重新 get loss
+            self.__get_accuracy()
+            self.__get_log_loss()
+
+            self.init_variables()       # 初始化所有变量
+            self.__has_rebuild = True
+
+        np_image = np.expand_dims(np_image, axis=0)
+
+        np_image = (np_image - self.mean_x) / (self.std_x + self.EPLISION)
+
+        feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
+        output = self.sess.run(self.__output, feed_dict)
+
+        return output
 
 
 o_vgg = VGG16()
