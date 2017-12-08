@@ -575,6 +575,20 @@ class VGG16(base.NN):
         self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
                                                                                 mean_val_loss, mean_val_log_loss))
 
+        self.echo('\n************************************\n')
+
+        self.mean_x = 0.0
+        self.std_x = 1.0 - self.EPLISION
+
+        mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set, 100)
+        mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set, 100)
+
+        self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
+                                                                                      mean_train_loss,
+                                                                                      mean_train_log_loss))
+        self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
+                                                                                mean_val_loss, mean_val_log_loss))
+
         # batch_x, batch_y = self.__val_set.next_batch(3)
         #
         # for x in batch_x:
