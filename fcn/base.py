@@ -444,8 +444,8 @@ class NN:
                     pid = int(reg_space.split(line)[1])
                     NN.cmd('kill -9 %d' % pid)
 
-        except Exception, ex:
-            NN.echo(ex)
+        except:
+            NN.echo('kill tensorboard if running error ')
 
 
     '''
@@ -456,8 +456,8 @@ class NN:
         try:
             # NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
             NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
-        except Exception, ex:
-            NN.echo(ex)
+        except:
+            NN.echo('run tensorboard sync error ')
 
 
     ''' 异步状态，自动在终端打开 cmd (默认端口为 6006，port 参数可以自己指定端口) '''
