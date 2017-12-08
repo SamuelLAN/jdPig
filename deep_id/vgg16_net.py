@@ -562,7 +562,7 @@ class VGG16(base.NN):
         self.mean_x = self.__running_mean
         self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
-        self.echo('Finish calculating ')
+        self.echo('Finish calculating \n')
 
         # ******************************************
 
