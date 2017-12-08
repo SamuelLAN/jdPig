@@ -188,7 +188,8 @@ class Data:
                     self.__data_dict[img_no] = []
                 self.__data_dict[img_no].append([np_image, self.__get_same_size_mask(image, y_file_name)])
 
-        for img_no, data_list in self.__data_dict.iteritems():
+        iter_items = self.__data_dict.iteritems() if '2.7' in sys.version else self.__data_dict.items()
+        for img_no, data_list in iter_items:
             self.__data_list.append([int(img_no), data_list])
         self.__data_list.sort(self.__sort) # 按顺序排列
 
