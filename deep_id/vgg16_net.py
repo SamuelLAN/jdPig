@@ -245,16 +245,16 @@ class VGG16(base.NN):
     ''' 加载数据 '''
     def load(self):
         # sort_list = load.Data.get_sort_list()
-        self.__train_set = load.Data(0.0, 0.64, 'train')
-        self.__val_set = load.Data(0.9, 1.0, 'validation')
-        self.__test_set = load.Data(0.8, 1.0, 'test')
+        self.__train_set = load.Data(0.0, 0.8, 'train')
+        self.__val_set = load.Data(0.8, 1.0, 'validation')
+        # self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_set.start_thread()
         self.__val_set.start_thread()
 
         self.__train_size = self.__train_set.get_size()
         self.__val_size = self.__val_set.get_size()
-        self.__test_size = self.__test_set.get_size()
+        # self.__test_size = self.__test_set.get_size()
 
 
     ''' 模型 '''
@@ -469,7 +469,7 @@ class VGG16(base.NN):
 
         self.close_summary()        # 关闭 TensorBoard
 
-        self.__test_set.start_thread()
+        # self.__test_set.start_thread()
 
         self.restore_model_w_b()    # 恢复模型
         self.rebuild_model()        # 重建模型
@@ -484,18 +484,18 @@ class VGG16(base.NN):
 
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set)
         mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
-        mean_test_accuracy, mean_test_loss, mean_test_log_loss = self.__measure(self.__test_set)
+        # mean_test_accuracy, mean_test_loss, mean_test_log_loss = self.__measure(self.__test_set)
 
         self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
                                                                     mean_train_loss, mean_train_log_loss))
         self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
                                                                     mean_val_loss, mean_val_log_loss))
-        self.echo('test_accuracy: %.6f  test_loss: %.6f  test_log_loss: %.6f  ' % (mean_test_accuracy,
-                                                                    mean_test_loss, mean_test_log_loss))
+        # self.echo('test_accuracy: %.6f  test_loss: %.6f  test_log_loss: %.6f  ' % (mean_test_accuracy,
+        #                                                             mean_test_loss, mean_test_log_loss))
 
         self.__train_set.stop()  # 关闭获取数据线程
         self.__val_set.stop()  # 关闭获取数据线程
-        self.__test_set.stop()  # 关闭获取数据线程
+        # self.__test_set.stop()  # 关闭获取数据线程
 
         self.echo('\ndone')
 
