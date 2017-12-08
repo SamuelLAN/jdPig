@@ -522,45 +522,48 @@ class VGG16(base.NN):
 
         self.restore_model_w_b()  # 恢复模型
         self.rebuild_model()  # 重建模型
+
         self.get_loss()  # 重新 get loss
         self.__get_accuracy()
         self.__get_log_loss()
 
+        self.echo('init_variables ... ')
+
         self.init_variables()  # 重新初始化变量
         self.__has_rebuild = True
 
-        # ********************************************
-        self.echo('\ncalculating mean std ... ')
-
-        moment = 0.975
-        self.__running_mean = None
-        self.__running_std = None
-
-        times = int(math.ceil(float(self.__train_size) / self.BATCH_SIZE) * 7)
-        for i in range(times):
-            progress = float(i + 1) / times * 100
-            self.echo('\r  >> progress: %.6f ' % progress, False)
-
-            batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
-
-            reduce_axis = tuple(range(len(batch_x.shape) - 1))
-            _mean = np.mean(batch_x, axis=reduce_axis)
-            _std = np.std(batch_x, axis=reduce_axis)
-
-            self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if type(
-                self.__running_mean) != type(None) else _mean
-            self.__running_std = moment * self.__running_std + (1 - moment) * _std if type(self.__running_std) != type(
-                None) else _std
-
-            del batch_x
-            del batch_y
-
-        self.mean_x = self.__running_mean
-        self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
-
-        self.echo('Finish calculating ')
-
-        # ******************************************
+        # # ********************************************
+        # self.echo('\ncalculating mean std ... ')
+        #
+        # moment = 0.975
+        # self.__running_mean = None
+        # self.__running_std = None
+        #
+        # times = int(math.ceil(float(self.__train_size) / self.BATCH_SIZE) * 7)
+        # for i in range(times):
+        #     progress = float(i + 1) / times * 100
+        #     self.echo('\r  >> progress: %.6f ' % progress, False)
+        #
+        #     batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+        #
+        #     reduce_axis = tuple(range(len(batch_x.shape) - 1))
+        #     _mean = np.mean(batch_x, axis=reduce_axis)
+        #     _std = np.std(batch_x, axis=reduce_axis)
+        #
+        #     self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if type(
+        #         self.__running_mean) != type(None) else _mean
+        #     self.__running_std = moment * self.__running_std + (1 - moment) * _std if type(self.__running_std) != type(
+        #         None) else _std
+        #
+        #     del batch_x
+        #     del batch_y
+        #
+        # self.mean_x = self.__running_mean
+        # self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
+        #
+        # self.echo('Finish calculating ')
+        #
+        # # ******************************************
 
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set)
         mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
