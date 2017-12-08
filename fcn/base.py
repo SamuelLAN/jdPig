@@ -84,6 +84,9 @@ class NN:
         self.WList = []                                     # 存放权重矩阵的 list
         self.bList = []                                     # 存放偏置量的 list
 
+        self.mean_x = 0
+        self.std_x = 0.0001
+
         self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
 
         self.modelPath = ''
@@ -252,7 +255,7 @@ class NN:
             b_list.append([name, b_value])
 
         with open(model_path, 'wb') as f:
-            pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, pickle.HIGHEST_PROTOCOL)
 
         self.echo('Finish saving model ')
 
@@ -262,7 +265,7 @@ class NN:
 
         self.echo('Restoring from %s ...' % model_path)
         with open(model_path, 'rb') as f:
-            w_list, b_list = pickle.load(f)
+            w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
 
         self.WList = []
         self.bList = []

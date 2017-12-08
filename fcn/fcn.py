@@ -38,6 +38,8 @@ class FCN(base.NN):
     REGULAR_BETA = 0.01  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
+    EPLISION = 0.00001
+
     SHOW_PROGRESS_FREQUENCY = 2  # 每 SHOW_PROGRESS_FREQUENCY 个 step show 一次进度 progress
 
     MAX_VAL_LOSS_INCR_TIMES = 20  # 校验集 val_loss 连续 100 次没有降低，则 early stop
@@ -243,6 +245,7 @@ class FCN(base.NN):
 
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X')
+        self.__org_image = tf.placeholder(tf.float32, [None, None, None, self.NUM_CHANNEL], name='X_org')
         self.__mask = tf.placeholder(tf.float32, [None, None, None, self.NUM_CLASSES], name='y')
         # dropout 的 keep_prob
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
@@ -313,9 +316,9 @@ class FCN(base.NN):
             output_mask = tf.to_float(tf.expand_dims(self.__output_mask, dim=3), name='output_mask')
 
             # 输出图片到 tensorboard
-            tf.summary.image('input_image', self.__image, max_outputs=2)
-            tf.summary.image('truth_mask', tf.cast(mask * self.__image, tf.uint8), max_outputs=2)
-            tf.summary.image('output_image', tf.cast(output_mask * self.__image, tf.uint8), max_outputs=2)
+            tf.summary.image('input_image', self.__org_image, max_outputs=2)
+            tf.summary.image('truth_mask', tf.cast(mask * self.__org_image, tf.uint8), max_outputs=2)
+            tf.summary.image('output_image', tf.cast(output_mask * self.__org_image, tf.uint8), max_outputs=2)
 
             # 记录 loss 到 tensorboard
             self.__loss_placeholder = tf.placeholder(tf.float32, name='loss')
@@ -329,6 +332,9 @@ class FCN(base.NN):
         mean_loss = 0
         for i in range(times):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+
+            batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
+            
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: 1.0}
             loss = self.sess.run(self.__loss, feed_dict)
             mean_loss += loss
@@ -444,6 +450,13 @@ class FCN(base.NN):
 
         self.echo('\nepoch:')
 
+        moment = 0.975
+        self.__running_mean = None
+        self.__running_std = None
+
+        best_mean = 0
+        best_std = 0.1
+
         for step in range(self.__steps):
             if step % self.SHOW_PROGRESS_FREQUENCY == 0:
                 epoch_progress = float(step) % self.__iter_per_epoch / self.__iter_per_epoch * 100.0
@@ -452,6 +465,20 @@ class FCN(base.NN):
                                                                        self.__steps, step_progress), False)
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+
+            # **************************** 
+
+            reduce_axis = tuple(range(len(batch_x.shape) - 1))
+            _mean = np.mean(batch_x, axis=reduce_axis)
+            _std = np.std(batch_x, axis=reduce_axis)
+            self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if type(
+                self.__running_mean) != type(None) else _mean
+            self.__running_std = moment * self.__running_std + (1 - moment) * _std if type(self.__running_std) != type(
+                None) else _std
+            batch_x = (batch_x - _mean) / (_std + self.EPLISION)
+            
+            # *********************************
+
             feed_dict = {self.__image: batch_x, self.__mask: batch_y, self.__keep_prob: self.KEEP_PROB}
             _, train_loss = self.sess.run([train_op, self.__loss], feed_dict)
 
@@ -459,6 +486,8 @@ class FCN(base.NN):
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
+                self.mean_x = self.__running_mean
+                self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
                 feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
                 mean_loss = 0
@@ -467,6 +496,10 @@ class FCN(base.NN):
                 # 测试 校验集 的 loss
                 mean_val_loss = self.__measure_loss(self.__val_set)
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+
+                # ********************************
+                batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
+                
                 feed_dict = {self.__image: batch_val_x, self.__mask: batch_val_y, self.__keep_prob: 1.0,
                              self.__loss_placeholder: mean_val_loss}
                 self.add_summary_val(feed_dict, epoch)
@@ -474,6 +507,9 @@ class FCN(base.NN):
                 if best_val_loss > mean_val_loss:
                     best_val_loss = mean_val_loss
                     increase_val_loss_times = 0
+
+                    best_mean = self.mean_x
+                    best_std = self.std_x
 
                     self.echo('\n best_val_loss: %.2f \t ' % best_val_loss)
                     self.save_model_w_b()
@@ -489,6 +525,9 @@ class FCN(base.NN):
         self.restore_model_w_b()    # 恢复模型
         self.rebuild_model()        # 重建模型
         self.get_loss()             # 重新 get loss
+
+        self.mean_x = best_mean
+        self.std_x = best_std
 
         self.init_variables()       # 重新初始化变量
 
@@ -528,6 +567,9 @@ class FCN(base.NN):
             self.__has_rebuild = True
 
         np_image = np.expand_dims(np_image, axis=0)
+
+        np_image = (np_image - self.mean_x) / (self.std_x + self.EPLISION)
+
         feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
