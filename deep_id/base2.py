@@ -6,6 +6,7 @@ from numpy import hstack
 import re
 import sys
 import os
+import time
 from multiprocessing import Process
 from six.moves import cPickle as pickle
 from tensorflow.python.ops import control_flow_ops
@@ -61,6 +62,8 @@ class NN:
     MODEL = []                          # 深度模型的配置
 
     VARIABLE_COLLECTION = 'variables'
+    UPDATE_OPS_COLLECTION = 'update_ops'
+
     MOVING_AVERAGE_DECAY = 0.9997
     BN_DECAY = MOVING_AVERAGE_DECAY
     BN_EPSILON = 0.001
@@ -88,6 +91,8 @@ class NN:
         self.net = []                                       # 存放每层网络的 feature map
         self.WList = []                                     # 存放权重矩阵的 list
         self.bList = []                                     # 存放偏置量的 list
+
+        self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
@@ -317,7 +322,7 @@ class NN:
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
 
-        self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
         return self.modelPath
 
     # ************************** TensorBoard summary ************************
@@ -397,6 +402,10 @@ class NN:
             os.mkdir(summary_dir)
 
         summary_dir = os.path.join(summary_dir, self.MODEL_NAME.split('.')[0])
+        if not os.path.isdir(summary_dir):
+            os.mkdir(summary_dir)
+
+        summary_dir = os.path.join(summary_dir, self.__start_time)
         if not os.path.isdir(summary_dir):
             os.mkdir(summary_dir)
         else:
@@ -517,7 +526,8 @@ class NN:
                 'k_size': [5, 5],   # 若有 'W'，可以没有该值
                 'activate': True,   # 默认为 True
                 'W': W,             # kernel；若没有该值，会自动根据 k_size 以及 shape 初始化
-                'b': b,             # bias; 若没有该值，会自动根据 shape 初始化
+                'b': b,             # bias; 若没有该值，会自动根据 shape 初始化,
+                'bn': True,         # batch_normalize 默认为 False
             }
         tr_conv: 反卷积(上采样)
             for example:
@@ -621,6 +631,10 @@ class NN:
             if _type == 'conv':
                 with tf.name_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
+
+                    if 'bn' in config and config['bn']:
+                        a = self.batch_normal(a, is_train)
+
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
@@ -811,7 +825,7 @@ class NN:
         return tf.nn.avg_pool(x, ksize=k_size, strides=k_size, padding='SAME')
 
 
-    def batch_normal(self, x, config):
+    def batch_normal(self, x, is_train):
         x_shape = x.get_shape()
         params_shape = x_shape[-1:]
 
@@ -829,10 +843,10 @@ class NN:
 
         update_moving_mean = moving_mean.assign_moving_average(moving_mean, mean, self.BN_DECAY)
         update_moving_variance = moving_variance.assign_moving_average(moving_variance, variance, self.BN_DECAY)
-        tf.add_to_collection(UPDATE_OPS_COLLECTION, update_moving_mean)
-        tf.add_to_collection(UPDATE_OPS_COLLECTION, update_moving_variance)
+        tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_mean)
+        tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_variance)
 
-        mean, variance = control_flow_ops.cond(config['is_train'], lambda : (mean, variance),
+        mean, variance = control_flow_ops.cond(is_train, lambda : (mean, variance),
                                                lambda : (moving_mean, moving_variance))
         x = tf.nn.batch_normalization(x, mean, variance, beta, gamma, self.BN_EPSILON)
 
