@@ -15,7 +15,7 @@ import fcn
 
 
 class GetImage:
-    IMG_DIR = r'../deep_id/data/Test'
+    IMG_DIR = r'../deep_id/data/Test_B'
     # RESIZE_SIZE = [640, 360]
     SCALE = 2.0
 

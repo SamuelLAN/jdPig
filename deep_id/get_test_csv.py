@@ -16,9 +16,9 @@ import vgg16_net as vgg
 
 
 class GetCSV:
-    IMG_DIR = r'data/Test'
+    IMG_DIR = r'data/Test_B'
     RESULT_DIR = r'result'
-    RESULT_FILE_PATH = r'result/test_A.csv'
+    RESULT_FILE_PATH = r'result/test_B.csv'
 
     def __init__(self):
         self.__img_list = []
