@@ -619,6 +619,8 @@ class NN:
         if is_train:    # 将图像输出到 TensorBoard
             self.image_summary(a, 1, 'input', 1)
 
+        t_is_train = tf.convert_to_tensor(is_train, dtype='bool', name='is_train')
+
         self.echo('\nStart building model ...')
 
         model_len = len(self.MODEL)
@@ -633,7 +635,7 @@ class NN:
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
                     if 'bn' in config and config['bn']:
-                        a = self.batch_normal(a, is_train)
+                        a = self.batch_normal(a, t_is_train)
 
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
