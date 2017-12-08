@@ -310,8 +310,8 @@ class NN:
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
 
-        self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
-        # self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
+        # self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
         return self.modelPath
 
     # ************************** TensorBoard summary ************************
