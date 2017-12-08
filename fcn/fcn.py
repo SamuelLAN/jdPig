@@ -13,7 +13,10 @@ import math
 import base
 import load
 import vgg
-import Queue
+if '2.7' in sys.version:
+    import Queue as queue
+else:
+    import queue
 import numpy as np
 from PIL import Image
 import tensorflow as tf
@@ -369,7 +372,7 @@ class FCN(base.NN):
             center = data[ dis_list[0][0] ]
 
         s = set()
-        q = Queue.Queue()
+        q = queue.Queue()
         q.put(center)
 
         while not q.empty():
