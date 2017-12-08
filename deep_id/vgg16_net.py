@@ -360,8 +360,8 @@ class VGG16(base.NN):
         self.echo('\nepoch:')
 
         moment = 0.975
-        self.__running_mean = 0
-        self.__running_std = 0
+        self.__running_mean = None
+        self.__running_std = None
 
         best_mean = 0
         best_std = 0.1
@@ -378,8 +378,8 @@ class VGG16(base.NN):
             reduce_axis = tuple(range(len(batch_x.shape) - 1))
             _mean = np.mean(batch_x, axis=reduce_axis)
             _std = np.std(batch_x, axis=reduce_axis)
-            self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if self.__running_mean != 0 else _mean
-            self.__running_std = moment * self.__running_std + (1 - moment) * _std if self.__running_std != 0 else _std
+            self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if type(self.__running_mean) != type(None) else _mean
+            self.__running_std = moment * self.__running_std + (1 - moment) * _std if type(self.__running_std) != type(None) else _std
             batch_x = ( batch_x - _mean ) / (_std + self.EPLISION)
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB, self.__size: batch_y.shape[0]}
