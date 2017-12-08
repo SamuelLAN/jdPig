@@ -8,6 +8,7 @@ import sys
 import os
 from multiprocessing import Process
 from six.moves import cPickle as pickle
+from tensorflow.python.ops import control_flow_ops
 
 
 '''
@@ -58,6 +59,11 @@ class NN:
     DROPOUT_RATE = 0.8                  # 卷机神经网络 使用的 dropout 配置
     DROPOUT_LIST = None                 # 全连接模型 使用的 dropout 配置
     MODEL = []                          # 深度模型的配置
+
+    VARIABLE_COLLECTION = 'variables'
+    MOVING_AVERAGE_DECAY = 0.9997
+    BN_DECAY = MOVING_AVERAGE_DECAY
+    BN_EPSILON = 0.001
 
     TENSORBOARD_SHOW_IMAGE = False      # 默认不将 image 显示到 TensorBoard，以免影响性能
 
@@ -175,11 +181,21 @@ class NN:
         return tf.Variable(b, trainable=trainable, name='bias')
 
 
-    @staticmethod
-    def get_variable(weights, name):
-        init = tf.constant_initializer(weights, dtype=tf.float32)
-        var = tf.get_variable(name=name, initializer=init, shape=weights.shape)
-        return var
+    # @staticmethod
+    # def get_variable(weights, name):
+    #     init = tf.constant_initializer(weights, dtype=tf.float32)
+    #     var = tf.get_variable(name=name, initializer=init, shape=weights.shape)
+    #     return var
+
+
+    def get_variable(self, name, shape, initializer, weight_decay=0.0, dtype='float', trainable=True):
+        if weight_decay > 0:
+            regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
+        else:
+            regularizer = None
+        collections = [tf.GraphKeys.VARIABLES, self.VARIABLE_COLLECTION]
+        return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
+                               regularizer=regularizer, collections=collections, trainable=trainable)
 
 
     ''' 获取全局的训练 step '''
@@ -793,6 +809,32 @@ class NN:
     def avg_pool(x, k_size):
         k_size = list(hstack([1, k_size, 1]))
         return tf.nn.avg_pool(x, ksize=k_size, strides=k_size, padding='SAME')
+
+
+    def batch_normal(self, x, config):
+        x_shape = x.get_shape()
+        params_shape = x_shape[-1:]
+
+        axis = list(range(len(x_shape) - 1))
+
+        beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
+        gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
+
+        moving_mean = self.get_variable('moving_mean', params_shape,
+                                        initializer=tf.zeros_initializer, trainable=False)
+        moving_variance = self.get_variable('moving_variance', params_shape,
+                                            initializer=tf.ones_initializer, trainable=False)
+
+        mean, variance = tf.nn.moments(x, axis)
+
+        update_moving_mean = moving_mean.assign_moving_average(moving_mean, mean, self.BN_DECAY)
+        update_moving_variance = moving_variance.assign_moving_average(moving_variance, variance, self.BN_DECAY)
+
+        mean, variance = control_flow_ops.cond(config['is_train'], lambda : (mean, variance),
+                                               lambda : (moving_mean, moving_variance))
+        x = tf.nn.batch_normalization(x, mean, variance, beta, gamma, self.BN_EPSILON)
+
+        return x
 
     # *************************** 与 训练有关 的 常用函数 ***************************
 

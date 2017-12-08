@@ -25,7 +25,7 @@ import tensorflow as tf
 class DeepId(base.NN):
     MODEL_NAME = 'deep_id_2'  # 模型的名称
 
-    BATCH_SIZE = 32 # 迭代的 epoch 次数
+    BATCH_SIZE = 16 # 迭代的 epoch 次数
     EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
@@ -317,6 +317,9 @@ class DeepId(base.NN):
             mean_accuracy += accuracy
             mean_loss += loss
 
+            del batch_x
+            del batch_y
+
             progress = float(i + 1) / times * 100
             self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
 
@@ -356,8 +359,9 @@ class DeepId(base.NN):
 
         self.echo('\nepoch:')
 
-        self.__mean_list = []
-        self.__std_list = []
+        moment = 0.975
+        self.__running_mean = 0
+        self.__running_std = 0
 
         best_mean = 0
         best_std = 0.1
@@ -374,8 +378,8 @@ class DeepId(base.NN):
             reduce_axis = tuple(range(len(batch_x.shape) - 1))
             _mean = np.mean(batch_x, axis=reduce_axis)
             _std = np.std(batch_x, axis=reduce_axis)
-            self.__mean_list.append(_mean)
-            self.__std_list.append(_std)
+            self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if self.__running_mean != 0 else _mean
+            self.__running_std = moment * self.__running_std + (1 - moment) * _std if self.__running_std != 0 else _std
             batch_x = ( batch_x - _mean ) / (_std + self.EPLISION)
 
             feed_dict = {self.__image: batch_x, self.__label: batch_y, self.__keep_prob: self.KEEP_PROB, self.__size: batch_y.shape[0]}
@@ -386,9 +390,8 @@ class DeepId(base.NN):
 
             if step % self.__iter_per_epoch == 0 and step != 0:
                 epoch = int(step // self.__iter_per_epoch)
-
-                self.__mean_x = np.mean( np.array(self.__mean_list), axis=0 )
-                self.__std_x = np.mean( np.array(self.__mean_list), axis=0 ) * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
+                self.__mean_x = self.__running_mean
+                self.__std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
                 mean_train_accuracy /= self.__iter_per_epoch
                 mean_train_loss /= self.__iter_per_epoch
