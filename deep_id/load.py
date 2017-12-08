@@ -186,8 +186,8 @@ class Data:
             # if not os.path.isfile(pig_file_path):
             #     continue
             #
-            # # np_pig = self.__add_padding(pig_file_path)
-            # # np_pig_bg = self.__add_padding(pig_bg_file_path)
+            # # np_pig = self.add_padding(pig_file_path)
+            # # np_pig_bg = self.add_padding(pig_bg_file_path)
             #
             # pig_patch_list = self.__get_three_patch(pig_file_path)
             # pig_bg_patch_list = self.__get_three_patch(pig_bg_file_path)
@@ -238,7 +238,7 @@ class Data:
         label = np.zeros([Data.NUM_CLASSES])
         label[pig_no] = 1
 
-        return Data.__add_padding(img_path), label
+        return Data.add_padding(img_path), label
 
 
     # @staticmethod
@@ -253,7 +253,7 @@ class Data:
     #         label = np.zeros([Data.NUM_CLASSES])
     #         label[pig_no] = 1
     #
-    #         X.append( Data.__add_padding(img_path) )
+    #         X.append( Data.add_padding(img_path) )
     #         y.append( label )
     #
     #     return np.array(X), np.array(y)
@@ -287,7 +287,7 @@ class Data:
 
     
     @staticmethod
-    def __add_padding(img_path):
+    def add_padding(img_path):
         image = Image.open(img_path)
         w, h = image.size
         ratio = float(w) / h

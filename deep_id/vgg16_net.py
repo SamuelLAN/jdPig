@@ -515,7 +515,7 @@ class VGG16(base.NN):
         feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
         output = self.sess.run(self.__output, feed_dict)
 
-        return output
+        return output[0]
 
 
     def test(self):
