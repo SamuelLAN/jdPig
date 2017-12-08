@@ -306,7 +306,7 @@ class VGG16(base.NN):
 
     def __get_log_loss(self):
         with tf.name_scope('log_loss'):
-            self.__log_loss = - tf.divide( tf.reduce_sum( self.__label * tf.log(self.__output) ), self.__size )
+            self.__log_loss = - tf.divide( tf.reduce_sum( tf.multiply(self.__label, __get_log_loss) ), self.__size )
 
 
     def __measure(self, data_set, max_times=None):
@@ -435,8 +435,8 @@ class VGG16(base.NN):
                 del batch_val_x
                 del batch_val_y
 
-                echo_str = '\n\t train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  val_loss: %.6f  val_accuracy: %.6f' % (
-                    mean_train_loss, mean_train_log_loss, mean_train_accuracy, mean_val_loss, mean_val_accuracy)
+                echo_str = '\n\t train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  val_loss: %.6f val_log_loss: %.6f  val_accuracy: %.6f' % (
+                    mean_train_loss, mean_train_log_loss, mean_train_accuracy, mean_val_loss, mean_val_log_loss, mean_val_accuracy)
 
                 mean_train_accuracy = 0
                 mean_train_loss = 0
