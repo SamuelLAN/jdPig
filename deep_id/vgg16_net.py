@@ -438,7 +438,7 @@ class VGG16(base.NN):
 
                 else:
                     decr_val_accu_times += 1
-                    self.echo('%s  decr_times: %d ' % (echo_str, decr_val_accu_times), False)
+                    self.echo('%s  decr_times: %d \n' % (echo_str, decr_val_accu_times), False)
 
                     if decr_val_accu_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
                         break
@@ -491,5 +491,5 @@ class VGG16(base.NN):
     #     return self.__mask2img(output_mask[0], np_image[0])    # 将 mask 待人 image 并去掉外部的点点
 
 
-o_deep_id = VGG16()
-o_deep_id.run()
+o_vgg = VGG16()
+o_vgg.run()
