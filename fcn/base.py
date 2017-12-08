@@ -73,10 +73,10 @@ class NN:
 
     ''' 析构函数 '''
     def __del__(self):
-        # pass
+        pass
         # NN.kill_tensorboard_if_runing()
-        self.tbProcess.join(10)
-        self.tbProcess.terminate()
+        # self.tbProcess.join(10)
+        # self.tbProcess.terminate()
 
 
     ''' 初始化 '''
