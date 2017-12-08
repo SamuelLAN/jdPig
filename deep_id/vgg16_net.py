@@ -562,31 +562,17 @@ class VGG16(base.NN):
         self.mean_x = self.__running_mean
         self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
-        self.echo('Finish calculating \n')
+        self.echo('\nFinish calculating \n')
 
         # ******************************************
 
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set, 100)
         mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set, 100)
 
-        self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
+        self.echo('\ntrain_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  \n' % (mean_train_accuracy,
                                                                                       mean_train_loss,
                                                                                       mean_train_log_loss))
-        self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
-                                                                                mean_val_loss, mean_val_log_loss))
-
-        self.echo('\n************************************\n')
-
-        self.mean_x = 0.0
-        self.std_x = 1.0 - self.EPLISION
-
-        mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set, 100)
-        mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set, 100)
-
-        self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
-                                                                                      mean_train_loss,
-                                                                                      mean_train_log_loss))
-        self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
+        self.echo('\nval_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
                                                                                 mean_val_loss, mean_val_log_loss))
 
         # batch_x, batch_y = self.__val_set.next_batch(3)

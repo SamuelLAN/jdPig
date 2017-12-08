@@ -577,6 +577,6 @@ class FCN(base.NN):
         return self.__mask2img(output_mask[0], np_image[0])    # 将 mask 待人 image 并去掉外部的点点
 
 
-o_fcn = FCN()
-o_fcn.run()
+# o_fcn = FCN()
+# o_fcn.run()
 # o_fcn.test_model()
