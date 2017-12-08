@@ -575,11 +575,11 @@ class VGG16(base.NN):
         self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
                                                                                 mean_val_loss, mean_val_log_loss))
 
-        batch_x, batch_y = self.__val_set.next_batch(3)
-
-        for x in batch_x:
-            self.echo('\n************************')
-            self.echo(self.use_model(x))
+        # batch_x, batch_y = self.__val_set.next_batch(3)
+        #
+        # for x in batch_x:
+        #     self.echo('\n************************')
+        #     self.echo(self.use_model(x))
 
         self.echo('\ndone')
 
