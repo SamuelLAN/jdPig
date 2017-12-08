@@ -432,7 +432,7 @@ class VGG16(base.NN):
                     best_mean = self.__mean_x
                     best_std = self.__std_x
 
-                    self.echo('%s  best \t ' % echo_str, False)
+                    self.echo('%s  best  ' % echo_str, False)
                     self.save_model_w_b()
                     # self.save_model()  # 保存模型
 

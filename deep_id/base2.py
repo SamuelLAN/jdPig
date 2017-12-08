@@ -249,7 +249,8 @@ class NN:
     ''' 自己实现的 save model '''
     def save_model_w_b(self):
         model_path = self.get_model_path() + '.pkl'
-        self.echo('Saving model to %s ...' % model_path)
+        model_name = os.path.split(model_path)[1]
+        self.echo('Saving model to %s ...' % model_name)
 
         w_list = []
         for i, w in enumerate(self.WList):
@@ -272,7 +273,7 @@ class NN:
         with open(model_path, 'wb') as f:
             pickle.dump([w_list, b_list], f, pickle.HIGHEST_PROTOCOL)
 
-        self.echo('Finish saving model ')
+        # self.echo('Finish saving model ')
 
 
     def restore_model_w_b(self):
