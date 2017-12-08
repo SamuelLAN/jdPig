@@ -22,8 +22,8 @@ import tensorflow as tf
 ''' 全卷积神经网络 '''
 
 
-class DeepId(base.NN):
-    MODEL_NAME = 'deep_id_2'  # 模型的名称
+class VGG16(base.NN):
+    MODEL_NAME = 'vgg_16'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
     EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
@@ -476,5 +476,5 @@ class DeepId(base.NN):
     #     return self.__mask2img(output_mask[0], np_image[0])    # 将 mask 待人 image 并去掉外部的点点
 
 
-o_deep_id = DeepId()
+o_deep_id = VGG16()
 o_deep_id.run()
