@@ -464,18 +464,18 @@ class FCN(base.NN):
                 self.echo('\rstep: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
                                                                        self.__steps, step_progress), False)
 
-            batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+            batch_org_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
             # **************************** 
 
-            reduce_axis = tuple(range(len(batch_x.shape) - 1))
-            _mean = np.mean(batch_x, axis=reduce_axis)
-            _std = np.std(batch_x, axis=reduce_axis)
+            reduce_axis = tuple(range(len(batch_org_x.shape) - 1))
+            _mean = np.mean(batch_org_x, axis=reduce_axis)
+            _std = np.std(batch_org_x, axis=reduce_axis)
             self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if type(
                 self.__running_mean) != type(None) else _mean
             self.__running_std = moment * self.__running_std + (1 - moment) * _std if type(self.__running_std) != type(
                 None) else _std
-            batch_x = (batch_x - _mean) / (_std + self.EPLISION)
+            batch_x = (batch_org_x - _mean) / (_std + self.EPLISION)
             
             # *********************************
 
@@ -490,18 +490,19 @@ class FCN(base.NN):
                 self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
                 feed_dict[self.__loss_placeholder] = mean_loss / self.__iter_per_epoch
+                feed_dict[self.__org_image] = batch_org_x
                 mean_loss = 0
                 self.add_summary_train(feed_dict, epoch)
 
                 # 测试 校验集 的 loss
                 mean_val_loss = self.__measure_loss(self.__val_set)
-                batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+                batch_org_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
 
                 # ********************************
-                batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
+                batch_val_x = (batch_org_val_x - self.mean_x) / (self.std_x + self.EPLISION)
                 
                 feed_dict = {self.__image: batch_val_x, self.__mask: batch_val_y, self.__keep_prob: 1.0,
-                             self.__loss_placeholder: mean_val_loss}
+                             self.__loss_placeholder: mean_val_loss, self.__org_image: batch_org_val_x}
                 self.add_summary_val(feed_dict, epoch)
 
                 if best_val_loss > mean_val_loss:
