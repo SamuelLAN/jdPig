@@ -68,7 +68,7 @@ class GetCSV:
             progress = float(i + 1) / self.__img_len * 100
             self.echo('\r Progress: %.2f | %d / %d \t ' % (progress, i + 1, self.__img_len), False)
 
-            pig_no = int( file_name.split('_')[0] )
+            pig_no = int( file_name.split('_')[0] ) + 1
 
             np_image = load.Data.add_padding(img_path)
             output = self.__o_vgg.use_model(np_image)

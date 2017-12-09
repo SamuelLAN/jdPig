@@ -306,7 +306,9 @@ class VGG16(base.NN):
 
     def __get_log_loss(self):
         with tf.name_scope('log_loss'):
-            p = tf.maximum( tf.minimum( self.__output, 1 - 1e-15 ), 1e-15 )
+            exp_x = tf.exp(self.__output)
+            prob = exp_x / tf.reduce_sum(exp_x)
+            p = tf.maximum( tf.minimum( prob, 1 - 1e-15 ), 1e-15 )
             self.__log_loss = - tf.divide( tf.reduce_sum( tf.multiply(self.__label, tf.log(p)) ), self.__size )
 
 
