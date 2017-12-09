@@ -11,6 +11,7 @@ import time
 from multiprocessing import Process
 from six.moves import cPickle as pickle
 from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.training import moving_averages
 
 
 '''
@@ -1146,8 +1147,8 @@ class NN:
 
         mean, variance = tf.nn.moments(x, axis)
 
-        update_moving_mean = moving_mean.assign_moving_average(moving_mean, mean, self.BN_DECAY)
-        update_moving_variance = moving_variance.assign_moving_average(moving_variance, variance, self.BN_DECAY)
+        update_moving_mean = moving_averages.assign_moving_average(moving_mean, mean, self.BN_DECAY)
+        update_moving_variance = moving_averages.assign_moving_average(moving_variance, variance, self.BN_DECAY)
         tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_mean)
         tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_variance)
 
