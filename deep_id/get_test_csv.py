@@ -12,6 +12,7 @@ if cur_dir_path:
 
 import csv
 import load
+import numpy as np
 import vgg16_net as vgg
 
 
@@ -72,7 +73,8 @@ class GetCSV:
             np_image = load.Data.add_padding(img_path)
             output = self.__o_vgg.use_model(np_image)
 
-            self.__data[pig_no] = output
+            prob = self.softmax(output)
+            self.__data[pig_no] = prob
 
         self.echo('Finish predicting ')
 
@@ -98,6 +100,11 @@ class GetCSV:
 
         self.echo('Finish saving result ')
 
+
+    @staticmethod
+    def softmax(x):
+        exp_x = np.exp(x)
+        return exp_x / np.sum(exp_x)
 
 
     def run(self):
