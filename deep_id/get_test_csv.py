@@ -87,7 +87,7 @@ class GetCSV:
         data_len = len(self.__data)
 
         with open(self.RESULT_FILE_PATH, 'wb') as f:
-            # writer = csv.writer(f)
+            writer = csv.writer(f)
 
             count = 0
             for pig_no, predict_prob in self.__data.iteritems():
@@ -96,8 +96,8 @@ class GetCSV:
                 self.echo('\r  >> progress: %.6f ' % progress, False)
 
                 for i, prob in enumerate(predict_prob):
-                    f.write('%d,%d,%f\n' % (pig_no, i + 1, prob))
-                    # writer.writerow([pig_no, i + 1, prob])
+                    # f.write('%d,%d,%f\n' % (pig_no, i + 1, prob))
+                    writer.writerow([pig_no, i + 1, prob])
 
         # with open(self.RESULT_FILE_PATH, 'wb') as f:
         #     writer = csv.writer(f)
