@@ -39,7 +39,8 @@ class DeepId(base.NN):
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
     DECAY_RATE = 0.1            # 学习率 的 下降速率
 
-    KEEP_PROB = 0.95             # dropout 的 keep_prob
+    KEEP_PROB = 0.5             # dropout 的 keep_prob
+    EPLISION = 0.00001
 
     PARAM_DIR = r'param'            # 动态参数目录地址
     LR_FILE_PATH = r'param/lr.tmp'  # 动态设置学习率的文件地址
@@ -169,13 +170,13 @@ class DeepId(base.NN):
         #         self.BASE_LEARNING_RATE, global_step, self.__steps, self.DECAY_RATE, staircase=False
         #     ) )
         
-        self.__learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-        self.__learning_rate_value = self.BASE_LEARNING_RATE
+        # self.__learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+        # self.__learning_rate_value = self.BASE_LEARNING_RATE
 
         # # 随训练次数增多而衰减的学习率
-        # self.__learning_rate = self.get_learning_rate(
-        #     self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
-        # )
+        self.__learning_rate = self.get_learning_rate(
+            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
+        )
 
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
         # dropout 的 keep_prob
@@ -222,13 +223,13 @@ class DeepId(base.NN):
                     name='entropy'
                 )
 
-            # for i in range(self.X_LIST_LEN):
-            #     loss = tf.reduce_mean(
-            #         tf.nn.softmax_cross_entropy_with_logits(logits=self.__output_list[i], labels=self.__label),
-            #         name='entropy'
-            #     )
-            #     self.__loss_list.append(loss)
-            #     tf.summary.scalar('loss_%d' % i, loss)  # 记录 loss 到 tensorboard
+
+    def __get_log_loss(self, i):
+        with tf.name_scope('log_loss'):
+            exp_x = tf.exp(self.__output)
+            prob = exp_x / tf.reduce_sum(exp_x)
+            p = tf.maximum( tf.minimum( prob, 1 - 1e-15 ), 1e-15 )
+            self.__log_loss = - tf.divide( tf.reduce_sum( tf.multiply(self.__label, tf.log(p)) ), self.__size )
 
 
     ''' 获取 train_op '''
@@ -256,29 +257,37 @@ class DeepId(base.NN):
             self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), _size ) # 计算准确率
 
 
-    def __measure(self, data_set):
+    def __measure(self, data_set, max_times = None):
         times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+        if max_times:
+            times = min(max_times, times)
 
         mean_accuracy = 0
         mean_loss = 0
+        mean_log_loss = 0.0
         for i in range(times):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+
+            batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
+
             feed_dict = {self.__X: batch_x, self.__label: batch_y,
                          self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
-            loss, accuracy = self.sess.run([self.__loss, self.__accuracy], feed_dict)
+            loss, log_loss, accuracy = self.sess.run([self.__loss, self.__log_loss, self.__accuracy], feed_dict)
             mean_accuracy += accuracy
+            mean_log_loss += log_loss
             mean_loss += loss
 
             progress = float(i + 1) / times * 100
             self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
 
-        return mean_accuracy / times, mean_loss / times
+        return mean_accuracy / times, mean_loss / times, mean_log_loss / times
 
 
     def __summary(self):
         with tf.name_scope('summary'):
             self.__mean_accuracy = tf.placeholder(tf.float32, name='mean_accuracy')
             self.__mean_loss = tf.placeholder(tf.float32, name='mean_loss')
+            self.__mean_log_loss = tf.placeholder(tf.float32, name='mean_log_loss')
 
         # tf.summary.scalar('loss', self.__loss)
         # tf.summary.scalar('accuracy', self.__accuracy)
@@ -286,6 +295,7 @@ class DeepId(base.NN):
         tf.summary.scalar('keep_prob', self.__keep_prob)
         tf.summary.scalar('mean_accuracy', self.__mean_accuracy)
         tf.summary.scalar('mean_loss', self.__mean_loss)
+        tf.summary.scalar('mean_log_loss', self.__mean_log_loss)
 
 
     # ''' 计算准确率 '''
@@ -350,7 +360,7 @@ class DeepId(base.NN):
         # tensorboard 相关记录
         self.__summary()
 
-        self.__build_param_dir()
+        # self.__build_param_dir()
 
         # 初始化所有变量
         self.init_variables()
@@ -361,9 +371,17 @@ class DeepId(base.NN):
         best_val_accuracy = 0
         decrease_val_accuracy_times = 0
         mean_train_accuracy = 0
+        mean_train_log_loss = 0
         mean_train_loss = 0
 
         self.echo('\nStart training ... \nepoch:')
+
+        moment = 0.975
+        self.__running_mean = None
+        self.__running_std = None
+
+        best_mean = 0
+        best_std = 0.1
 
         for step in range(self.__steps):
             if step % self.SHOW_PROGRESS_FREQUENCY == 0:
@@ -374,35 +392,52 @@ class DeepId(base.NN):
 
             batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
 
+            reduce_axis = tuple(range(len(batch_x.shape) - 1))
+            _mean = np.mean(batch_x, axis=reduce_axis)
+            _std = np.std(batch_x, axis=reduce_axis)
+            self.__running_mean = moment * self.__running_mean + (1 - moment) * _mean if type(
+                self.__running_mean) != type(None) else _mean
+            self.__running_std = moment * self.__running_std + (1 - moment) * _std if type(self.__running_std) != type(
+                None) else _std
+            batch_x = (batch_x - _mean) / (_std + self.EPLISION)
+
             # keep_prob = self.KEEP_PROB if step / self.__iter_per_epoch > 15 else 1.0
 
             feed_dict = {self.__X: batch_x, self.__label: batch_y, self.__size: batch_y.shape[0],
-                         # self.__keep_prob: self.KEEP_PROB,
-                         self.__learning_rate: self.__learning_rate_value, self.__keep_prob: self.__keep_prob_value,
+                         self.__keep_prob: self.KEEP_PROB,
+                         # self.__keep_prob: self.__keep_prob_value,
                          }
-            _, train_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__accuracy], feed_dict)
+            _, train_loss, train_log_loss, train_accuracy = self.sess.run([train_op, self.__loss, self.__log_loss, self.__accuracy], feed_dict)
             
             mean_train_accuracy += train_accuracy
             mean_train_loss += train_loss
+            mean_train_log_loss += train_log_loss
 
             if step % self.__iter_per_epoch == 0 and step != 0:
-                self.__update_param()
+                # self.__update_param()
+                self.mean_x = self.__running_mean
+                self.std_x = self.__running_std * (self.BATCH_SIZE / float(self.BATCH_SIZE - 1))
 
                 epoch = int(step // self.__iter_per_epoch)
                 mean_train_accuracy /= self.__iter_per_epoch
                 mean_train_loss /= self.__iter_per_epoch
+                mean_train_log_loss /= self.__iter_per_epoch
 
                 feed_dict[self.__mean_accuracy] = mean_train_accuracy
                 feed_dict[self.__mean_loss] = mean_train_loss
+                feed_dict[self.__mean_log_loss] = mean_train_log_loss
                 self.add_summary_train(feed_dict, epoch)
                 
-                mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set)
+                mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
 
                 batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+
+                batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
+
                 feed_dict = {self.__X: batch_val_x, self.__label: batch_val_y,
                              self.__size: batch_val_y.shape[0], self.__keep_prob: 1.0,
                              self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
-                             self.__learning_rate: self.__learning_rate_value,
+                            self.__mean_log_loss: mean_val_log_loss,
                              }
                 self.add_summary_val(feed_dict, epoch)
 
@@ -412,17 +447,18 @@ class DeepId(base.NN):
                 mean_train_accuracy = 0
                 mean_train_loss = 0
 
-                if best_val_accuracy < mean_val_accuracy:
-                    best_val_accuracy = mean_val_accuracy
+                if best_val_accuracy > mean_val_log_loss:
+                    best_val_accuracy = mean_val_log_loss
                     decrease_val_accuracy_times = 0
                     
-                    self.echo(' \t best_val_accuracy: %.6f \t ' % best_val_accuracy)
+                    self.echo('  best_val_log_loss: %.6f \t ' % best_val_accuracy)
 
                     if best_val_accuracy > 0.8:
                         self.save_model_w_b()
                     
                 else:
                     decrease_val_accuracy_times += 1
+                    self.echo('  incr_times: %d \t ' % decrease_val_accuracy_times)
                     if decrease_val_accuracy_times > self.MAX_VAL_ACCURACY_DECR_TIMES:
                         break
                 
@@ -456,17 +492,17 @@ class DeepId(base.NN):
         self.rebuild_model()  # 重建模型
         self.get_loss()  # 重新 get loss
         self.__get_accuracy(self.__label, self.__output, self.__size)
-
+        self.__get_log_loss()
 
         self.init_variables()  # 重新初始化变量
 
-        mean_train_accuracy, mean_train_loss = self.__measure(self.__train_set)
-        mean_val_accuracy, mean_val_loss = self.__measure(self.__val_set)
-        mean_test_accuracy, mean_test_loss = self.__measure(self.__test_set)
+        mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set)
+        mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
+        mean_test_accuracy, mean_test_loss, mean_test_log_loss = self.__measure(self.__test_set)
 
-        self.echo('\nmean_train_accuracy: %.6f  mean_train_loss: %.6f ' % (mean_train_accuracy, mean_train_loss))
-        self.echo('mean_val_accuracy: %.6f  mean_val_loss: %.6f ' % (mean_val_accuracy, mean_val_loss))
-        self.echo('mean_test_accuracy: %.6f  mean_test_loss: %.6f ' % (mean_test_accuracy, mean_test_loss))
+        self.echo('\nmean_train_accuracy: %.6f  mean_train_loss: %.6f  log_loss: %6f' % (mean_train_accuracy, mean_train_loss, mean_train_log_loss))
+        self.echo('mean_val_accuracy: %.6f  mean_val_loss: %.6f  log_loss: %6f' % (mean_val_accuracy, mean_val_loss, mean_val_log_loss))
+        self.echo('mean_test_accuracy: %.6f  mean_test_loss: %.6f  log_loss: %6f' % (mean_test_accuracy, mean_test_loss, mean_test_log_loss))
 
         self.__train_set.stop()  # 关闭获取数据线程
         self.__val_set.stop()  # 关闭获取数据线程
