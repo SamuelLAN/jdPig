@@ -188,10 +188,10 @@ class DeepId(base.NN):
 
     ''' 加载数据 '''
     def load(self):
-        sort_list = load.Data.get_sort_list()
-        self.__train_set = load.Data(0.0, 0.64, 'train', sort_list)
-        self.__val_set = load.Data(0.64, 0.8, 'validation', sort_list)
-        self.__test_set = load.Data(0.8, 1.0, 'test', sort_list)
+        # sort_list = load.Data.get_sort_list()
+        self.__train_set = load.Data(0.0, 0.64, 'train')
+        self.__val_set = load.Data(0.64, 0.8, 'validation')
+        self.__test_set = load.Data(0.8, 1.0, 'test')
 
         self.__train_size = self.__train_set.get_size()
         self.__val_size = self.__val_set.get_size()
