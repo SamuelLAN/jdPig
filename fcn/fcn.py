@@ -367,7 +367,10 @@ class FCN(base.NN):
             dis_list = []
             for i, dis in enumerate(dis_mat):
                 dis_list.append([i, dis])
-            dis_list.sort(FCN.__sort)
+            if '2.7' in sys.version:
+                dis_list.sort(FCN.__sort)
+            else:
+                dis_list.sort(key=lambda x: x[1])
 
             center = data[ dis_list[0][0] ]
 
