@@ -954,7 +954,7 @@ class NN:
                     trainable = True if 'trainable' not in config or config['trainable'] else False
 
                     filters_in = a.get_shape()[-1]
-                    W = self.init_weight([config['k_size'], config['k_size'], tf.cast(filters_in, tf.float64), config['filter_out']],
+                    W = self.init_weight([config['k_size'], config['k_size'], tf.cast(filters_in, tf.int32), config['filter_out']],
                                                     self.CONV_WEIGHT_STDDEV) if 'W' not in config \
                                                     else self.init_weight_w(config['W'], trainable)
                     self.w_dict[name] = W
@@ -996,7 +996,7 @@ class NN:
                     x = tf.reshape(a, [batch_size, -1])
 
                     trainable = True if 'trainable' not in config or config['trainable'] else False
-                    W = self.init_weight([tf.cast(x.get_shape()[1], tf.float64), config['filter_out']], self.CONV_WEIGHT_STDDEV) if not 'W' in config \
+                    W = self.init_weight([tf.cast(x.get_shape()[1], tf.int32), config['filter_out']], self.CONV_WEIGHT_STDDEV) if not 'W' in config \
                         else self.init_weight_w(config['W'], trainable)
                     b = self.init_bias([config['filter_out']]) if not 'b' in config \
                         else self.init_bias_b(config['b'], trainable)
@@ -1034,7 +1034,7 @@ class NN:
 
                                 filters_in = a.get_shape()[-1]
                                 W = self.init_weight( [ layer_config['k_size'], layer_config['k_size'],
-                                                       tf.cast(filters_in, tf.float64), layer_config['filter_out'] ],
+                                                       tf.cast(filters_in, tf.int32), layer_config['filter_out'] ],
                                     self.CONV_WEIGHT_STDDEV ) if 'W' not in layer_config \
                                     else self.init_weight_w(layer_config['W'], trainable)
                                 self.w_dict[name_scope] = W
@@ -1061,7 +1061,7 @@ class NN:
 
                     block_filters_out = a.get_shape()[-1]
                     if block_filters_in != block_filters_out:
-                        W = self.init_weight([1, 1, tf.cast(block_filters_in, tf.float64), tf.cast(block_filters_out, tf.float64)], self.CONV_WEIGHT_STDDEV)
+                        W = self.init_weight([1, 1, tf.cast(block_filters_in, tf.int32), tf.cast(block_filters_out, tf.float64)], self.CONV_WEIGHT_STDDEV)
                         self.w_dict[block_name] = W
 
                         short_cut = self.conv2d(short_cut, W, block_stride)
