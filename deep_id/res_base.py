@@ -1026,7 +1026,7 @@ class NN:
                         layer_type = layer_config['type'].lower()
                         layer_name = '%s_%d' % (layer_type, i + 1) if 'name' not in layer_config \
                                                                         else layer_config['name']
-                        name_scope = block_name + r'／' + layer_name
+                        name_scope = '%s/%s' % (block_name, layer_name)
                         with tf.name_scope(name_scope):
                             # 卷积层
                             if layer_type == 'conv':
