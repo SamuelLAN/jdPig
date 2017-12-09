@@ -25,7 +25,7 @@ import tensorflow as tf
 class VGG16(base.NN):
     MODEL_NAME = 'vgg_16'  # 模型的名称
 
-    BATCH_SIZE = 15 # 迭代的 epoch 次数
+    BATCH_SIZE = 16 # 迭代的 epoch 次数
     EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
@@ -38,7 +38,7 @@ class VGG16(base.NN):
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
     DECAY_RATE = 0.001  # 学习率 的 下降速率
 
-    REGULAR_BETA = 0.01  # 正则化的 beta 参数
+    REGULAR_BETA = 0.1  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
     EPLISION = 0.00001
