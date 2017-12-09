@@ -43,11 +43,11 @@ class VGG:
         sys.stdout.flush()
 
 
-# model = VGG.load()
-# print model.keys()
-# print model['conv5_3'][0].shape
-# print model['conv5_3'][1].shape
-# print model['fc6'][0].shape
+model = VGG.load(True)
+print (model.keys())
+print (model['conv5_3'][0].shape)
+print (model['conv5_3'][1].shape)
+print (model['fc6'][0].shape)
 # print model['fc6'][1].shape
 # print model['fc7'][0].shape
 # print model['fc7'][1].shape
