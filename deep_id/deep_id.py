@@ -266,7 +266,8 @@ class DeepId(base.NN):
         mean_loss = 0
         mean_log_loss = 0.0
         for i in range(times):
-            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            batch_x_list, batch_y = data_set.next_batch(self.BATCH_SIZE)
+            batch_x = batch_x_list[-1]
 
             batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
 
@@ -392,7 +393,8 @@ class DeepId(base.NN):
                 self.echo('\r step: %d (%d|%.2f%%) / %d|%.2f%% \t\t' % (step, self.__iter_per_epoch, epoch_progress,
                                                                        self.__steps, step_progress), False)
 
-            batch_x, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+            batch_x_list, batch_y = self.__train_set.next_batch(self.BATCH_SIZE)
+            batch_x = batch_x_list[-1]
 
             reduce_axis = tuple(range(len(batch_x.shape) - 1))
             _mean = np.mean(batch_x, axis=reduce_axis)
@@ -432,8 +434,9 @@ class DeepId(base.NN):
                 
                 mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
 
-                batch_val_x, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
+                batch_val_x_list, batch_val_y = self.__val_set.next_batch(self.BATCH_SIZE)
 
+                batch_val_x = batch_val_x_list[-1]
                 batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
 
                 feed_dict = {self.__X: batch_val_x, self.__label: batch_val_y,
