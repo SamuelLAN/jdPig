@@ -35,8 +35,8 @@ class VGG19(base.NN):
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
-    BASE_LEARNING_RATE = 0.0003  # 初始 学习率
-    DECAY_RATE = 0.001  # 学习率 的 下降速率
+    BASE_LEARNING_RATE = 0.0004  # 初始 学习率
+    DECAY_RATE = 0.01  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.1  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
