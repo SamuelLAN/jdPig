@@ -1,5 +1,6 @@
 #!/usr/bin/Python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os
 import sys
 import random
@@ -54,12 +55,12 @@ class Download:
             os.mkdir(Download.DATA_ROOT)
         file_path = os.path.join(Download.DATA_ROOT, Download.FILE_NAME)
         if force or not os.path.exists(file_path):
-            print 'Attempting to download: %s' % Download.FILE_NAME
+            print ('Attempting to download: %s' % Download.FILE_NAME)
             filename, _ = urlretrieve(Download.URL, file_path, reporthook=Download.__downloadProgressHook)
-            print '\nDownload Complete!'
+            print ('\nDownload Complete!')
         stat_info = os.stat(file_path)
         if stat_info.st_size == Download.EXPECTED_BYTES:
-            print 'Found and verified %s' % file_path
+            print ('Found and verified %s' % file_path)
         else:
             raise Exception(
                 'Failed to verify ' + file_path + '. Can you get to it with a browser?')
@@ -88,7 +89,7 @@ class Download:
         for filename in zip_files.namelist():
             if '__MACOSX' in filename:
                 continue
-            print '\t extracting %s ...' % filename
+            print ('\t extracting %s ...' % filename)
             data = zip_files.read(filename)
             with open(os.path.join(Download.DATA_ROOT, filename), 'wb') as f:
                 f.write(data)
@@ -99,18 +100,18 @@ class Download:
         Download.__changDir()   # 将路径切换到当前路径
 
         if Download.__checkFileNum():
-            print 'data exist in %s' % Download.DATA_ROOT
+            print ('data exist in %s' % Download.DATA_ROOT)
             return
 
         Download.__maybeDownload()
 
-        print 'Extracting data ...'
+        print ('Extracting data ...')
 
         Download.__maybeExtract()
 
-        print 'Finish Extracting'
+        print ('Finish Extracting')
 
-        print 'done'
+        print ('done')
 
 
 
@@ -415,7 +416,7 @@ class Data:
     @staticmethod
     def echo(msg, crlf=True):
         if crlf:
-            print msg
+            print (msg)
         else:
             sys.stdout.write(msg)
             sys.stdout.flush()
