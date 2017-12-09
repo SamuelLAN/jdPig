@@ -996,7 +996,7 @@ class NN:
                     x = tf.reshape(a, [batch_size, -1])
 
                     trainable = True if 'trainable' not in config or config['trainable'] else False
-                    W = self.init_weight([x.get_shape()[1], config['filter_out']], self.CONV_WEIGHT_STDDEV) if not 'W' in config \
+                    W = self.init_weight([tf.cast(x.get_shape()[1], tf.float64), config['filter_out']], self.CONV_WEIGHT_STDDEV) if not 'W' in config \
                         else self.init_weight_w(config['W'], trainable)
                     b = self.init_bias([config['filter_out']]) if not 'b' in config \
                         else self.init_bias_b(config['b'], trainable)
