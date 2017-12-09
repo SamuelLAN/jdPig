@@ -17,9 +17,9 @@ import vgg16_net as vgg
 
 
 class GetCSV:
-    IMG_DIR = r'data/Test_A'
+    IMG_DIR = r'data/Test_B'
     RESULT_DIR = r'result'
-    RESULT_FILE_PATH = r'result/test_A.csv'
+    RESULT_FILE_PATH = r'result/test_B.csv'
 
     def __init__(self):
         self.__img_list = []
@@ -69,7 +69,6 @@ class GetCSV:
             self.echo('\r Progress: %.2f | %d / %d \t ' % (progress, i + 1, self.__img_len), False)
 
             pig_no = int( file_name.split('_')[0] )
-
             np_image = load.Data.add_padding(img_path)
             output = self.__o_vgg.use_model(np_image)
 
@@ -86,7 +85,7 @@ class GetCSV:
         self.echo('\nSaving result to %s ... ' % self.RESULT_FILE_PATH)
         data_len = len(self.__data)
 
-        with open(self.RESULT_FILE_PATH, 'wb') as f:
+        with open(self.RESULT_FILE_PATH, 'w') as f:
             writer = csv.writer(f)
 
             count = 0
@@ -97,19 +96,7 @@ class GetCSV:
 
                 for i, prob in enumerate(predict_prob):
                     # f.write('%d,%d,%f\n' % (pig_no, i + 1, prob))
-                    writer.writerow([pig_no, i + 1, prob])
-
-        # with open(self.RESULT_FILE_PATH, 'wb') as f:
-        #     writer = csv.writer(f)
-        #
-        #     count = 0
-        #     for pig_no, predict_prob in self.__data.iteritems():
-        #         count += 1
-        #         progress = float(count) / data_len * 100.0
-        #         self.echo('\r  >> progress: %.6f ' % progress, False)
-        #
-        #         for i, prob in enumerate(predict_prob):
-        #             writer.writerow([pig_no, i + 1, prob])
+                    writer.writerow([pig_no, i + 1, '%.10f' % prob])
 
         self.echo('Finish saving result ')
 

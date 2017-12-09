@@ -220,11 +220,11 @@ class VGG16(base.NN):
     ''' 自定义 初始化变量 过程 '''
     def init(self):
         # 加载数据
-        self.load()
+        # self.load()
 
         # 常量
-        self.__iter_per_epoch = int(self.__train_size // self.BATCH_SIZE)
-        self.__steps = self.EPOCH_TIMES * self.__iter_per_epoch
+        # self.__iter_per_epoch = int(self.__train_size // self.BATCH_SIZE)
+        # self.__steps = self.EPOCH_TIMES * self.__iter_per_epoch
 
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X')
@@ -235,9 +235,9 @@ class VGG16(base.NN):
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         # 随训练次数增多而衰减的学习率
-        self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
-        )
+        # self.__learning_rate = self.get_learning_rate(
+        #     self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
+        # )
 
         self.__has_rebuild = False
 
@@ -592,6 +592,6 @@ class VGG16(base.NN):
 
 
 
-o_vgg = VGG16()
-o_vgg.run()
+# o_vgg = VGG16()
+# o_vgg.run()
 # o_vgg.test()
