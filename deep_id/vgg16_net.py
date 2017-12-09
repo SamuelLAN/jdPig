@@ -352,11 +352,11 @@ class VGG16(base.NN):
         self.__get_log_loss()
 
         # 正则化
-        # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
-        self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
+        self.__loss_regular = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
+        # self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
 
         # 生成训练的 op
-        train_op = self.get_train_op(self.__log_loss_regular, self.__learning_rate, self.global_step)
+        train_op = self.get_train_op(self.__loss_regular, self.__learning_rate, self.global_step)
 
         self.__get_accuracy()
 
