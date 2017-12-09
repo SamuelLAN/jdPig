@@ -573,14 +573,14 @@ class FCN(base.NN):
             self.init_variables()       # 初始化所有变量
             self.__has_rebuild = True
 
-        np_image = np.expand_dims(np_image, axis=0)
+        np_org_image = np.expand_dims(np_image, axis=0)
 
-        # np_image = (np_image - self.mean_x) / (self.std_x + self.EPLISION)
+        np_image = (np_org_image - self.mean_x) / (self.std_x + self.EPLISION)
 
         feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
 
-        return self.__mask2img(output_mask[0], np_image[0])    # 将 mask 待人 image 并去掉外部的点点
+        return self.__mask2img(output_mask[0], np_org_image[0])    # 将 mask 待人 image 并去掉外部的点点
 
 
 # o_fcn = FCN()
