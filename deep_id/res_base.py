@@ -954,7 +954,7 @@ class NN:
                     trainable = True if 'trainable' not in config or config['trainable'] else False
 
                     filters_in = a.get_shape()[-1]
-                    W = self.init_weight([config['k_size'], config['k_size'], filters_in, config['filter_out']],
+                    W = self.init_weight([config['k_size'], config['k_size'], tf.cast(filters_in, tf.float64), config['filter_out']],
                                                     self.CONV_WEIGHT_STDDEV) if 'W' not in config \
                                                     else self.init_weight_w(config['W'], trainable)
                     self.w_dict[name] = W
@@ -1034,7 +1034,7 @@ class NN:
 
                                 filters_in = a.get_shape()[-1]
                                 W = self.init_weight( [ layer_config['k_size'], layer_config['k_size'],
-                                                       filters_in, layer_config['filter_out'] ],
+                                                       tf.cast(filters_in, tf.float64), layer_config['filter_out'] ],
                                     self.CONV_WEIGHT_STDDEV ) if 'W' not in layer_config \
                                     else self.init_weight_w(layer_config['W'], trainable)
                                 self.w_dict[name_scope] = W
