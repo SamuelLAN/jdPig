@@ -291,6 +291,14 @@ class Resnet(base.NN):
             self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), self.__size ) # 计算准确率
 
 
+    def __get_log_loss(self):
+        with tf.name_scope('log_loss'):
+            exp_x = tf.exp(self.__output)
+            prob = exp_x / tf.reduce_sum(exp_x)
+            p = tf.maximum(tf.minimum(prob, 1 - 1e-15), 1e-15)
+            self.__log_loss = - tf.divide(tf.reduce_sum(tf.multiply(self.__label, tf.log(p))), self.__size)
+
+
     # def __measure(self, data_set, max_times=None):
     #     times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
     #     if max_times:
@@ -329,8 +337,15 @@ class Resnet(base.NN):
         # 正则化
         self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
+        self.__get_log_loss()
+
+        # 正则化
+        # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
+        # self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
+
         # 生成训练的 op
-        train_op = self.get_train_op(self.__loss, self.__learning_rate, self.global_step)
+        train_op = self.get_train_op(self.__log_loss, self.__learning_rate, self.global_step)
+        # train_op = self.get_train_op(self.__loss, self.__learning_rate, self.global_step)
 
         self.__get_accuracy()
 
