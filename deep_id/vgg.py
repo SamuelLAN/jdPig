@@ -39,8 +39,7 @@ class VGG:
     ''' 下载的进度 '''
     @staticmethod
     def __download_progress(count, block_size, total_size):
-        sys.stdout.write('\r>> Downloading %s %.1f%%' % (os.path.split(VGG.MODEL)[1],
-                                                         float(count * block_size) / float(total_size) * 100.0))
+        sys.stdout.write('\r>> Downloading %.1f%%' % (float(count * block_size) / float(total_size) * 100.0))
         sys.stdout.flush()
 
 
