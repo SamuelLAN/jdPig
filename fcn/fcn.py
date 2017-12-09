@@ -575,7 +575,7 @@ class FCN(base.NN):
 
         np_image = np.expand_dims(np_image, axis=0)
 
-        np_image = (np_image - self.mean_x) / (self.std_x + self.EPLISION)
+        # np_image = (np_image - self.mean_x) / (self.std_x + self.EPLISION)
 
         feed_dict = {self.__image: np_image, self.__keep_prob: 1.0}
         output_mask = self.sess.run(self.__output_mask, feed_dict)
