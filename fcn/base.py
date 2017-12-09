@@ -93,8 +93,8 @@ class NN:
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
 
-        self.__summaryPath = ''
-        self.__get_summary_path()
+        # self.__summaryPath = ''
+        # self.__get_summary_path()
 
         self.global_step = self.get_global_step()            # 记录全局训练状态的 global step
 
@@ -310,8 +310,8 @@ class NN:
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
 
-        # self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
-        self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
+        self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        # self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
         return self.modelPath
 
     # ************************** TensorBoard summary ************************
