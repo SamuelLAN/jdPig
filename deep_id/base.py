@@ -1,5 +1,6 @@
 #!/usr/bin/Python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import tensorflow as tf
 from math import sqrt
 from numpy import hstack
@@ -509,8 +510,8 @@ class NN:
                     pid = int(reg_space.split(line)[1])
                     NN.cmd('kill -9 %d' % pid)
 
-        except Exception, ex:
-            print ex
+        except :
+            NN.echo('kill tensorboard error ')
 
 
     '''
@@ -521,8 +522,8 @@ class NN:
         try:
             # NN.cmd('tensorboard --logdir=%s --port=%d' % (path, port))
             NN.cmd('source activate python27;tensorboard --logdir=%s --port=%d' % (path, port))
-        except Exception, ex:
-            print ex
+        except:
+            NN.echo('run tensorboard sync ')
 
 
     ''' 异步状态，自动在终端打开 cmd (默认端口为 6006，port 参数可以自己指定端口) '''
@@ -958,7 +959,7 @@ class NN:
     @staticmethod
     def echo(msg, crlf=True):
         if crlf:
-            print msg
+            print (msg)
         else:
             sys.stdout.write(msg)
             sys.stdout.flush()
