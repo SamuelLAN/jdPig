@@ -317,9 +317,9 @@ class VGG16(base.NN):
         if max_times:
             times = min(max_times, times)
 
-        mean_accuracy = 0
-        mean_loss = 0
-        mean_log_loss = 0
+        mean_accuracy = 0.0
+        mean_loss = 0.0
+        mean_log_loss = 0.0
         for i in range(times):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
 

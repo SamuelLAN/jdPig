@@ -81,10 +81,10 @@ class NN:
 
     ''' 析构函数 '''
     def __del__(self):
-        # pass
-        NN.kill_tensorboard_if_runing()
-        self.tbProcess.join(10)
-        self.tbProcess.terminate()
+        pass
+        # NN.kill_tensorboard_if_runing()
+        # self.tbProcess.join(10)
+        # self.tbProcess.terminate()
 
 
     ''' 初始化 '''
@@ -430,7 +430,7 @@ class NN:
         self.__summaryPath = summary_dir
 
         # 异步在终端运行 tensorboard
-        self.run_tensorboard(self.__summaryPath)
+        # self.run_tensorboard(self.__summaryPath)
         return self.__summaryPath
 
 
