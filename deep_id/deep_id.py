@@ -224,7 +224,7 @@ class DeepId(base.NN):
                 )
 
 
-    def __get_log_loss(self, i):
+    def __get_log_loss(self):
         with tf.name_scope('log_loss'):
             exp_x = tf.exp(self.__output)
             prob = exp_x / tf.reduce_sum(exp_x)
@@ -348,13 +348,15 @@ class DeepId(base.NN):
         # 计算 loss
         self.get_loss()
 
+        self.__get_log_loss()
+
         # 正则化
         # self.__loss = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
 
         self.__get_accuracy(self.__label, self.__output, self.__size)
 
         # 生成训练的 op
-        train_op = self.get_train_op(self.__loss, self.__learning_rate, self.global_step)
+        train_op = self.get_train_op(self.__log_loss, self.__learning_rate, self.global_step)
         # self.__get_train_op_list()
 
         # tensorboard 相关记录
