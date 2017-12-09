@@ -39,8 +39,8 @@ class DeepId(base.NN):
     BASE_LEARNING_RATE = 0.03    # 初始 学习率
     DECAY_RATE = 0.1            # 学习率 的 下降速率
 
-    KEEP_PROB = 0.5             # dropout 的 keep_prob
-    EPLISION = 0.00001
+    KEEP_PROB = 0.95             # dropout 的 keep_prob
+    EPLISION = 0.0001
 
     PARAM_DIR = r'param'            # 动态参数目录地址
     LR_FILE_PATH = r'param/lr.tmp'  # 动态设置学习率的文件地址
@@ -265,8 +265,8 @@ class DeepId(base.NN):
         if max_times:
             times = min(max_times, times)
 
-        mean_accuracy = 0
-        mean_loss = 0
+        mean_accuracy = 0.0
+        mean_loss = 0.0
         mean_log_loss = 0.0
         for i in range(times):
             batch_x_list, batch_y = data_set.next_batch(self.BATCH_SIZE)
@@ -449,8 +449,8 @@ class DeepId(base.NN):
                              }
                 self.add_summary_val(feed_dict, epoch)
 
-                self.echo('\n epoch: %d  mean_train_loss: %.6f  mean_train_accuracy: %.6f  mean_val_loss: %.6f  mean_val_accuracy: %.6f \t ' %
-                          (epoch, mean_train_loss, mean_train_accuracy, mean_val_loss, mean_val_accuracy))
+                self.echo('\n epoch: %d  train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  val_accuracy: %.6f \t ' %
+                          (epoch, mean_train_loss, mean_train_log_loss, mean_train_accuracy, mean_val_loss, mean_val_log_loss, mean_val_accuracy))
 
                 mean_train_accuracy = 0
                 mean_train_loss = 0
