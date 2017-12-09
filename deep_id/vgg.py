@@ -1,5 +1,6 @@
 #!/usr/bin/Python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -28,10 +29,10 @@ class VGG:
             os.mkdir(VGG.MODEL_DIR)
         model = VGG.MODEL_16 if not model_19 else VGG.MODEL_19
         if not os.path.isfile(model):
-            print 'Start downloading %s' % model
+            print ('Start downloading %s' % model)
             file_path, _ = urlretrieve(VGG.MODEL_URL, model, reporthook=VGG.__download_progress)
             stat_info = os.stat(file_path)
-            print '\nSuccesfully downloaded %s %d bytes' % (VGG.MODEL_URL, stat_info.st_size)
+            print ('\nSuccesfully downloaded %s %d bytes' % (VGG.MODEL_URL, stat_info.st_size))
         return np.load(model, encoding='latin1').item()
 
 
