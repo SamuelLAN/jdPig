@@ -1061,7 +1061,7 @@ class NN:
 
                     block_filters_out = a.get_shape()[-1]
                     if block_filters_in != block_filters_out:
-                        W = self.init_weight([1, 1, block_filters_in, block_filters_out], self.CONV_WEIGHT_STDDEV)
+                        W = self.init_weight([1, 1, tf.cast(block_filters_in, tf.float64), tf.cast(block_filters_out, tf.float64)], self.CONV_WEIGHT_STDDEV)
                         self.w_dict[block_name] = W
 
                         short_cut = self.conv2d(short_cut, W, block_stride)
