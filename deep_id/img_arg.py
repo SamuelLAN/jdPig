@@ -77,7 +77,8 @@ class Img:
 
             self.__img_list.append(os.path.join(self.IMG_PATH, file_name))
 
-        self.__progress_len = len(self.__img_list) * (self.NUM_TRANSFORM + self.NUM_BLOCK_IMAGE + self.NUM_CORP_IMAGE)
+        # self.__progress_len = len(self.__img_list) * (self.NUM_TRANSFORM + self.NUM_BLOCK_IMAGE + self.NUM_CORP_IMAGE)
+        self.__progress_len = len(self.__img_list)
 
 
     ''' 用最小的框 框住猪并生成猪的图片 '''
