@@ -91,7 +91,7 @@ class GetCSV:
             for pig_no, predict_prob in self.__data.iteritems():
                 count += 1
                 progress = float(count) / data_len * 100.0
-                self.echo('\r  >> progress: %.6f ' % progress)
+                self.echo('\r  >> progress: %.6f ' % progress, False)
 
                 for i, prob in enumerate(predict_prob):
                     writer.writerow([pig_no, i, prob])
