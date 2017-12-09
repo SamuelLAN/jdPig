@@ -6,6 +6,7 @@ from numpy import hstack
 import re
 import sys
 import os
+import time
 from multiprocessing import Process
 from six.moves import cPickle as pickle
 
@@ -71,10 +72,10 @@ class NN:
 
     ''' 析构函数 '''
     def __del__(self):
-        # pass
-        NN.kill_tensorboard_if_runing()
-        self.tbProcess.join(10)
-        self.tbProcess.terminate()
+        pass
+        # NN.kill_tensorboard_if_runing()
+        # self.tbProcess.join(10)
+        # self.tbProcess.terminate()
 
 
     ''' 初始化 '''
@@ -82,6 +83,10 @@ class NN:
         self.net = []                                       # 存放每层网络的 feature map
         self.WList = []                                     # 存放权重矩阵的 list
         self.bList = []                                     # 存放偏置量的 list
+
+        self.mean_x = 0
+        self.std_x = 0.0001
+        self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
@@ -370,7 +375,8 @@ class NN:
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
 
-        self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        # self.modelPath = os.path.join(model_dir, self.MODEL_NAME)
+        self.modelPath = os.path.join(model_dir, '%s_%s' % (self.MODEL_NAME, self.__start_time))
         return self.modelPath
 
     # ************************** TensorBoard summary ************************
@@ -452,6 +458,10 @@ class NN:
         summary_dir = os.path.join(summary_dir, self.MODEL_NAME.split('.')[0])
         if not os.path.isdir(summary_dir):
             os.mkdir(summary_dir)
+
+        summary_dir = os.path.join(summary_dir, self.__start_time)
+        if not os.path.isdir(summary_dir):
+            os.mkdir(summary_dir)
         else:
             self.__remove_file_recursive(summary_dir)
 
@@ -466,7 +476,7 @@ class NN:
         self.__summaryPath = summary_dir
 
         # 异步在终端运行 tensorboard
-        self.run_tensorboard(self.__summaryPath)
+        # self.run_tensorboard(self.__summaryPath)
         return self.__summaryPath
 
 
