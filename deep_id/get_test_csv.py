@@ -96,7 +96,7 @@ class GetCSV:
                 self.echo('\r  >> progress: %.6f ' % progress, False)
 
                 for i, prob in enumerate(predict_prob):
-                    writer.writerow([pig_no, i + 1, prob])
+                    writer.writerow(['%d' % pig_no, '%d' % (i + 1), '%.6f' % prob])
 
         self.echo('Finish saving result ')
 
