@@ -36,7 +36,7 @@ class GetCSV:
 
         for i, file_name in enumerate(file_list):
             progress = float(i + 1) / file_list_len * 100
-            self.echo('\r  >> progress; %.6f ' % progress)
+            self.echo('\r  >> progress; %.6f ' % progress, False)
 
             split_file_name = os.path.splitext(file_name)
             if split_file_name[1].lower() != '.jpg' or 'pig' not in split_file_name[0].lower() \
