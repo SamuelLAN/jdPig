@@ -97,7 +97,7 @@ class Data:
                 self.__queue.put([x, y])
                 self.__cur_index = (self.__cur_index + 1) % self.__data_len
 
-            time.sleep(1)
+            time.sleep(0.5)
 
         self.echo('\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
 
