@@ -9,7 +9,10 @@ import numpy as np
 from PIL import Image
 from six.moves.urllib.request import urlretrieve
 import threading
-import Queue
+if '2.7' in sys.version:
+    import Queue as queue
+else:
+    import queue
 import time
 
 
@@ -147,7 +150,7 @@ class Data:
         self.__data_len = len(self.__data)
         random.shuffle(self.__data)
 
-        self.__queue = Queue.Queue()
+        self.__queue = queue.Queue()
         self.__stop_thread = False
         self.__thread = None
 
