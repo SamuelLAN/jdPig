@@ -1,5 +1,6 @@
 #!/usr/bin/Python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os
 import sys
 import random
@@ -312,7 +313,7 @@ class Data:
     @staticmethod
     def echo(msg, crlf=True):
         if crlf:
-            print msg
+            print (msg)
         else:
             sys.stdout.write(msg)
             sys.stdout.flush()
