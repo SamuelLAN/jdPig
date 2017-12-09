@@ -430,7 +430,7 @@ class NN:
         self.__summaryPath = summary_dir
 
         # 异步在终端运行 tensorboard
-        self.run_tensorboard(self.__summaryPath)
+        # self.run_tensorboard(self.__summaryPath)
         return self.__summaryPath
 
 
