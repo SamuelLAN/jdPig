@@ -7,7 +7,10 @@ import random
 import numpy as np
 from PIL import Image
 import threading
-import Queue
+if '2.7' in sys.version:
+    import Queue as queue
+else:
+    import queue
 import time
 from sklearn.cluster import KMeans
 
@@ -44,7 +47,7 @@ class Data:
         self.__data_len = len(self.__data)
         random.shuffle(self.__data)
 
-        self.__queue = Queue.Queue()
+        self.__queue = queue.Queue()
         self.__stop_thread = False
         self.__thread = None
 
