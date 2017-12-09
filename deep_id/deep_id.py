@@ -193,6 +193,9 @@ class DeepId(base.NN):
         self.__val_set = load.Data(0.64, 0.8, 'validation')
         self.__test_set = load.Data(0.8, 1.0, 'test')
 
+        self.__train_set.start_thread()
+        self.__val_set.start_thread()
+
         self.__train_size = self.__train_set.get_size()
         self.__val_size = self.__val_set.get_size()
         self.__test_size = self.__test_set.get_size()
@@ -500,6 +503,8 @@ class DeepId(base.NN):
         self.__get_log_loss()
 
         self.init_variables()  # 重新初始化变量
+
+        self.__test_set.start_thread()
 
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set)
         mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set)
