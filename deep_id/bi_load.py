@@ -80,7 +80,7 @@ class Data:
     ''' 加载数据 '''
 
     def __load(self):
-        self.echo('Loading %s data ...' % self.__name)
+        self.echo('Loading %s_%d data ...' % (self.__name, self.__pig_id))
         file_list = os.listdir(self.DATA_ROOT)
         file_len = len(file_list)
 
@@ -145,11 +145,15 @@ class Data:
 
             time.sleep(0.3)
 
+        while self.__queue.qsize() > 0:
+            self.__queue.get()
+
         self.echo(
             '\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
 
 
     def start_thread(self):
+        self.__stop_thread = False
         self.__thread = threading.Thread(target=self.__get_data, name=('get_%s_data' % self.__name))
         self.__thread.start()
         self.echo('Thread "get_%s_data" is running ... ' % self.__name)
