@@ -30,31 +30,35 @@ class Data:
         self.__name = name
         self.__same_data = []
         self.__diff_data = []
+        self.__data = {}
 
         # self.__data = []
         # self.__sort_list = sort_list
 
         # 加载全部数据
         self.__load()
-        self.__same_len = len(self.__same_data)
-        self.__diff_len = len(self.__diff_data)
 
         # 检查输入参数
         start_ratio = min(max(0.0, start_ratio), 1.0)
         end_ratio = min(max(0.0, end_ratio), 1.0)
 
-        # 根据比例计算数据的位置范围
-        start_index = int(self.__same_len * start_ratio)
-        end_index = int(self.__same_len * end_ratio)
+        for pig_id, pig_list in self.__data.iteritems():
+            pig_len = len(pig_list)
 
-        # 根据数据的位置范围 取数据
-        self.__same_data = self.__same_data[start_index: end_index]
+            # 根据比例计算数据的位置范围
+            start_index = int(pig_len * start_ratio)
+            end_index = int(pig_len * end_ratio)
+            new_pig_list = pig_list[start_index: end_index]
 
-        # 根据比例计算数据的位置范围
-        start_index = int(self.__diff_len * start_ratio)
-        end_index = int(self.__diff_len * end_ratio)
+            if pig_id == self.__pig_id:
+                self.__same_data += new_pig_list
+            else:
+                self.__diff_data += new_pig_list
 
-        self.__diff_data = self.__diff_data[start_index: end_index]
+        del self.__data
+
+        self.__same_len = len(self.__same_data)
+        self.__diff_len = len(self.__diff_data)
 
         self.__same_len = len(self.__same_data)
         self.__diff_len = len(self.__diff_data)
@@ -68,6 +72,7 @@ class Data:
         self.__thread = None
 
         self.__cur_index = 0
+
 
     @staticmethod
     def __chang_dir():
@@ -95,36 +100,15 @@ class Data:
                 continue
 
             pig_id = int(split_file_name[0].split('_')[0]) - 1
-
             file_path = os.path.join(self.DATA_ROOT, file_name)
-            if pig_id == self.__pig_id:
-                self.__same_data.append([split_file_name[0], file_path])
-            else:
-                self.__diff_data.append([split_file_name[0], file_path])
 
-            # self.__data.append([split_file_name[0], os.path.join(self.DATA_ROOT, file_name)])
-            #
-            # pig_bg_file_path = os.path.join(self.DATA_ROOT, '%s_%s_1.jpg' % (no_list[0], no_list[1]))
-            # pig_file_path = os.path.join(self.DATA_ROOT, file_name)
-            #
-            # if not os.path.isfile(pig_file_path):
-            #     continue
-            #
-            # # np_pig = self.add_padding(pig_file_path)
-            # # np_pig_bg = self.add_padding(pig_bg_file_path)
-            #
-            # pig_patch_list = self.__get_three_patch(pig_file_path)
-            # pig_bg_patch_list = self.__get_three_patch(pig_bg_file_path)
-            # patch_list = pig_patch_list + pig_bg_patch_list
-            #
-            # pig_no = int(no_list[0]) - 1
-            # label = np.zeros([Data.NUM_CLASSES])
-            # label[pig_no] = 1
-            #
-            # self.__data.append([split_file_name[0], patch_list, label])
+            if pig_id not in self.__data:
+                self.__data[pig_id] = []
+            self.__data[pig_id].append([split_file_name[0], file_path])
 
-        # self.echo(' sorting data ... ')
-        # self.__data.sort(self.__sort)
+        self.echo(' sorting data ... ')
+        for pig_id, pig_list in self.__data.iteritems():
+            pig_list.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
 
@@ -170,24 +154,7 @@ class Data:
 
         return Data.add_padding(img_path), label
 
-    # @staticmethod
-    # def __read_img_list(img_list):
-    #     X = []
-    #     y = []
-    #
-    #     for img_path in img_list:
-    #         no_list = os.path.splitext( os.path.split(img_path)[1] )[0].split('_')
-    #
-    #         pig_no = int(no_list[0]) - 1
-    #         label = np.zeros([Data.NUM_CLASSES])
-    #         label[pig_no] = 1
-    #
-    #         X.append( Data.add_padding(img_path) )
-    #         y.append( label )
-    #
-    #     return np.array(X), np.array(y)
-    #
-    #
+
     # @staticmethod
     # def __get_three_patch(img_path):
     #     np_image = np.array( Image.open(img_path) )
@@ -245,37 +212,14 @@ class Data:
         return np.array(new_image.resize(Data.RESIZE))
 
 
-    # def __sort(self, a, b):
-    #     if self.__sort_list:
-    #         index_a = self.__sort_list.index(a[0])
-    #         index_b = self.__sort_list.index(b[0])
-    #         if index_a < index_b:
-    #             return -1
-    #         elif index_a > index_b:
-    #             return 1
-    #         else:
-    #             return 0
-    #
-    #     if a[0] < b[0]:
-    #         return -1
-    #     elif a[0] > b[0]:
-    #         return 1
-    #     else:
-    #         return 0
-    #
-    # @staticmethod
-    # def get_sort_list():
-    #     img_no_set = set()
-    #     for i, file_name in enumerate(os.listdir(Data.DATA_ROOT)):
-    #         split_file_name = os.path.splitext(file_name)
-    #         if split_file_name[1].lower() != '.jpg' or 'pig' in split_file_name[0]:
-    #             continue
-    #
-    #         img_no_set.add(split_file_name[0])
-    #
-    #     img_no_list = list(img_no_set)
-    #     random.shuffle(img_no_list)
-    #     return img_no_list
+    @staticmethod
+    def __sort(a, b):
+        if a[0] < b[0]:
+            return -1
+        elif a[0] > b[0]:
+            return 1
+        else:
+            return 0
 
 
     def next_batch(self, batch_size):
@@ -290,52 +234,11 @@ class Data:
                 y.append(_y)
         return np.array(X), np.array(y)
 
-    # ''' 获取下个 batch '''
-    # def next_batch(self, batch_size, loop = True):
-    #     if not loop and self.__cur_index >= self.__data_len:
-    #         return None, None
-    #
-    #     start_index = self.__cur_index
-    #     end_index = self.__cur_index + batch_size
-    #     left_num = 0
-    #
-    #     if end_index >= self.__data_len:
-    #         left_num = end_index - self.__data_len
-    #         end_index = self.__data_len
-    #
-    #     _, path_list = zip(*self.__data[start_index: end_index])
-    #
-    #     if not loop:
-    #         self.__cur_index = end_index
-    #         return Data.__read_img_list(path_list)
-    #
-    #     if not left_num:
-    #         self.__cur_index = end_index if end_index < self.__data_len else 0
-    #         return Data.__read_img_list(path_list)
-    #
-    #     while left_num:
-    #         end_index = left_num
-    #         if end_index > self.__data_len:
-    #             left_num = end_index - self.__data_len
-    #             end_index = self.__data_len
-    #         else:
-    #             left_num = 0
-    #
-    #         _, left_path_list = zip(*self.__data[: end_index])
-    #         path_list += left_path_list
-    #
-    #     self.__cur_index = end_index if end_index < self.__data_len else 0
-    #     return Data.__read_img_list(path_list)
-
 
     ''' 获取数据集大小 '''
 
     def get_size(self):
         return self.__data_len
-
-    # ''' 重置当前 index 位置 '''
-    # def reset_cur_index(self):
-    #     self.__cur_index = 0
 
 
     ''' 输出展示 '''
@@ -347,6 +250,202 @@ class Data:
         else:
             sys.stdout.write(msg)
             sys.stdout.flush()
+
+
+
+class TestData:
+    DATA_ROOT = r'data/TrainImgMore'
+    RESIZE = [224, 224]
+    # RESIZE = [39, 39]
+    RATIO = 1.0
+    NUM_CLASSES = 30
+
+    def __init__(self, start_ratio=0.0, end_ratio=1.0, name=''):
+        self.__chang_dir()
+
+        # 初始化变量
+        self.__name = name
+        self.__data = {}
+        self.__data_list = []
+
+        # 加载全部数据
+        self.__load()
+
+        # 检查输入参数
+        start_ratio = min(max(0.0, start_ratio), 1.0)
+        end_ratio = min(max(0.0, end_ratio), 1.0)
+
+        for pig_id, pig_list in self.__data.iteritems():
+            pig_len = len(pig_list)
+
+            # 根据比例计算数据的位置范围
+            start_index = int(pig_len * start_ratio)
+            end_index = int(pig_len * end_ratio)
+            new_pig_list = pig_list[start_index: end_index]
+
+            self.__data_list += new_pig_list
+
+        del self.__data
+
+        self.__data_len = len(self.__data_list)
+        random.shuffle(self.__data_list)
+
+        self.__queue = queue.Queue()
+        self.__stop_thread = False
+        self.__thread = None
+
+        self.__cur_index = 0
+
+    @staticmethod
+    def __chang_dir():
+        # 将运行路径切换到当前文件所在路径
+        cur_dir_path = os.path.split(__file__)[0]
+        if cur_dir_path and os.path.abspath(os.path.curdir) != os.path.abspath(cur_dir_path):
+            os.chdir(cur_dir_path)
+            sys.path.append(cur_dir_path)
+
+    ''' 加载数据 '''
+
+    def __load(self):
+        self.echo('Loading %s data ...' % self.__name)
+        file_list = os.listdir(self.DATA_ROOT)
+        file_len = len(file_list)
+
+        for i, file_name in enumerate(file_list):
+            progress = float(i + 1) / file_len * 100
+            self.echo('\r >> progress: %.2f%% \t' % progress, False)
+
+            split_file_name = os.path.splitext(file_name)
+            no_list = split_file_name[0].split('_')
+
+            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) == 1:
+                continue
+
+            pig_id = int(split_file_name[0].split('_')[0]) - 1
+            file_path = os.path.join(self.DATA_ROOT, file_name)
+
+            if pig_id not in self.__data:
+                self.__data[pig_id] = []
+            self.__data[pig_id].append([split_file_name[0], file_path])
+
+        self.echo(' sorting data ... ')
+        for pig_id, pig_list in self.__data.iteritems():
+            pig_list.sort(self.__sort)
+
+        self.echo('\nFinish Loading\n')
+
+    def __get_data(self):
+        max_q_size = min(self.__data_len, 500)
+        while not self.__stop_thread:
+            while self.__queue.qsize() <= max_q_size:
+                file_name, img_path = self.__data_list[self.__cur_index]
+                self.__cur_index = (self.__cur_index + 1) % self.__data_len
+
+                x, y = self.__get_x_y(img_path)
+                self.__queue.put([x, y])
+
+            time.sleep(0.3)
+
+        while self.__queue.qsize() > 0:
+            self.__queue.get()
+
+        self.echo(
+            '\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
+
+    def start_thread(self):
+        self.__stop_thread = False
+        self.__thread = threading.Thread(target=self.__get_data, name=('get_%s_data' % self.__name))
+        self.__thread.start()
+        self.echo('Thread "get_%s_data" is running ... ' % self.__name)
+
+    def stop(self):
+        self.__stop_thread = True
+
+    @staticmethod
+    def __get_x_y(img_path):
+        no_list = os.path.splitext(os.path.split(img_path)[1])[0].split('_')
+
+        pig_no = int(no_list[0]) - 1
+        label = np.zeros([TestData.NUM_CLASSES])
+        label[pig_no] = 1
+
+        return Data.add_padding(img_path), label
+
+
+    @staticmethod
+    def __resize_np_img(np_image):
+        return np.array(Image.fromarray(np_image).resize(Data.RESIZE), dtype=np.float32)
+
+
+    @staticmethod
+    def add_padding(img_path):
+        image = Image.open(img_path)
+        w, h = image.size
+        ratio = float(w) / h
+
+        if abs(ratio - Data.RATIO) <= 0.1:
+            return np.array(image.resize(Data.RESIZE))
+
+        np_image = np.array(image)
+        h, w, c = np_image.shape
+
+        if ratio > Data.RATIO:
+            new_h = int(float(w) / Data.RATIO)
+            padding = int((new_h - h) / 2.0)
+
+            np_new_image = np.zeros([new_h, w, c])
+            np_new_image[padding: padding + h, :, :] = np_image
+
+        else:
+            new_w = int(float(h) * Data.RATIO)
+            padding = int((new_w - w) / 2.0)
+
+            np_new_image = np.zeros([h, new_w, c])
+            np_new_image[:, padding: padding + w, :] = np_image
+
+        new_image = Image.fromarray(np.cast['uint8'](np_new_image))
+        return np.array(new_image.resize(Data.RESIZE))
+
+
+    @staticmethod
+    def __sort(a, b):
+        if a[0] < b[0]:
+            return -1
+        elif a[0] > b[0]:
+            return 1
+        else:
+            return 0
+
+
+    def next_batch(self, batch_size):
+        X = []
+        y = []
+        for i in range(batch_size):
+            while self.__queue.empty():
+                time.sleep(0.1)
+            if not self.__queue.empty():
+                _x, _y = self.__queue.get()
+                X.append(_x)
+                y.append(_y)
+        return np.array(X), np.array(y)
+
+
+    ''' 获取数据集大小 '''
+
+    def get_size(self):
+        return self.__data_len
+
+    ''' 输出展示 '''
+
+    @staticmethod
+    def echo(msg, crlf=True):
+        if crlf:
+            print(msg)
+        else:
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+
+
 
 # Download.run()
 
