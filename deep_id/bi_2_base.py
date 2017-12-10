@@ -106,6 +106,8 @@ class NN:
         self.__summaryPath = ''
         self.__get_summary_path()
 
+        self.__init_summary_writer = False
+
         # self.global_step = self.get_global_step()            # 记录全局训练状态的 global step
 
         self.init()                                         # 执行定制化的 初始化操作
@@ -341,12 +343,15 @@ class NN:
 
     def merge_summary(self):
         self.__mergedSummaryOp = tf.summary.merge_all()
-        if tf.gfile.Exists(self.__summaryPath):
-            tf.gfile.DeleteRecursively(self.__summaryPath)
-        self.__summaryWriterTrain = tf.summary.FileWriter(
-            os.path.join(self.__summaryPath, 'train'), self.sess.graph)
-        self.__summaryWriterVal = tf.summary.FileWriter(
-            os.path.join(self.__summaryPath, 'validation'), self.sess.graph)
+
+        if not self.__init_summary_writer:
+            if tf.gfile.Exists(self.__summaryPath):
+                tf.gfile.DeleteRecursively(self.__summaryPath)
+            self.__summaryWriterTrain = tf.summary.FileWriter(
+                os.path.join(self.__summaryPath, 'train'), self.sess.graph)
+            self.__summaryWriterVal = tf.summary.FileWriter(
+                os.path.join(self.__summaryPath, 'validation'), self.sess.graph)
+            self.__init_summary_writer = True
 
     ''' TensorBoard add sumary training '''
 

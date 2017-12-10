@@ -553,7 +553,7 @@ class VGG16(base.NN):
     def run(self):
         # self.run_i(2)
         for i in range(self.NUM_PIG):
-            if i <= 2:
+            if i <= 3:
                 continue
             self.run_i(i)
 
