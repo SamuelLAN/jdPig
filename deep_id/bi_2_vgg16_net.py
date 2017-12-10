@@ -373,6 +373,26 @@ class VGG16(base.NN):
         return mean_accuracy / times, mean_loss / times, mean_log_loss / times
 
 
+    def __measure_prob(self, data_set):
+        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+
+        prob_list = []
+        label_list = []
+
+        for i in range(times):
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+
+            batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
+
+            feed_dict = {self.__image: batch_x, self.__label: batch_y,
+                         self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
+
+            prob = self.sess.run(self.__prob, feed_dict)
+            prob_list.append(prob[:, 1])
+
+        return np.hstack(prob_list).transpose()
+
+
     ''' 主函数 '''
     def run_i(self, pig_id):
         self.echo('\nStart training %d net ... ' % pig_id)
@@ -553,12 +573,21 @@ class VGG16(base.NN):
     def run(self):
         # self.run_i(2)
         for i in range(self.NUM_PIG):
-            if i <= 3:
+            if i <= 4:
                 continue
             self.run_i(i)
 
 
+    @staticmethod
+    def np_softmax(x):
+        exp_x = np.exp(x)
+        return exp_x / np.sum(exp_x, axis=0)
+
+
     def test(self):
+        self.__train_prob_list = []
+        self.__val_prob_list = []
+
         for i in range(self.NUM_PIG):
             self.reinit(i)
 
@@ -577,21 +606,22 @@ class VGG16(base.NN):
             self.__train_set_list[i].start_thread()
             self.__val_set_list[i].start_thread()
 
-            mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set_list[i])
-            mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set_list[i])
-            # mean_test_accuracy, mean_test_loss, mean_test_log_loss = self.__measure(self.__test_set)
+            train_prob_list = self.__measure_prob(self.__train_set_list[i])
+            val_prob_list = self.__measure_prob(self.__val_set_list[i])
 
-            self.echo('\n*************************************************')
-            self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
-                                                                            mean_train_loss, mean_train_log_loss))
-            self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
-                                                                            mean_val_loss, mean_val_log_loss))
-            self.echo('\n*********************************')
+            self.__train_prob_list.append(train_prob_list)
+            self.__val_prob_list.append(val_prob_list)
 
             self.__train_set_list[i].stop()
             self.__val_set_list[i].stop()
 
             self.sess.close()
+
+        self.__train_prob_list = np.hstack(self.__train_prob_list).transpose()
+        self.__val_prob_list = np.hstack(self.__val_prob_list).transpose()
+
+        self.__train_prob_list = self.np_softmax(self.__train_prob_list)
+        self.__val_prob_list = self.np_softmax(self.__val_prob_list)
 
 
     def use_model(self, np_image):
