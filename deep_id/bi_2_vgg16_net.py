@@ -40,7 +40,7 @@ class VGG16(base.NN):
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
     DECAY_RATE = 0.0001  # 学习率 的 下降速率
 
-    REGULAR_BETA = 1.0  # 正则化的 beta 参数
+    REGULAR_BETA = 2.0  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
     EPLISION = 0.00001
