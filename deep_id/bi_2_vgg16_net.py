@@ -378,9 +378,10 @@ class VGG16(base.NN):
 
 
     def __measure_prob(self, data_set):
+        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+        count = 0
         data_set.reset_cur_index()
         prob_list = []
-        label_list = []
 
         while True:
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
@@ -393,6 +394,13 @@ class VGG16(base.NN):
 
             prob = self.sess.run(self.__prob, feed_dict)
             prob_list.append(prob[:, 1])
+
+            del batch_x
+            del batch_y
+
+            count += 1
+            progress = float(count) / times * 100
+            self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
 
         return np.hstack(prob_list).transpose()
 
@@ -605,7 +613,10 @@ class VGG16(base.NN):
         self.__train_data = load.TestData(0.0, 0.8)
         self.__val_data = load.TestData(0.8, 1.0)
 
+        self.echo('\nStart testing ... ')
         for i in range(self.NUM_PIG):
+            self.echo('  testing %d net ... ' % i)
+
             self.reinit(i)
 
             self.restore_model_w_b(i)
@@ -627,6 +638,8 @@ class VGG16(base.NN):
             self.__val_prob_list.append(val_prob_list)
 
             self.sess.close()
+
+        self.echo('Finish testing ')
 
         self.__train_prob_list = np.hstack(self.__train_prob_list).transpose()
         self.__val_prob_list = np.hstack(self.__val_prob_list).transpose()
