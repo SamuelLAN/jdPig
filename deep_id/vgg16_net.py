@@ -308,8 +308,9 @@ class VGG16(base.NN):
 
     def __get_log_loss(self):
         with tf.name_scope('log_loss'):
-            labels = tf.argmax(self.__label, 1)
-            predict = tf.argmax(self.__output, 1)
+            labels = self.__label
+            predict = tf.one_hot( tf.argmax(self.__output, 1), depth=self.NUM_CLASSES )
+
             correct = tf.cast( tf.equal(labels, predict), tf.float32 )
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
