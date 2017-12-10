@@ -40,7 +40,7 @@ class VGG16(base.NN):
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
     DECAY_RATE = 0.0001  # 学习率 的 下降速率
 
-    REGULAR_BETA = 0.03  # 正则化的 beta 参数
+    REGULAR_BETA = 0.3  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
     EPLISION = 0.00001
@@ -419,14 +419,14 @@ class VGG16(base.NN):
 
         self.__get_accuracy()
 
-        # # tensorboard 相关记录
-        # self.__summary()
+        # tensorboard 相关记录
+        self.__summary()
 
         # 初始化所有变量
         self.init_variables()
 
-        # # TensorBoard merge summary
-        # self.merge_summary()
+        # TensorBoard merge summary
+        self.merge_summary()
 
         mean_train_loss = 0
         mean_train_log_loss = 0
@@ -484,11 +484,11 @@ class VGG16(base.NN):
 
                 # self.echo('\n epoch: %d  train_loss: %.6f  log_loss:    train_accuracy: %.6f \t ' % (epoch, mean_train_loss, mean_train_accuracy))
 
-                # feed_dict[self.__mean_accuracy] = mean_train_accuracy
-                # feed_dict[self.__mean_loss] = mean_train_loss
-                # feed_dict[self.__mean_log_loss] = mean_train_log_loss
-                # # # feed_dict[self.__mean_ch_log_loss] = mean_train_ch_log_loss
-                # self.add_summary_train(feed_dict, epoch)
+                feed_dict[self.__mean_accuracy] = mean_train_accuracy
+                feed_dict[self.__mean_loss] = mean_train_loss
+                feed_dict[self.__mean_log_loss] = mean_train_log_loss
+                # # feed_dict[self.__mean_ch_log_loss] = mean_train_ch_log_loss
+                self.add_summary_train(feed_dict, epoch)
 
                 del batch_x
                 del batch_y
@@ -499,9 +499,9 @@ class VGG16(base.NN):
                 #
                 # batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
 
-                # feed_dict = {self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
-                #              self.__mean_log_loss: mean_val_log_loss}
-                # self.add_summary_val(feed_dict, epoch)
+                feed_dict = {self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
+                             self.__mean_log_loss: mean_val_log_loss}
+                self.add_summary_val(feed_dict, epoch)
 
                 # del batch_val_x
                 # del batch_val_y
