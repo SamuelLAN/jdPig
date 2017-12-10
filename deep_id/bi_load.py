@@ -234,7 +234,6 @@ class Data:
                 y.append(_y)
         return np.array(X), np.array(y)
 
-
     ''' 获取数据集大小 '''
 
     def get_size(self):
@@ -334,42 +333,47 @@ class TestData:
 
         self.echo('\nFinish Loading\n')
 
-    def __get_data(self):
-        max_q_size = min(self.__data_len, 500)
-        while not self.__stop_thread:
-            while self.__queue.qsize() <= max_q_size:
-                file_name, img_path = self.__data_list[self.__cur_index]
-                self.__cur_index = (self.__cur_index + 1) % self.__data_len
+    # def __get_data(self):
+    #     max_q_size = min(self.__data_len, 500)
+    #     while not self.__stop_thread:
+    #         while self.__queue.qsize() <= max_q_size:
+    #             file_name, img_path = self.__data_list[self.__cur_index]
+    #             self.__cur_index = (self.__cur_index + 1) % self.__data_len
+    #
+    #             x, y = self.__get_x_y(img_path)
+    #             self.__queue.put([x, y])
+    #
+    #         time.sleep(0.3)
+    #
+    #     while self.__queue.qsize() > 0:
+    #         self.__queue.get()
+    #
+    #     self.echo(
+    #         '\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
 
-                x, y = self.__get_x_y(img_path)
-                self.__queue.put([x, y])
-
-            time.sleep(0.3)
-
-        while self.__queue.qsize() > 0:
-            self.__queue.get()
-
-        self.echo(
-            '\n*************************************\n Thread "get_%s_data" stop\n***********************\n' % self.__name)
-
-    def start_thread(self):
-        self.__stop_thread = False
-        self.__thread = threading.Thread(target=self.__get_data, name=('get_%s_data' % self.__name))
-        self.__thread.start()
-        self.echo('Thread "get_%s_data" is running ... ' % self.__name)
-
-    def stop(self):
-        self.__stop_thread = True
+    # def start_thread(self):
+    #     self.__stop_thread = False
+    #     self.__thread = threading.Thread(target=self.__get_data, name=('get_%s_data' % self.__name))
+    #     self.__thread.start()
+    #     self.echo('Thread "get_%s_data" is running ... ' % self.__name)
+    #
+    # def stop(self):
+    #     self.__stop_thread = True
 
     @staticmethod
     def __get_x_y(img_path):
+        return Data.add_padding(img_path), TestData.__get_y(img_path)
+
+
+    @staticmethod
+    def __get_y(img_path):
         no_list = os.path.splitext(os.path.split(img_path)[1])[0].split('_')
 
         pig_no = int(no_list[0]) - 1
         label = np.zeros([TestData.NUM_CLASSES])
         label[pig_no] = 1
 
-        return Data.add_padding(img_path), label
+        return label
 
 
     @staticmethod
@@ -417,17 +421,75 @@ class TestData:
             return 0
 
 
-    def next_batch(self, batch_size):
+    # def next_batch(self, batch_size):
+    #     X = []
+    #     y = []
+    #     for i in range(batch_size):
+    #         while self.__queue.empty():
+    #             time.sleep(0.1)
+    #         if not self.__queue.empty():
+    #             _x, _y = self.__queue.get()
+    #             X.append(_x)
+    #             y.append(_y)
+    #     return np.array(X), np.array(y)
+
+
+    def __read_img_list(self, img_list):
         X = []
+        Y = []
+
+        for img_path in img_list:
+            x, y = self.__get_x_y(img_path)
+            X.append(x)
+            Y.append(y)
+
+        return np.array(X), np.array(Y)
+
+
+    ''' 获取下个 batch '''
+
+    def next_batch(self, batch_size, loop=True):
+        if not loop and self.__cur_index >= self.__data_len:
+            return None, None
+
+        start_index = self.__cur_index
+        end_index = self.__cur_index + batch_size
+        left_num = 0
+
+        if end_index >= self.__data_len:
+            left_num = end_index - self.__data_len
+            end_index = self.__data_len
+
+        _, path_list = zip(*self.__data_list[start_index: end_index])
+
+        if not loop:
+            self.__cur_index = end_index
+            return self.__read_img_list(path_list)
+
+        if not left_num:
+            self.__cur_index = end_index if end_index < self.__data_len else 0
+            return self.__read_img_list(path_list)
+
+        while left_num:
+            end_index = left_num
+            if end_index > self.__data_len:
+                left_num = end_index - self.__data_len
+                end_index = self.__data_len
+            else:
+                left_num = 0
+
+            _, left_path_list = zip(*self.__data_list[: end_index])
+            path_list += left_path_list
+
+        self.__cur_index = end_index if end_index < self.__data_len else 0
+        return self.__read_img_list(path_list)
+
+
+    def get_label_list(self):
         y = []
-        for i in range(batch_size):
-            while self.__queue.empty():
-                time.sleep(0.1)
-            if not self.__queue.empty():
-                _x, _y = self.__queue.get()
-                X.append(_x)
-                y.append(_y)
-        return np.array(X), np.array(y)
+        for _, img_path in self.__data_list:
+            y.append(self.__get_y(img_path))
+        return np.array(y)
 
 
     ''' 获取数据集大小 '''
@@ -437,9 +499,6 @@ class TestData:
 
 
     def reset_cur_index(self):
-        max_q_size = min(self.__data_len, 500)
-        while self.__queue.qsize() <= max_q_size:
-            time.sleep(0.2)
         self.__cur_index = 0
 
 

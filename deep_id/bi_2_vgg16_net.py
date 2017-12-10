@@ -378,16 +378,16 @@ class VGG16(base.NN):
 
 
     def __measure_prob(self, data_set):
-        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
-
+        data_set.reset_cur_index()
         prob_list = []
         label_list = []
 
-        for i in range(times):
-            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
+        while True:
+            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
+            if not batch_x or not batch_y:
+                break
 
             batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
-
             feed_dict = {self.__image: batch_x, self.__label: batch_y,
                          self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
 
@@ -592,15 +592,18 @@ class VGG16(base.NN):
         return exp_x / np.sum(exp_x, axis=0)
 
 
+    @staticmethod
+    def np_log_loss(prob, label):
+        prob = min( max(prob, 1e-15), 1 - 1e-15 )
+        return - np.sum( np.multiply( label, np.log(prob) ) ) / label.shape[0]
+
+
     def test(self):
         self.__train_prob_list = []
         self.__val_prob_list = []
 
         self.__train_data = load.TestData(0.0, 0.8)
         self.__val_data = load.TestData(0.8, 1.0)
-
-        self.__train_data.start_thread()
-        self.__val_data.start_thread()
 
         for i in range(self.NUM_PIG):
             self.reinit(i)
@@ -617,14 +620,8 @@ class VGG16(base.NN):
 
             self.init_variables()
 
-            self.__train_set_list[i].start_thread()
-            self.__val_set_list[i].start_thread()
-
             train_prob_list = self.__measure_prob(self.__train_data)
             val_prob_list = self.__measure_prob(self.__val_data)
-
-            self.__train_data.reset_cur_index()
-            self.__val_data.reset_cur_index()
 
             self.__train_prob_list.append(train_prob_list)
             self.__val_prob_list.append(val_prob_list)
@@ -637,8 +634,17 @@ class VGG16(base.NN):
         self.__train_prob_list = self.np_softmax(self.__train_prob_list)
         self.__val_prob_list = self.np_softmax(self.__val_prob_list)
 
-        self.__train_data.stop()
-        self.__val_data.stop()
+        train_label_list = self.__train_data.get_label_list()
+        val_label_list = self.__val_data.get_label_list()
+
+        train_log_loss = self.np_log_loss(self.__train_prob_list, train_label_list)
+        val_log_loss = self.np_log_loss(self.__val_prob_list, val_label_list)
+
+        self.echo('\n****************************************')
+        self.echo('train_log_loss: %.8f' % train_log_loss)
+        self.echo('val_log_loss: %.8f' % val_log_loss)
+
+
 
 
     def use_model(self, np_image):
