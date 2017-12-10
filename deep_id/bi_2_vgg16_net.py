@@ -397,6 +397,8 @@ class VGG16(base.NN):
     def run_i(self, pig_id):
         self.echo('\nStart training %d net ... ' % pig_id)
 
+        self.get_summary_path(pig_id)
+
         self.reinit(pig_id)
 
         # 生成模型
@@ -417,14 +419,14 @@ class VGG16(base.NN):
 
         self.__get_accuracy()
 
-        # tensorboard 相关记录
-        self.__summary()
+        # # tensorboard 相关记录
+        # self.__summary()
 
         # 初始化所有变量
         self.init_variables()
 
-        # TensorBoard merge summary
-        self.merge_summary()
+        # # TensorBoard merge summary
+        # self.merge_summary()
 
         mean_train_loss = 0
         mean_train_log_loss = 0
@@ -482,11 +484,11 @@ class VGG16(base.NN):
 
                 # self.echo('\n epoch: %d  train_loss: %.6f  log_loss:    train_accuracy: %.6f \t ' % (epoch, mean_train_loss, mean_train_accuracy))
 
-                feed_dict[self.__mean_accuracy] = mean_train_accuracy
-                feed_dict[self.__mean_loss] = mean_train_loss
-                feed_dict[self.__mean_log_loss] = mean_train_log_loss
-                # # feed_dict[self.__mean_ch_log_loss] = mean_train_ch_log_loss
-                self.add_summary_train(feed_dict, epoch)
+                # feed_dict[self.__mean_accuracy] = mean_train_accuracy
+                # feed_dict[self.__mean_loss] = mean_train_loss
+                # feed_dict[self.__mean_log_loss] = mean_train_log_loss
+                # # # feed_dict[self.__mean_ch_log_loss] = mean_train_ch_log_loss
+                # self.add_summary_train(feed_dict, epoch)
 
                 del batch_x
                 del batch_y
@@ -497,9 +499,9 @@ class VGG16(base.NN):
                 #
                 # batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
 
-                feed_dict = {self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
-                             self.__mean_log_loss: mean_val_log_loss}
-                self.add_summary_val(feed_dict, epoch)
+                # feed_dict = {self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
+                #              self.__mean_log_loss: mean_val_log_loss}
+                # self.add_summary_val(feed_dict, epoch)
 
                 # del batch_val_x
                 # del batch_val_y
@@ -535,7 +537,7 @@ class VGG16(base.NN):
                 del batch_x
                 del batch_y
 
-        self.close_summary()        # 关闭 TensorBoard
+        # self.close_summary()        # 关闭 TensorBoard
 
         # self.__test_set.start_thread()
 
@@ -569,11 +571,13 @@ class VGG16(base.NN):
 
         self.sess.close()
 
+        self.kill_tensorboard_if_runing()
+
 
     def run(self):
         # self.run_i(2)
         for i in range(self.NUM_PIG):
-            if i <= 4:
+            if i <= 5:
                 continue
             self.run_i(i)
 
@@ -587,6 +591,12 @@ class VGG16(base.NN):
     def test(self):
         self.__train_prob_list = []
         self.__val_prob_list = []
+
+        self.__train_data = load.TestData(0.0, 0.8)
+        self.__val_data = load.TestData(0.8, 1.0)
+
+        self.__train_data.start_thread()
+        self.__val_data.start_thread()
 
         for i in range(self.NUM_PIG):
             self.reinit(i)
@@ -606,14 +616,14 @@ class VGG16(base.NN):
             self.__train_set_list[i].start_thread()
             self.__val_set_list[i].start_thread()
 
-            train_prob_list = self.__measure_prob(self.__train_set_list[i])
-            val_prob_list = self.__measure_prob(self.__val_set_list[i])
+            train_prob_list = self.__measure_prob(self.__train_data)
+            val_prob_list = self.__measure_prob(self.__val_data)
+
+            self.__train_data.reset_cur_index()
+            self.__val_data.reset_cur_index()
 
             self.__train_prob_list.append(train_prob_list)
             self.__val_prob_list.append(val_prob_list)
-
-            self.__train_set_list[i].stop()
-            self.__val_set_list[i].stop()
 
             self.sess.close()
 
@@ -622,6 +632,9 @@ class VGG16(base.NN):
 
         self.__train_prob_list = self.np_softmax(self.__train_prob_list)
         self.__val_prob_list = self.np_softmax(self.__val_prob_list)
+
+        self.__train_data.stop()
+        self.__val_data.stop()
 
 
     def use_model(self, np_image):

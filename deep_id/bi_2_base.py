@@ -104,7 +104,7 @@ class NN:
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
 
         self.__summaryPath = ''
-        self.__get_summary_path()
+        # self.__get_summary_path()
 
         self.__init_summary_writer = False
 
@@ -406,10 +406,7 @@ class NN:
 
     ''' 获取 summary path '''
 
-    def __get_summary_path(self):
-        if self.__summaryPath:
-            return self.__summaryPath
-
+    def get_summary_path(self, _id):
         cur_dir = os.path.split(os.path.abspath(__file__))[0]
         summary_dir = os.path.join(cur_dir, 'summary')
 
@@ -421,6 +418,10 @@ class NN:
             os.mkdir(summary_dir)
 
         summary_dir = os.path.join(summary_dir, self.__start_time)
+        if not os.path.isdir(summary_dir):
+            os.mkdir(summary_dir)
+
+        summary_dir = os.path.join(summary_dir, '%d' % _id)
         if not os.path.isdir(summary_dir):
             os.mkdir(summary_dir)
         else:

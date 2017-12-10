@@ -435,6 +435,14 @@ class TestData:
     def get_size(self):
         return self.__data_len
 
+
+    def reset_cur_index(self):
+        max_q_size = min(self.__data_len, 500)
+        while self.__queue.qsize() <= max_q_size:
+            time.sleep(0.2)
+        self.__cur_index = 0
+
+
     ''' 输出展示 '''
 
     @staticmethod
