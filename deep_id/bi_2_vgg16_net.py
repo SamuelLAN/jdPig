@@ -40,7 +40,7 @@ class VGG16(base.NN):
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
     DECAY_RATE = 0.0001  # 学习率 的 下降速率
 
-    REGULAR_BETA = 1.1  # 正则化的 beta 参数
+    REGULAR_BETA = 0.1  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
     EPLISION = 0.00001
@@ -325,24 +325,24 @@ class VGG16(base.NN):
 
     def __get_log_loss(self):
         with tf.name_scope('log_loss'):
-            # labels = self.__label
-            # predict = tf.one_hot( tf.argmax(self.__output, 1), depth=self.NUM_CLASSES )
-            #
-            # correct = tf.cast( tf.equal(labels, predict), tf.float32 )
-            # incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
-            #
-            # w = correct * 1.5 + incorrect * 0.8
-            # # w = correct * 0.9 + incorrect * 1.2
-            # output = w * self.__output
+            labels = self.__label
+            predict = tf.one_hot( tf.argmax(self.__output, 1), depth=self.NUM_CLASSES )
+
+            correct = tf.cast( tf.equal(labels, predict), tf.float32 )
+            incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
+
+            w = correct * 1.5 + incorrect * 0.8
+            # w = correct * 0.9 + incorrect * 1.2
+            output = w * self.__output
 
             exp_x = tf.exp(self.__output)
             self.__prob = exp_x / tf.reduce_sum(exp_x, axis=0)
             # p = tf.maximum( tf.minimum( prob, 1 - 1e-15 ), 1e-15 )
             self.__log_loss = - tf.divide( tf.reduce_sum( tf.multiply(self.__label, tf.log(self.__prob)) ), self.__size )
 
-            # exp_x = tf.exp(output)
-            # p = exp_x / tf.reduce_sum(exp_x)
-            # self.__ch_log_loss = - tf.divide(tf.reduce_sum(tf.multiply(self.__label, tf.log(p))), self.__size)
+            exp_x = tf.exp(output)
+            p = exp_x / tf.reduce_sum(exp_x, axis=0)
+            self.__ch_log_loss = - tf.divide(tf.reduce_sum(tf.multiply(self.__label, tf.log(p))), self.__size)
 
 
     def __measure(self, data_set, max_times=None):
@@ -414,12 +414,12 @@ class VGG16(base.NN):
         self.__get_log_loss()
 
         # 正则化
-        # self.__ch_loss_regular = self.regularize_trainable(self.__ch_log_loss, self.REGULAR_BETA)
+        self.__ch_loss_regular = self.regularize_trainable(self.__ch_log_loss, self.REGULAR_BETA)
         # self.__loss_regular = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
-        self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
+        # self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
 
         # 生成训练的 op
-        train_op = self.get_train_op(self.__log_loss_regular, self.__learning_rate, self.global_step)
+        train_op = self.get_train_op(self.__ch_loss_regular, self.__learning_rate, self.global_step)
 
         self.__get_accuracy()
 
