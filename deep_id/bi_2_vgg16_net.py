@@ -565,15 +565,8 @@ class VGG16(base.NN):
         mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set_list[pig_id])
         # mean_test_accuracy, mean_test_loss, mean_test_log_loss = self.__measure(self.__test_set)
 
-        self.echo('\n*************************************************')
-        self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
-                                                                    mean_train_loss, mean_train_log_loss))
-        self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
-                                                                    mean_val_loss, mean_val_log_loss))
-        self.echo('\n*********************************')
-
-        # self.echo('test_accuracy: %.6f  test_loss: %.6f  test_log_loss: %.6f  ' % (mean_test_accuracy,
-        #                                                             mean_test_loss, mean_test_log_loss))
+        self.__result.append([pig_id, mean_train_accuracy, mean_train_loss, mean_train_log_loss,
+                              mean_val_accuracy, mean_val_loss, mean_val_log_loss])
 
         self.__train_set_list[pig_id].stop()  # 关闭获取数据线程
         self.__val_set_list[pig_id].stop()  # 关闭获取数据线程
@@ -587,10 +580,23 @@ class VGG16(base.NN):
 
 
     def run(self):
+        self.__result = [
+            [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769]
+        ]
         for i in range(self.NUM_PIG):
             if i <= 0:
                 continue
             self.run_i(i)
+
+            for ret in self.__result:
+                pig_id, mean_train_accuracy, mean_train_loss, mean_train_log_loss, \
+                    mean_val_accuracy, mean_val_loss, mean_val_log_loss = ret
+                self.echo('\n*************************************************')
+                self.echo('net: %d  train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (pig_id,
+                                                    mean_train_accuracy, mean_train_loss, mean_train_log_loss))
+                self.echo('net: %d  val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (pig_id,
+                                                    mean_val_accuracy, mean_val_loss, mean_val_log_loss))
+                self.echo('*********************************')
 
 
     @staticmethod
