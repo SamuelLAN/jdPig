@@ -38,9 +38,9 @@ class VGG16(base.NN):
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
-    DECAY_RATE = 0.001  # 学习率 的 下降速率
+    DECAY_RATE = 0.0001  # 学习率 的 下降速率
 
-    REGULAR_BETA = 0.02  # 正则化的 beta 参数
+    REGULAR_BETA = 0.03  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
 
     EPLISION = 0.00001
@@ -484,8 +484,8 @@ class VGG16(base.NN):
                 # del batch_val_x
                 # del batch_val_y
 
-                echo_str = '\n\t epoch: %d  train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  ' \
-                           'val_loss: %.6f val_log_loss: %.6f  val_accuracy: %.6f' % (epoch, mean_train_loss,
+                echo_str = '\n\t net: %d  epoch: %d  train_loss: %.6f  train_log_loss: %.6f  train_accuracy: %.6f  ' \
+                           'val_loss: %.6f val_log_loss: %.6f  val_accuracy: %.6f' % (pig_id, epoch, mean_train_loss,
                                                                     mean_train_log_loss, mean_train_accuracy,
                                                             mean_val_loss, mean_val_log_loss, mean_val_accuracy)
 
@@ -556,6 +556,42 @@ class VGG16(base.NN):
             if i <= 2:
                 continue
             self.run_i(i)
+
+
+    def test(self):
+        for i in range(self.NUM_PIG):
+            self.reinit(i)
+
+            self.restore_model_w_b(i)
+
+            self.rebuild_model()
+
+            self.get_loss()
+
+            self.__get_accuracy()
+
+            self.__get_log_loss()
+
+            self.init_variables()
+
+            self.__train_set_list[i].start_thread()
+            self.__val_set_list[i].start_thread()
+
+            mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set_list[i])
+            mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set_list[i])
+            # mean_test_accuracy, mean_test_loss, mean_test_log_loss = self.__measure(self.__test_set)
+
+            self.echo('\n*************************************************')
+            self.echo('train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (mean_train_accuracy,
+                                                                            mean_train_loss, mean_train_log_loss))
+            self.echo('val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (mean_val_accuracy,
+                                                                            mean_val_loss, mean_val_log_loss))
+            self.echo('\n*********************************')
+
+            self.__train_set_list[i].stop()
+            self.__val_set_list[i].stop()
+
+            self.sess.close()
 
 
     def use_model(self, np_image):
