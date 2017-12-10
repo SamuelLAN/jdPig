@@ -314,7 +314,8 @@ class VGG16(base.NN):
             correct = tf.cast( tf.equal(labels, predict), tf.float32 )
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
-            w = correct * 0.7 + incorrect * 1.2
+            w = correct * 1.5 + incorrect * 0.8
+            # w = correct * 0.9 + incorrect * 1.2
             output = w * self.__output
 
             exp_x = tf.exp(self.__output)
