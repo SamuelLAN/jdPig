@@ -547,8 +547,9 @@ class VGG16(base.NN):
 
 
     def run(self):
-        for i in range(self.NUM_PIG):
-            self.run_i(i)
+        self.run_i(2)
+        # for i in range(self.NUM_PIG):
+        #     self.run_i(i)
 
 
     def use_model(self, np_image):
