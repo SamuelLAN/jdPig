@@ -140,7 +140,7 @@ class Data:
                 else:
                     file_name, img_path = self.__diff_data[random.randrange(0, self.__diff_len)]
 
-                x = self.__get_x_y(img_path, y)
+                x, y = self.__get_x_y(img_path, y)
                 self.__queue.put([x, y])
 
             time.sleep(0.3)
@@ -165,8 +165,6 @@ class Data:
 
     @staticmethod
     def __get_x_y(img_path, y):
-        no_list = os.path.splitext(os.path.split(img_path)[1])[0].split('_')
-
         label = np.zeros([Data.NUM_CLASSES])
         label[y] = 1
 
