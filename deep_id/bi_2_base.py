@@ -800,7 +800,8 @@ class NN:
 
     ''' 激活函数 '''
     def activate(self, h):
-        return tf.nn.relu(h, name='a')
+        return tf.multiply(h, tf.nn.sigmoid(h), name='a')
+        # return tf.nn.relu(h, name='a')
 
 
     ''' 2D 卷积 '''
