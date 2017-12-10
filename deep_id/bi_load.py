@@ -50,7 +50,7 @@ class Data:
             end_index = int(pig_len * end_ratio)
             new_pig_list = pig_list[start_index: end_index]
 
-            if pig_id == self.__pig_id:
+            if int(pig_id) == self.__pig_id:
                 self.__same_data += new_pig_list
             else:
                 self.__diff_data += new_pig_list
