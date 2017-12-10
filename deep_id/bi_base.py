@@ -105,7 +105,7 @@ class NN:
 
         self.init()                                         # 执行定制化的 初始化操作
 
-        self.sess = tf.Session()
+        # self.sess = tf.Session()
 
         # self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
 

@@ -250,6 +250,8 @@ class VGG16(base.NN):
 
         self.__has_rebuild = False
 
+        self.sess = tf.Session()
+
 
     ''' 加载数据 '''
     def load(self):
@@ -301,7 +303,7 @@ class VGG16(base.NN):
             # self.__mean_ch_log_loss = tf.placeholder(tf.float32, name='mean_ch_log_loss')
 
             tf.summary.scalar('learning_rate', self.__learning_rate)
-            tf.summary.scalar('keep_prob', self.__keep_prob)
+            # tf.summary.scalar('keep_prob', self.__keep_prob)
             tf.summary.scalar('mean_accuracy', self.__mean_accuracy)
             tf.summary.scalar('mean_loss', self.__mean_loss)
             tf.summary.scalar('mean_log_loss', self.__mean_log_loss)
@@ -395,14 +397,14 @@ class VGG16(base.NN):
 
         self.__get_accuracy()
 
-        # # # tensorboard 相关记录
-        # self.__summary()
+        # tensorboard 相关记录
+        self.__summary()
 
         # 初始化所有变量
         self.init_variables()
 
-        # # TensorBoard merge summary
-        # self.merge_summary()
+        # TensorBoard merge summary
+        self.merge_summary()
 
         mean_train_loss = 0
         mean_train_log_loss = 0
@@ -460,11 +462,11 @@ class VGG16(base.NN):
 
                 # self.echo('\n epoch: %d  train_loss: %.6f  log_loss:    train_accuracy: %.6f \t ' % (epoch, mean_train_loss, mean_train_accuracy))
 
-                # feed_dict[self.__mean_accuracy] = mean_train_accuracy
-                # feed_dict[self.__mean_loss] = mean_train_loss
-                # feed_dict[self.__mean_log_loss] = mean_train_log_loss
+                feed_dict[self.__mean_accuracy] = mean_train_accuracy
+                feed_dict[self.__mean_loss] = mean_train_loss
+                feed_dict[self.__mean_log_loss] = mean_train_log_loss
                 # # feed_dict[self.__mean_ch_log_loss] = mean_train_ch_log_loss
-                # self.add_summary_train(feed_dict, epoch)
+                self.add_summary_train(feed_dict, epoch)
 
                 del batch_x
                 del batch_y
@@ -474,11 +476,10 @@ class VGG16(base.NN):
                 # batch_val_x, batch_val_y = self.__val_set_list[pig_id].next_batch(self.BATCH_SIZE)
                 #
                 # batch_val_x = (batch_val_x - self.mean_x) / (self.std_x + self.EPLISION)
-                #
-                # feed_dict = {self.__image: batch_val_x, self.__label: batch_val_y, self.__keep_prob: 1.0,
-                #              self.__size: batch_val_y.shape[0], self.__mean_accuracy: mean_val_accuracy,
-                #              self.__mean_loss: mean_val_loss, self.__mean_log_loss: mean_val_log_loss}
-                # self.add_summary_val(feed_dict, epoch)
+
+                feed_dict = {self.__mean_accuracy: mean_val_accuracy, self.__mean_loss: mean_val_loss,
+                             self.__mean_log_loss: mean_val_log_loss}
+                self.add_summary_val(feed_dict, epoch)
 
                 # del batch_val_x
                 # del batch_val_y
@@ -490,6 +491,7 @@ class VGG16(base.NN):
 
                 mean_train_accuracy = 0
                 mean_train_loss = 0
+                mean_train_log_loss = 0
 
                 if best_val_log_loss > mean_val_log_loss:
                     best_val_log_loss = mean_val_log_loss
@@ -513,7 +515,7 @@ class VGG16(base.NN):
                 del batch_x
                 del batch_y
 
-        # self.close_summary()        # 关闭 TensorBoard
+        self.close_summary()        # 关闭 TensorBoard
 
         # self.__test_set.start_thread()
 
@@ -545,11 +547,15 @@ class VGG16(base.NN):
 
         self.echo('\nFinish training %d net ' % pig_id)
 
+        self.sess.close()
+
 
     def run(self):
-        self.run_i(2)
-        # for i in range(self.NUM_PIG):
-        #     self.run_i(i)
+        # self.run_i(2)
+        for i in range(self.NUM_PIG):
+            if i <= 2:
+                continue
+            self.run_i(i)
 
 
     def use_model(self, np_image):
