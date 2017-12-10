@@ -11,7 +11,7 @@ if cur_dir_path:
 
 # import math
 import bi_2_base as base
-import load
+import bi_load as load
 import vgg
 import math
 # import Queue
@@ -513,7 +513,7 @@ class VGG16(base.NN):
                 del batch_x
                 del batch_y
 
-        self.close_summary()        # 关闭 TensorBoard
+        # self.close_summary()        # 关闭 TensorBoard
 
         # self.__test_set.start_thread()
 

@@ -138,7 +138,7 @@ class Data:
                     file_name, img_path = self.__same_data[self.__cur_index]
                     self.__cur_index = (self.__cur_index + 1) % self.__same_len
                 else:
-                    file_name, img_path = self.__same_data[random.randrange(0, self.__diff_len)]
+                    file_name, img_path = self.__diff_data[random.randrange(0, self.__diff_len)]
 
                 x, y = self.__get_x_y(img_path)
                 self.__queue.put([x, y])
