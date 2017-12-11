@@ -290,7 +290,7 @@ class NN:
         model_path = '%s_%d.pkl' % (self.get_model_path(), _id)
         model_name = os.path.split(model_path)[1]
 
-        self.echo('Restoring from %s ...' % model_name)
+        self.echo('\nRestoring from %s ...' % model_name)
         with open(model_path, 'rb') as f:
             w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
             # w_list, b_list = pickle.load(f)
@@ -312,7 +312,6 @@ class NN:
             name, b_value = b_val
             self.bList.append( tf.Variable(b_value, trainable=False, name=name) )
 
-        self.echo('Finish restoring ')
         self.echo('Finish restoring ')
 
 
