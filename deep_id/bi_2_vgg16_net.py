@@ -383,14 +383,8 @@ class VGG16(base.NN):
             batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE)
 
             batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
-
-            self.echo('batch_x:')
-            self.echo(batch_x.shape)
-
             feed_dict = {self.__image: batch_x, self.__label: batch_y,
                          self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
-
-            self.echo('feed_dict ')
 
             # loss, log_loss, ch_log_loss, accuracy = self.sess.run([self.__loss, self.__log_loss, self.__ch_log_loss, self.__accuracy], feed_dict)
             loss, log_loss, accuracy = self.sess.run([self.__loss, self.__log_loss, self.__accuracy], feed_dict)
@@ -403,8 +397,7 @@ class VGG16(base.NN):
             del batch_y
 
             progress = float(i + 1) / times * 100
-            self.echo('>> measuring progress: %.2f%% | %d ' % (progress, times))
-            # self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
+            self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
 
         return mean_accuracy / times, mean_loss / times, mean_log_loss / times
 
@@ -670,6 +663,9 @@ class VGG16(base.NN):
 
         # train_prob_list = self.__measure_prob(self.__train_data)
         # val_prob_list = self.__measure_prob(self.__val_data)
+
+        self.__train_set_list[i].start_thread()
+        self.__val_set_list[i].start_thread()
 
         self.echo('\nStart measuring ... ')
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set_list[i])
