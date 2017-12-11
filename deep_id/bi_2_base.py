@@ -104,7 +104,8 @@ class NN:
         self.std_x = 0.0001
 
         # self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-        self.__start_time = '2017_12_11_18_51_12'
+        # self.__start_time = '2017_12_11_18_51_12'
+        self.__start_time = '2017_12_11_18_51_12_tmp'
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
@@ -158,6 +159,7 @@ class NN:
     ''' 初始化所有变量 '''
     def init_variables(self):
         self.sess.run(tf.global_variables_initializer())
+        self.saver = tf.train.Saver()
 
 
     ''' 初始化权重矩阵 '''
