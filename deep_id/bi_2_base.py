@@ -853,11 +853,11 @@ class NN:
         axis = list(range(len(x_shape) - 1))
 
         with tf.variable_scope('batch_normal'):
-            beta = tf.Variable(np.zeros(params_shape), name='beta')
-            gamma = tf.Variable(np.ones(params_shape), name='gamma')
+            beta = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float64)
+            gamma = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float64)
 
-            moving_mean = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False)
-            moving_variance = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False)
+            moving_mean = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float64)
+            moving_variance = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float64)
 
             # beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
             # gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
