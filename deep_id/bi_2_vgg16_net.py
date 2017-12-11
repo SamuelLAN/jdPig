@@ -397,7 +397,8 @@ class VGG16(base.NN):
             del batch_y
 
             progress = float(i + 1) / times * 100
-            self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
+            self.echo('>> measuring progress: %.2f%% | %d ' % (progress, times))
+            # self.echo('\r >> measuring progress: %.2f%% | %d \t' % (progress, times), False)
 
         return mean_accuracy / times, mean_loss / times, mean_log_loss / times
 
