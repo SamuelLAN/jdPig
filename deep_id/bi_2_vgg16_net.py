@@ -660,7 +660,7 @@ class VGG16(base.NN):
 
         self.__image = self.get_variable_by_name('X:0')
         self.__label = self.get_variable_by_name('y:0')
-        self.__size = self.get_variable_by_name('size:0')
+        self.__size = self.get_variable_by_name('size_1:0')
         self.__keep_prob = self.get_variable_by_name('keep_prob:0')
 
         self.__loss = self.get_variable_by_name('loss/Mean:0')
