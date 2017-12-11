@@ -643,6 +643,46 @@ class VGG16(base.NN):
         return - np.sum( np.multiply( label, np.log(prob) ) ) / label.shape[0]
 
 
+    def test_i(self, i):
+        self.echo('  testing %d net ... ' % i)
+
+        self.reinit(i)
+
+        self.restore_model_w_b(i)
+
+        self.rebuild_model()
+
+        self.get_loss()
+
+        self.__get_accuracy()
+
+        self.__get_log_loss(i)
+
+        self.init_variables()
+
+        # train_prob_list = self.__measure_prob(self.__train_data)
+        # val_prob_list = self.__measure_prob(self.__val_data)
+
+        mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set_list[i])
+        mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set_list[i])
+
+        self.echo('\n*************************************************')
+        self.echo('net: %d  train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (i,
+                                                                                               mean_train_accuracy,
+                                                                                               mean_train_loss,
+                                                                                               mean_train_log_loss))
+        self.echo('net: %d  val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (i,
+                                                                                         mean_val_accuracy,
+                                                                                         mean_val_loss,
+                                                                                         mean_val_log_loss))
+        self.echo('*********************************')
+
+        self.sess.close()
+
+        self.echo('Finish testing ')
+
+
+
     def test(self):
         self.__train_prob_list = []
         self.__val_prob_list = []
@@ -788,5 +828,6 @@ class VGG16(base.NN):
 
 
 o_vgg = VGG16()
-o_vgg.run()
+# o_vgg.run()
 # o_vgg.test()
+o_vgg.test_i(17)
