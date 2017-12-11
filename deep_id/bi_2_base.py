@@ -933,5 +933,8 @@ class NN:
         if crlf:
             print (msg)
         else:
-            sys.stdout.write(msg)
-            sys.stdout.flush()
+            try:
+                sys.stdout.write(msg)
+                sys.stdout.flush()
+            except:
+                print (msg)
