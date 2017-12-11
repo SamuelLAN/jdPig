@@ -8,6 +8,7 @@ import re
 import sys
 import os
 import time
+import numpy as np
 from multiprocessing import Process
 from six.moves import cPickle as pickle
 from tensorflow.python.ops import control_flow_ops
@@ -202,13 +203,14 @@ class NN:
 
 
     def get_variable(self, name, shape, initializer, weight_decay=0.0, dtype='float', trainable=True):
-        if weight_decay > 0:
-            regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
-        else:
-            regularizer = None
-        collections = [tf.GraphKeys.GLOBAL_VARIABLES, self.VARIABLE_COLLECTION]
-        return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
-                               regularizer=regularizer,collections=collections, trainable=trainable)
+        with tf.variable_scope('regularizer'):
+            if weight_decay > 0:
+                regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
+            else:
+                regularizer = None
+            collections = [tf.GraphKeys.GLOBAL_VARIABLES, self.VARIABLE_COLLECTION]
+            return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
+                                   regularizer=regularizer,collections=collections, trainable=trainable)
 
 
     ''' 获取全局的训练 step '''
@@ -279,7 +281,7 @@ class NN:
             b_list.append([name, b_value])
 
         with open(model_path, 'wb') as f:
-            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, 2)
 
         # self.echo('Finish saving model ')
 
@@ -727,6 +729,8 @@ class NN:
         self.net = []
         a = X
 
+        t_is_train = tf.convert_to_tensor(False, dtype='bool', name='is_train')
+
         model_len = len(self.MODEL)
         for i, config in enumerate(self.MODEL):
             _type = config['type'].lower()
@@ -737,6 +741,10 @@ class NN:
             if _type == 'conv':
                 with tf.variable_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
+
+                    if 'bn' in config and config['bn']:
+                        a = self.batch_normal(a, t_is_train)
+
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
@@ -850,13 +858,20 @@ class NN:
 
         axis = list(range(len(x_shape) - 1))
 
-        beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
-        gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
+        with tf.variable_scope('batch_normal'):
+            # beta = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
+            # gamma = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
+            #
+            # moving_mean = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
+            # moving_variance = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
 
-        moving_mean = self.get_variable('moving_mean', params_shape,
-                                        initializer=tf.zeros_initializer, trainable=False)
-        moving_variance = self.get_variable('moving_variance', params_shape,
-                                            initializer=tf.ones_initializer, trainable=False)
+            beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
+            gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
+
+            moving_mean = self.get_variable('moving_mean', params_shape,
+                                            initializer=tf.zeros_initializer, trainable=False)
+            moving_variance = self.get_variable('moving_variance', params_shape,
+                                                initializer=tf.ones_initializer, trainable=False)
 
         mean, variance = tf.nn.moments(x, axis)
 
