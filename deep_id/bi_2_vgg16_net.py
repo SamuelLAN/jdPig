@@ -37,10 +37,15 @@ class VGG16(base.NN):
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
-    BASE_LEARNING_RATE = 0.0001  # 初始 学习率
-    DECAY_RATE = 0.00001  # 学习率 的 下降速率
+    BASE_LEARNING_RATE = [0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+                          0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+                          0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001]
 
-    REGULAR_BETA = [0.1, 0.1, 0.8, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1,
+    DECAY_RATE = [0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001,
+                  0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001,
+                  0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001]
+
+    REGULAR_BETA = [0.1, 0.1, 1.0, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1,
                     0.5, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1,
                     1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1]  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
@@ -277,7 +282,7 @@ class VGG16(base.NN):
         self.global_step = self.get_global_step()
 
         self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
+            self.BASE_LEARNING_RATE[pig_id], self.global_step, self.__steps, self.DECAY_RATE[pig_id], staircase=False
         )
 
         self.__has_rebuild = False
