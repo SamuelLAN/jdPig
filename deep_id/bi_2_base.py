@@ -202,7 +202,7 @@ class NN:
 
 
     def get_variable(self, name, shape, initializer, weight_decay=0.0, dtype='float', trainable=True):
-        with tf.variable_scope('regularizer', reuse=False):
+        with tf.variable_scope('regularizer', reuse=True):
             if weight_decay > 0:
                 regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
             else:
@@ -597,7 +597,7 @@ class NN:
 
                 # 卷积层
                 if _type == 'conv':
-                    with tf.variable_scope(name, reuse=False):
+                    with tf.variable_scope(name, reuse=True):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
                             if not 'W' in config else self.init_weight_w(config['W'], trainable)
@@ -608,7 +608,7 @@ class NN:
 
                 # 反卷积层 (上采样 transpose conv)
                 elif _type == 'tr_conv':
-                    with tf.variable_scope(name, reuse=False):
+                    with tf.variable_scope(name, reuse=True):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
                             if not 'W' in config else self.init_weight_w(config['W'], trainable)
@@ -619,7 +619,7 @@ class NN:
 
                 # 全连接层
                 elif _type == 'fc':
-                    with tf.variable_scope(name, reuse=False):
+                    with tf.variable_scope(name, reuse=True):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['shape']) if not 'W' in config \
                             else self.init_weight_w(config['W'], trainable)
@@ -648,7 +648,7 @@ class NN:
 
             # 卷积层
             if _type == 'conv':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
                     if 'bn' in config and config['bn']:
@@ -665,7 +665,7 @@ class NN:
 
             # 池化层
             elif _type == 'pool':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
@@ -676,7 +676,7 @@ class NN:
 
             # 全连接层
             elif _type == 'fc':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     x = tf.reshape(a, [-1, config['shape'][0]])
                     a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
 
@@ -685,12 +685,12 @@ class NN:
 
             # 训练的 dropout
             elif _type == 'dropout':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     a = self.dropout(a, dropout)
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
@@ -712,7 +712,7 @@ class NN:
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     a = tf.add(a, self.net[config['layer_index']])
 
             self.net.append(a)
@@ -736,14 +736,14 @@ class NN:
 
             # 卷积层
             if _type == 'conv':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
             # 池化层
             elif _type == 'pool':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
@@ -751,7 +751,7 @@ class NN:
 
             # 全连接层
             elif _type == 'fc':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     x = tf.reshape(a, [-1, config['shape'][0]])
                     a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
 
@@ -760,7 +760,7 @@ class NN:
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
@@ -782,7 +782,7 @@ class NN:
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
-                with tf.variable_scope(name, reuse=False):
+                with tf.variable_scope(name, reuse=True):
                     a = tf.add(a, self.net[config['layer_index']])
 
             self.net.append(a)
@@ -851,7 +851,7 @@ class NN:
 
         axis = list(range(len(x_shape) - 1))
 
-        with tf.variable_scope('batch_normal', reuse=False):
+        with tf.variable_scope('batch_normal', reuse=True):
             beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
             gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
 
