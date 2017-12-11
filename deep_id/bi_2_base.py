@@ -286,25 +286,25 @@ class NN:
             b_list.append([name, b_value])
 
         beta_list = []
-        for name_scope, tensor in self.__beta_list:
+        for name_scope, tensor in self.__beta_list.items():
             name = b.name.split(':')[0]
             value = self.sess.run(tensor)
             beta_list.append([name, value])
 
         gamma_list = []
-        for name_scope, tensor in self.__gamma_list:
+        for name_scope, tensor in self.__gamma_list.items():
             name = b.name.split(':')[0]
             value = self.sess.run(tensor)
             gamma_list.append([name, value])
 
         moving_mean_list = []
-        for name_scope, tensor in self.__moving_mean_list:
+        for name_scope, tensor in self.__moving_mean_list.items():
             name = b.name.split(':')[0]
             value = self.sess.run(tensor)
             moving_mean_list.append([name, value])
 
         moving_std_list = []
-        for name_scope, tensor in self.__moving_std_list:
+        for name_scope, tensor in self.__moving_std_list.items():
             name = b.name.split(':')[0]
             value = self.sess.run(tensor)
             moving_std_list.append([name, value])
