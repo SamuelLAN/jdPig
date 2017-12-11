@@ -652,8 +652,8 @@ class NN:
                 with tf.variable_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
-                    if 'bn' in config and config['bn']:
-                        a = self.batch_normal(a, t_is_train)
+                    # if 'bn' in config and config['bn']:
+                    #     a = self.batch_normal(a, t_is_train)
 
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
@@ -742,8 +742,8 @@ class NN:
                 with tf.variable_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
-                    if 'bn' in config and config['bn']:
-                        a = self.batch_normal(a, t_is_train)
+                    # if 'bn' in config and config['bn']:
+                    #     a = self.batch_normal(a, t_is_train)
 
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
