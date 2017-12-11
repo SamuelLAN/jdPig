@@ -252,12 +252,12 @@ class VGG16(base.NN):
     ''' 自定义 初始化变量 过程 '''
     def init(self):
         # 输入 与 label
-        self.__image = tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X')
-        self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
-        self.__size = tf.placeholder(tf.float32, name='size')
+        # self.__image = tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X')
+        # self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
+        # self.__size = tf.placeholder(tf.float32, name='size')
 
         # dropout 的 keep_prob
-        self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+        # self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         self.__train_set_list = [None for i in range(self.NUM_PIG)]
         self.__val_set_list = [None for i in range(self.NUM_PIG)]
@@ -660,7 +660,7 @@ class VGG16(base.NN):
 
         self.__image = self.get_variable_by_name('X:0')
         self.__label = self.get_variable_by_name('y:0')
-        self.__size = self.get_variable_by_name('size_1:0')
+        self.__size = self.get_variable_by_name('size:0')
         self.__keep_prob = self.get_variable_by_name('keep_prob:0')
 
         self.__loss = self.get_variable_by_name('loss/Mean:0')
