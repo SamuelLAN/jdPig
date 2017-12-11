@@ -620,7 +620,7 @@ class VGG16(base.NN):
             #     continue
             # if '2.7' not in sys.version and i < 15:
             #     continue
-            if '2.7' in sys.version and i < 15:
+            if '2.7' in sys.version and i < 16:
                 continue
             self.run_i(i)
 
