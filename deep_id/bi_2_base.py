@@ -95,6 +95,11 @@ class NN:
         self.WList = []                                     # 存放权重矩阵的 list
         self.bList = []                                     # 存放偏置量的 list
 
+        self.__beta_list = {}
+        self.__gamma_list = {}
+        self.__moving_mean_list = {}
+        self.__moving_std_list = {}
+
         self.mean_x = 0
         self.std_x = 0.0001
 
@@ -280,8 +285,33 @@ class NN:
             b_value = self.sess.run(b)
             b_list.append([name, b_value])
 
+        beta_list = []
+        for name_scope, tensor in self.__beta_list:
+            name = b.name.split(':')[0]
+            value = self.sess.run(tensor)
+            beta_list.append([name, value])
+
+        gamma_list = []
+        for name_scope, tensor in self.__gamma_list:
+            name = b.name.split(':')[0]
+            value = self.sess.run(tensor)
+            gamma_list.append([name, value])
+
+        moving_mean_list = []
+        for name_scope, tensor in self.__moving_mean_list:
+            name = b.name.split(':')[0]
+            value = self.sess.run(tensor)
+            moving_mean_list.append([name, value])
+
+        moving_std_list = []
+        for name_scope, tensor in self.__moving_std_list:
+            name = b.name.split(':')[0]
+            value = self.sess.run(tensor)
+            moving_std_list.append([name, value])
+
         with open(model_path, 'wb') as f:
-            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, 2)
+            pickle.dump([w_list, b_list, self.mean_x, self.std_x,
+                         beta_list, gamma_list, moving_mean_list, moving_std_list], f, 2)
 
         # self.echo('Finish saving model ')
 
@@ -292,11 +322,16 @@ class NN:
 
         self.echo('\nRestoring from %s ...' % model_name)
         with open(model_path, 'rb') as f:
-            w_list, b_list, self.mean_x, self.std_x = pickle.load(f)
+            w_list, b_list, self.mean_x, self.std_x, beta_list, gamma_list, moving_mean_list, moving_std_list = pickle.load(f)
             # w_list, b_list = pickle.load(f)
 
         self.WList = []
         self.bList = []
+
+        self.__beta_list = {}
+        self.__gamma_list = {}
+        self.__moving_mean_list = {}
+        self.__moving_std_list = {}
 
         for i, w_val in enumerate(w_list):
             if type(w_val) == type(None):
@@ -311,6 +346,22 @@ class NN:
                 continue
             name, b_value = b_val
             self.bList.append( tf.Variable(b_value, trainable=False, name=name) )
+
+        for i, val in enumerate(beta_list):
+            name, value = val
+            self.__beta_list[name] = tf.Variable(value, trainable=False, name='%s/beta' % name)
+
+        for i, val in enumerate(gamma_list):
+            name, value = val
+            self.__gamma_list[name] = tf.Variable(value, trainable=False, name='%s/gamma' % name)
+
+        for i, val in enumerate(moving_mean_list):
+            name, value = val
+            self.__moving_mean_list[name] = tf.Variable(value, trainable=False, name='%s/moving_mean' % name)
+
+        for i, val in enumerate(moving_std_list):
+            name, value = val
+            self.__moving_std_list[name] = tf.Variable(value, trainable=False, name='%s/moving_variance' % name)
 
         self.echo('Finish restoring ')
 
@@ -652,7 +703,7 @@ class NN:
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
                     if 'bn' in config and config['bn']:
-                        a = self.batch_normal(a, t_is_train)
+                        a = self.batch_normal(a, t_is_train, name)
 
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
@@ -742,7 +793,7 @@ class NN:
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
                     if 'bn' in config and config['bn']:
-                        a = self.batch_normal(a, t_is_train)
+                        a = self.batch_normal(a, t_is_train, name)
 
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
@@ -851,17 +902,25 @@ class NN:
         return tf.nn.avg_pool(x, ksize=k_size, strides=k_size, padding='SAME')
 
 
-    def batch_normal(self, x, is_train):
+    def batch_normal(self, x, is_train, name_scope):
         x_shape = x.get_shape()
         params_shape = x_shape[-1:]
 
         axis = list(range(len(x_shape) - 1))
 
-        beta = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
-        gamma = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
+        if name_scope not in self.__beta_list:
+            self.__beta_list[name_scope] = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
+        if name_scope not in self.__gamma_list:
+            self.__gamma_list[name_scope] = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
+        if name_scope not in self.__moving_mean_list:
+            self.__moving_mean_list[name_scope] = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
+        if name_scope not in self.__moving_std_list:
+            self.__moving_std_list[name_scope] = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
 
-        moving_mean = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
-        moving_variance = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
+        beta = self.__beta_list[name_scope]
+        gamma = self.__gamma_list[name_scope]
+        moving_mean = self.__moving_mean_list[name_scope]
+        moving_variance = self.__moving_std_list[name_scope]
 
             # beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
             # gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)

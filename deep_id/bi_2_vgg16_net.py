@@ -605,19 +605,19 @@ class VGG16(base.NN):
 
     def run(self):
         self.__result = [
-            [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769],
-            [1, 0.957576, 0.135455, 2.257838, 0.922619, 0.224127, 2.325161],
+            # [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769],
+            # [1, 0.957576, 0.135455, 2.257838, 0.922619, 0.224127, 2.325161],
         ]
 
-        except_list = [0, 1, 2, 10, 15, 16]
+        except_list = []
 
         for i in range(self.NUM_PIG):
-            if i in except_list:
-                continue
-            if '2.7' not in sys.version and i < 15:
-                continue
-            elif '2.7' in sys.version and i >= 15:
-                continue
+            # if i in except_list:
+            #     continue
+            # if '2.7' not in sys.version and i < 15:
+            #     continue
+            # elif '2.7' in sys.version and i >= 15:
+            #     continue
             self.run_i(i)
 
             for ret in self.__result:
@@ -833,6 +833,6 @@ class VGG16(base.NN):
 
 
 o_vgg = VGG16()
-# o_vgg.run()
+o_vgg.run()
 # o_vgg.test()
-o_vgg.test_i(17)
+# o_vgg.test_i(17)
