@@ -26,7 +26,7 @@ class VGG16(base.NN):
     MODEL_NAME = 'vgg_16'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
-    EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 20  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 30  # 输出的类别
@@ -35,7 +35,7 @@ class VGG16(base.NN):
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
-    BASE_LEARNING_RATE = 0.0001  # 初始 学习率
+    BASE_LEARNING_RATE = 0.001  # 初始 学习率
     DECAY_RATE = 0.001  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.02  # 正则化的 beta 参数
@@ -295,7 +295,11 @@ class VGG16(base.NN):
     def get_train_op(self, loss, learning_rate, global_step):
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(learning_rate)
-            return optimizer.minimize(loss, global_step=global_step)
+            optimizer_op = optimizer.minimize(loss, global_step=global_step)
+
+            batch_norm_updates = tf.get_collection(self.UPDATE_OPS_COLLECTION)
+            batch_norm_updates_op = tf.group(*batch_norm_updates)
+            return tf.group(optimizer_op, batch_norm_updates_op)
 
 
     ''' 将图片输出到 tensorboard '''
@@ -332,7 +336,7 @@ class VGG16(base.NN):
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
             # w = correct * 1.5 + incorrect * 0.8
-            w = correct * 0.9 + incorrect * 1.2
+            w = correct * 0.9 + incorrect * 1.3
             output = w * self.__output
 
             exp_x = tf.exp(self.__output)
