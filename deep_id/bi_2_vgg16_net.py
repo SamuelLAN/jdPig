@@ -13,6 +13,7 @@ if cur_dir_path:
 import bi_2_base as base
 import bi_load as load
 import vgg
+import csv
 import math
 # import Queue
 import numpy as np
@@ -67,6 +68,9 @@ class VGG16(base.NN):
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
 
     MAX_VAL_ACCURACY_DECR_TIMES = 4  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+
+    RESULT_DIR = r'result'
+    RESULT_FILE_PATH = r'result/test_B.csv'
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [
@@ -621,7 +625,7 @@ class VGG16(base.NN):
             #     continue
             if '2.7' in sys.version and i < 17:
                 continue
-            elif '2.7' not in sys.version and (i >= 15 or i <= 1):
+            elif '2.7' not in sys.version and (i >= 15 or i <= 3):
                 continue
             self.run_i(i)
 
@@ -796,18 +800,32 @@ class VGG16(base.NN):
         data = []
         for i, pig_id in enumerate(id_list):
             tmp_prob_list = self.__prob_list[i]
-            for class_no, prob in enumerate(tmp_prob_list.reshape()):
+            for class_no, prob in enumerate(tmp_prob_list.reshape(-1)):
+                data.append([pig_id, class_no + 1, '%.10f' % prob])
 
+        if not os.path.isdir(self.RESULT_DIR):
+            os.mkdir(self.RESULT_DIR)
 
-            for class_no
-            data.append([train_label_list[i], ])
+        self.echo('\nSaving result to %s ... ' % self.RESULT_FILE_PATH)
+        data_len = len(data)
+
+        with open(self.RESULT_FILE_PATH, 'w') as f:
+            writer = csv.writer(f)
+
+            for i, line in enumerate(data):
+                progress = float(i + 1) / data_len * 100.0
+                self.echo('\r  >> progress: %.6f ' % progress, False)
+
+                writer.writerow(line)
+
+        self.echo('Finish saving result ')
 
         # train_log_loss = self.np_log_loss(self.__train_prob_list, train_label_list)
         # val_log_loss = self.np_log_loss(self.__val_prob_list, val_label_list)
 
-        self.echo('\n****************************************')
-        self.echo('train_log_loss: %.8f' % train_log_loss)
-        self.echo('val_log_loss: %.8f' % val_log_loss)
+        # self.echo('\n****************************************')
+        # self.echo('train_log_loss: %.8f' % train_log_loss)
+        # self.echo('val_log_loss: %.8f' % val_log_loss)
 
 
     def use_model(self, np_image):
