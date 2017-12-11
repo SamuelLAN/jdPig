@@ -851,13 +851,14 @@ class NN:
 
         axis = list(range(len(x_shape) - 1))
 
-        beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
-        gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
+        with tf.variable_scope('batch_normal', reuse=False):
+            beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
+            gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
 
-        moving_mean = self.get_variable('moving_mean', params_shape,
-                                        initializer=tf.zeros_initializer, trainable=False)
-        moving_variance = self.get_variable('moving_variance', params_shape,
-                                            initializer=tf.ones_initializer, trainable=False)
+            moving_mean = self.get_variable('moving_mean', params_shape,
+                                            initializer=tf.zeros_initializer, trainable=False)
+            moving_variance = self.get_variable('moving_variance', params_shape,
+                                                initializer=tf.ones_initializer, trainable=False)
 
         mean, variance = tf.nn.moments(x, axis)
 
