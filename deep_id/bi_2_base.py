@@ -105,7 +105,7 @@ class NN:
 
         # self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
         # self.__start_time = '2017_12_11_18_51_12'
-        self.__start_time = '2017_12_11_18_51_12_tmp.ckpt-187'
+        self.__start_time = '2017_12_11_18_51_12_tmp.ckpt-187.ckpt-187'
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
