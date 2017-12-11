@@ -82,10 +82,10 @@ class NN:
 
     ''' 析构函数 '''
     def __del__(self):
-        # pass
-        NN.kill_tensorboard_if_runing()
-        self.tbProcess.join(10)
-        self.tbProcess.terminate()
+        pass
+        # NN.kill_tensorboard_if_runing()
+        # self.tbProcess.join(10)
+        # self.tbProcess.terminate()
 
 
     ''' 初始化 '''
@@ -208,7 +208,7 @@ class NN:
             regularizer = None
         collections = [tf.GraphKeys.VARIABLES, self.VARIABLE_COLLECTION]
         return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
-                               regularizer=regularizer, collections=collections, trainable=trainable)
+                               regularizer=regularizer,collections=collections, trainable=trainable)
 
 
     ''' 获取全局的训练 step '''
@@ -596,7 +596,7 @@ class NN:
 
                 # 卷积层
                 if _type == 'conv':
-                    with tf.name_scope(name):
+                    with tf.variable_scope(name):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
                             if not 'W' in config else self.init_weight_w(config['W'], trainable)
@@ -607,7 +607,7 @@ class NN:
 
                 # 反卷积层 (上采样 transpose conv)
                 elif _type == 'tr_conv':
-                    with tf.name_scope(name):
+                    with tf.variable_scope(name):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
                             if not 'W' in config else self.init_weight_w(config['W'], trainable)
@@ -618,7 +618,7 @@ class NN:
 
                 # 全连接层
                 elif _type == 'fc':
-                    with tf.name_scope(name):
+                    with tf.variable_scope(name):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['shape']) if not 'W' in config \
                             else self.init_weight_w(config['W'], trainable)
@@ -647,7 +647,7 @@ class NN:
 
             # 卷积层
             if _type == 'conv':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
                     if 'bn' in config and config['bn']:
@@ -664,7 +664,7 @@ class NN:
 
             # 池化层
             elif _type == 'pool':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
@@ -675,7 +675,7 @@ class NN:
 
             # 全连接层
             elif _type == 'fc':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     x = tf.reshape(a, [-1, config['shape'][0]])
                     a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
 
@@ -684,12 +684,12 @@ class NN:
 
             # 训练的 dropout
             elif _type == 'dropout':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     a = self.dropout(a, dropout)
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
@@ -711,7 +711,7 @@ class NN:
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     a = tf.add(a, self.net[config['layer_index']])
 
             self.net.append(a)
@@ -735,14 +735,14 @@ class NN:
 
             # 卷积层
             if _type == 'conv':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
             # 池化层
             elif _type == 'pool':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
@@ -750,7 +750,7 @@ class NN:
 
             # 全连接层
             elif _type == 'fc':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     x = tf.reshape(a, [-1, config['shape'][0]])
                     a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
 
@@ -759,7 +759,7 @@ class NN:
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
@@ -781,7 +781,7 @@ class NN:
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
-                with tf.name_scope(name):
+                with tf.variable_scope(name):
                     a = tf.add(a, self.net[config['layer_index']])
 
             self.net.append(a)
