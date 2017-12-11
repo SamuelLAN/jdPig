@@ -601,19 +601,17 @@ class TestBData:
     def __get_x_y(img_path):
         return Data.add_padding(img_path), TestBData.__get_y(img_path)
 
+
     @staticmethod
     def __get_y(img_path):
         no_list = os.path.splitext(os.path.split(img_path)[1])[0].split('_')
+        return int(no_list[0])
 
-        pig_no = int(no_list[0]) - 1
-        label = np.zeros([TestData.NUM_CLASSES])
-        label[pig_no] = 1
-
-        return label
 
     @staticmethod
     def __resize_np_img(np_image):
         return np.array(Image.fromarray(np_image).resize(Data.RESIZE), dtype=np.float32)
+
 
     @staticmethod
     def add_padding(img_path):

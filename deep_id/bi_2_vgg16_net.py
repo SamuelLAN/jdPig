@@ -407,13 +407,14 @@ class VGG16(base.NN):
 
 
     def __measure_prob(self, data_set):
-        times = int(math.ceil(float(data_set.get_size()) / self.BATCH_SIZE))
+        batch_size = 100
+        times = int(math.ceil(float(data_set.get_size()) / batch_size))
         count = 0
         data_set.reset_cur_index()
         prob_list = []
 
         while True:
-            batch_x, _ = data_set.next_batch(self.BATCH_SIZE, False)
+            batch_x, _ = data_set.next_batch(batch_size, False)
             if not batch_x:
                 break
 
@@ -421,7 +422,7 @@ class VGG16(base.NN):
             feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
 
             prob = self.sess.run(self.__prob, feed_dict)
-            prob_list.append(prob[:, 1])
+            prob_list.append( prob[:, 1].transpose() )
 
             del batch_x
 
@@ -740,11 +741,14 @@ class VGG16(base.NN):
 
 
     def test(self):
-        self.__train_prob_list = []
-        self.__val_prob_list = []
+        # self.__train_prob_list = []
+        # self.__val_prob_list = []
+        self.__prob_list = []
 
-        self.__train_data = load.TestData(0.0, 0.8)
-        self.__val_data = load.TestData(0.8, 1.0)
+        self.__data = load.TestBData()
+
+        # self.__train_data = load.TestData(0.0, 0.8)
+        # self.__val_data = load.TestData(0.8, 1.0)
 
         self.echo('\nStart testing ... ')
         for i in range(self.NUM_PIG):
@@ -764,27 +768,42 @@ class VGG16(base.NN):
 
             self.init_variables()
 
-            train_prob_list = self.__measure_prob(self.__train_data)
-            val_prob_list = self.__measure_prob(self.__val_data)
+            prob_list = self.__measure_prob(self.__data)
+            self.__prob_list.append(prob_list)
 
-            self.__train_prob_list.append(train_prob_list)
-            self.__val_prob_list.append(val_prob_list)
+            # train_prob_list = self.__measure_prob(self.__train_data)
+            # val_prob_list = self.__measure_prob(self.__val_data)
+
+            # self.__train_prob_list.append(train_prob_list)
+            # self.__val_prob_list.append(val_prob_list)
 
             self.sess.close()
 
         self.echo('Finish testing ')
 
-        self.__train_prob_list = np.hstack(self.__train_prob_list).transpose()
-        self.__val_prob_list = np.hstack(self.__val_prob_list).transpose()
+        self.__prob_list = np.hstack(self.__prob_list)
+        # self.__train_prob_list = np.hstack(self.__train_prob_list)
+        # self.__val_prob_list = np.hstack(self.__val_prob_list)
 
-        self.__train_prob_list = self.np_softmax(self.__train_prob_list)
-        self.__val_prob_list = self.np_softmax(self.__val_prob_list)
+        self.__prob_list = self.np_softmax(self.__prob_list)
+        # self.__train_prob_list = self.np_softmax(self.__train_prob_list)
+        # self.__val_prob_list = self.np_softmax(self.__val_prob_list)
 
-        train_label_list = self.__train_data.get_label_list()
-        val_label_list = self.__val_data.get_label_list()
+        id_list = self.__data.get_label_list()
+        # train_label_list = self.__train_data.get_label_list()
+        # val_label_list = self.__val_data.get_label_list()
 
-        train_log_loss = self.np_log_loss(self.__train_prob_list, train_label_list)
-        val_log_loss = self.np_log_loss(self.__val_prob_list, val_label_list)
+        data = []
+        for i, pig_id in enumerate(id_list):
+            tmp_prob_list = self.__prob_list[i]
+            for class_no, prob in enumerate(tmp_prob_list.reshape()):
+
+
+            for class_no
+            data.append([train_label_list[i], ])
+
+        # train_log_loss = self.np_log_loss(self.__train_prob_list, train_label_list)
+        # val_log_loss = self.np_log_loss(self.__val_prob_list, val_label_list)
 
         self.echo('\n****************************************')
         self.echo('train_log_loss: %.8f' % train_log_loss)
