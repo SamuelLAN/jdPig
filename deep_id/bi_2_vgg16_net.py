@@ -684,6 +684,9 @@ class VGG16(base.NN):
 
         self.sess.close()
 
+        self.__train_set_list[i].stop()
+        self.__val_set_list[i].stop()
+
         self.echo('Finish testing ')
 
 
@@ -833,6 +836,6 @@ class VGG16(base.NN):
 
 
 o_vgg = VGG16()
-# o_vgg.run()
+o_vgg.run()
 # o_vgg.test()
-o_vgg.test_i(0)
+# o_vgg.test_i(0)
