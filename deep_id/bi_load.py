@@ -42,7 +42,7 @@ class Data:
         start_ratio = min(max(0.0, start_ratio), 1.0)
         end_ratio = min(max(0.0, end_ratio), 1.0)
 
-        for pig_id, pig_list in self.__data.items():
+        for pig_id, pig_list in self.__data.iteritems():
             pig_len = len(pig_list)
 
             # 根据比例计算数据的位置范围
@@ -107,8 +107,8 @@ class Data:
             self.__data[pig_id].append([split_file_name[0], file_path])
 
         self.echo(' sorting data ... ')
-        for pig_id, pig_list in self.__data.items():
-            pig_list.sort(key=lambda x: x[0])
+        for pig_id, pig_list in self.__data.iteritems():
+            pig_list.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
 
@@ -274,7 +274,7 @@ class TestData:
         start_ratio = min(max(0.0, start_ratio), 1.0)
         end_ratio = min(max(0.0, end_ratio), 1.0)
 
-        for pig_id, pig_list in self.__data.items():
+        for pig_id, pig_list in self.__data.iteritems():
             pig_len = len(pig_list)
 
             # 根据比例计算数据的位置范围
@@ -328,8 +328,8 @@ class TestData:
             self.__data[pig_id].append([split_file_name[0], file_path])
 
         self.echo(' sorting data ... ')
-        for pig_id, pig_list in self.__data.items():
-            pig_list.sort(key=lambda x: x[0])
+        for pig_id, pig_list in self.__data.iteritems():
+            pig_list.sort(self.__sort)
 
         self.echo('\nFinish Loading\n')
 

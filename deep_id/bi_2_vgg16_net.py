@@ -26,36 +26,22 @@ class VGG16(base.NN):
     MODEL_NAME = 'vgg_16_30'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
-    EPOCH_TIMES = 18  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 30  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 2  # 输出的类别
 
-    NUM_PIG = 30
+    NUM_PIG = 25
 
     IMAGE_SHAPE = [224, 224]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
-    BASE_LEARNING_RATE = [0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
-                          0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.00001, 0.0001, 0.0001, 0.0001, 0.0001,
-                          0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001]
+    BASE_LEARNING_RATE = 0.0001  # 初始 学习率
+    DECAY_RATE = 0.00001  # 学习率 的 下降速率
 
-    DECAY_RATE = [0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001,
-                  0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001,
-                  0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001]
-
-    REGULAR_BETA = [0.1, 0.1, 0.85, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
-                    0.8, 0.5, 0.5, 0.5, 0.5,  0.5, 0.5, 0.5, 0.5, 0.5,
-                    0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]  # 正则化的 beta 参数
+    REGULAR_BETA = 0.1  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
-
-    CORRECT_WEIGHT = [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9,
-                      0.9, 0.9, 0.9, 0.9, 0.9,  0.9, 0.9, 0.9, 0.9, 0.9,
-                      0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9]
-    INCORRECT_WEIGHT = [1.3, 1.3, 1.1, 1.3, 1.3, 1.3, 1.3, 1.2, 1.3, 1.3,
-                        1.1, 1.3, 1.2, 1.3, 1.3,  1.3, 1.3, 1.2, 1.3, 1.3,
-                        1.3, 1.3, 1.2, 1.3, 1.3, 1.3, 1.3, 1.2, 1.3, 1.3]
 
     EPLISION = 0.00001
 
@@ -67,7 +53,7 @@ class VGG16(base.NN):
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
 
-    MAX_VAL_ACCURACY_DECR_TIMES = 4  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 7  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [
@@ -252,6 +238,9 @@ class VGG16(base.NN):
 
     ''' 自定义 初始化变量 过程 '''
     def init(self):
+        # 加载数据
+        self.load()
+
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X')
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
@@ -260,20 +249,11 @@ class VGG16(base.NN):
         # dropout 的 keep_prob
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
-        self.__train_set_list = [None for i in range(self.NUM_PIG)]
-        self.__val_set_list = [None for i in range(self.NUM_PIG)]
-
-        self.__train_size_list = [0 for i in range(self.NUM_PIG)]
-        self.__val_size_list = [0 for i in range(self.NUM_PIG)]
-
 
     def reinit(self, pig_id):
         self.net = []  # 存放每层网络的 feature map
         self.WList = []  # 存放权重矩阵的 list
         self.bList = []  # 存放偏置量的 list
-
-        # 加载数据
-        self.load_i(pig_id)
 
         # 常量
         self.__iter_per_epoch = int(self.__train_size_list[pig_id] // self.BATCH_SIZE)
@@ -282,7 +262,7 @@ class VGG16(base.NN):
         self.global_step = self.get_global_step()
 
         self.__learning_rate = self.get_learning_rate(
-            self.BASE_LEARNING_RATE[pig_id], self.global_step, self.__steps, self.DECAY_RATE[pig_id], staircase=False
+            self.BASE_LEARNING_RATE, self.global_step, self.__steps, self.DECAY_RATE, staircase=False
         )
 
         self.__has_rebuild = False
@@ -291,12 +271,19 @@ class VGG16(base.NN):
 
 
     ''' 加载数据 '''
-    def load_i(self, _id):
-        self.__train_set_list[_id] = load.Data(_id, 0.0, 0.8, 'train')
-        self.__val_set_list[_id] = load.Data(_id, 0.8, 1.0, 'validation')
+    def load(self):
+        self.__train_set_list = []
+        self.__val_set_list = []
 
-        self.__train_size_list[_id] = self.__train_set_list[_id].get_size()
-        self.__val_size_list[_id] = self.__val_set_list[_id].get_size()
+        self.__train_size_list = []
+        self.__val_size_list = []
+
+        for i in range(self.NUM_PIG):
+            self.__train_set_list.append(load.Data(i, 0.0, 0.8, 'train'))
+            self.__val_set_list.append(load.Data(i, 0.8, 1.0, 'validation'))
+
+            self.__train_size_list.append(self.__train_set_list[i].get_size())
+            self.__val_size_list.append(self.__val_set_list[i].get_size())
 
 
     ''' 模型 '''
@@ -349,7 +336,7 @@ class VGG16(base.NN):
             self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), self.__size ) # 计算准确率
 
 
-    def __get_log_loss(self, pig_id):
+    def __get_log_loss(self):
         with tf.name_scope('log_loss'):
             labels = self.__label
             predict = tf.one_hot( tf.argmax(self.__output, 1), depth=self.NUM_CLASSES )
@@ -358,7 +345,7 @@ class VGG16(base.NN):
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
             # w = correct * 1.5 + incorrect * 0.8
-            w = correct * self.CORRECT_WEIGHT[pig_id] + incorrect * self.INCORRECT_WEIGHT[pig_id]
+            w = correct * 0.9 + incorrect * 1.3
             output = w * self.__output
 
             exp_x = tf.exp(self.__output)
@@ -436,6 +423,7 @@ class VGG16(base.NN):
         self.echo('\nStart training %d net ... ' % pig_id)
 
         # self.get_summary_path(pig_id)
+
         self.reinit(pig_id)
 
         # 生成模型
@@ -444,10 +432,10 @@ class VGG16(base.NN):
         # 计算 loss
         self.get_loss()
 
-        self.__get_log_loss(pig_id)
+        self.__get_log_loss()
 
         # 正则化
-        self.__ch_loss_regular = self.regularize_trainable(self.__ch_log_loss, self.REGULAR_BETA[pig_id])
+        self.__ch_loss_regular = self.regularize_trainable(self.__ch_log_loss, self.REGULAR_BETA)
         # self.__loss_regular = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
         # self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
 
@@ -582,7 +570,7 @@ class VGG16(base.NN):
         self.rebuild_model()        # 重建模型
         self.get_loss()             # 重新 get loss
         self.__get_accuracy()
-        self.__get_log_loss(pig_id)
+        self.__get_log_loss()
 
         self.init_variables()       # 重新初始化变量
 
@@ -606,18 +594,10 @@ class VGG16(base.NN):
 
     def run(self):
         self.__result = [
-            [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769],
-            [1, 0.957576, 0.135455, 2.257838, 0.922619, 0.224127, 2.325161],
+            [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769]
         ]
-
-        except_list = [0, 1, 10]
-
         for i in range(self.NUM_PIG):
-            if i in except_list:
-                continue
-            if '2.7' not in sys.version and i < 15:
-                continue
-            elif '2.7' in sys.version and i >= 15:
+            if i <= 0:
                 continue
             self.run_i(i)
 
@@ -665,7 +645,7 @@ class VGG16(base.NN):
 
             self.__get_accuracy()
 
-            self.__get_log_loss(i)
+            self.__get_log_loss()
 
             self.init_variables()
 
