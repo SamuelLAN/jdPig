@@ -26,7 +26,7 @@ class VGG16(base.NN):
     MODEL_NAME = 'vgg_16_30'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
-    EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 50  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 2  # 输出的类别
@@ -53,7 +53,7 @@ class VGG16(base.NN):
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
 
-    MAX_VAL_ACCURACY_DECR_TIMES = 30  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 10  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [
@@ -332,7 +332,7 @@ class VGG16(base.NN):
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
             # w = correct * 1.5 + incorrect * 0.8
-            w = correct * 0.9 + incorrect * 1.2
+            w = correct * 0.8 + incorrect * 1.3
             output = w * self.__output
 
             exp_x = tf.exp(self.__output)
