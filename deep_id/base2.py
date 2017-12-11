@@ -873,7 +873,7 @@ class NN:
     def get_train_op(self, loss, learning_rate, global_step):
         tf.summary.scalar('loss', loss)  # 记录 loss 到 TensorBoard
 
-        with tf.name_scope('optimizer'):
+        with tf.variable_scope('optimizer'):
             optimizer = tf.train.GradientDescentOptimizer(learning_rate)
             return optimizer.minimize(loss, global_step=global_step)
 
@@ -893,7 +893,7 @@ class NN:
     ''' 正则化，默认采用 l2_loss 正则化 '''
     def regularize_trainable(self, loss, beta):
         trainable_var = tf.trainable_variables()
-        with tf.name_scope('regularize'):
+        with tf.variable_scope('regularize'):
             regularizer = 0.0
             for i, var in enumerate(trainable_var):
                 # if i == 0:
