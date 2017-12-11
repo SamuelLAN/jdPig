@@ -359,7 +359,7 @@ class NN:
             regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
         else:
             regularizer = None
-        collections = [tf.GraphKeys.VARIABLES, self.VARIABLE_COLLECTION]
+        collections = [tf.GraphKeys.GLOBAL_VARIABLES, self.VARIABLE_COLLECTION]
         return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
                                regularizer=regularizer, collections=collections, trainable=trainable)
 
