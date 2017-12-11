@@ -664,7 +664,7 @@ class VGG16(base.NN):
         self.__keep_prob = self.get_variable_by_name('keep_prob:0')
 
         self.__loss = self.get_variable_by_name('loss/Mean:0')
-        self.__log_loss = self.get_variable_by_name('log_logss/Neg:0')
+        self.__log_loss = self.get_variable_by_name('log_loss/Neg:0')
         self.__accuracy = self.get_variable_by_name('accuracy/truediv:0')
 
         self.sess.run(tf.global_variables_initializer())
