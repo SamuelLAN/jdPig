@@ -654,9 +654,9 @@ class VGG16(base.NN):
     def test_i_tf(self, i):
         self.echo('\nTesting %d net ... ' % i)
 
-        self.restore_model()
-
         self.reinit(i)
+
+        self.restore_model()
 
         self.__image = self.get_variable_by_name('X')
         self.__label = self.get_variable_by_name('y')
