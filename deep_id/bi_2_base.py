@@ -103,8 +103,8 @@ class NN:
         self.mean_x = 0
         self.std_x = 0.0001
 
-        self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-        # self.__start_time = '2017_12_11_18_35_50'
+        # self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+        self.__start_time = '2017_12_11_18_51_12'
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
@@ -905,16 +905,12 @@ class NN:
         axis = list(range(len(x_shape) - 1))
 
         if name_scope not in self.__beta_list:
-            self.echo('init beta ... ')
             self.__beta_list[name_scope] = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
         if name_scope not in self.__gamma_list:
-            self.echo('init gamma ... ')
             self.__gamma_list[name_scope] = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
         if name_scope not in self.__moving_mean_list:
-            self.echo('init moving_mean ... ')
             self.__moving_mean_list[name_scope] = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
         if name_scope not in self.__moving_std_list:
-            self.echo('init moving variance ... ')
             self.__moving_std_list[name_scope] = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
 
         beta = self.__beta_list[name_scope]
