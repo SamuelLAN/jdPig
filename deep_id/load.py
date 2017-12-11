@@ -147,6 +147,14 @@ class Data:
 
         # 根据数据的位置范围 取数据
         self.__data = self.__data[start_index: end_index]
+
+        scale = 3
+        data_list = []
+        for i, data in enumerate(self.__data):
+            if i % scale == 0:
+                data_list.append(data)
+        self.__data = data_list
+
         self.__data_len = len(self.__data)
         random.shuffle(self.__data)
 
