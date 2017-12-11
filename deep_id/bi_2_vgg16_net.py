@@ -610,7 +610,7 @@ class VGG16(base.NN):
             [1, 0.957576, 0.135455, 2.257838, 0.922619, 0.224127, 2.325161],
         ]
 
-        except_list = [0, 1]
+        except_list = [0, 1, 10]
 
         for i in range(self.NUM_PIG):
             if i in except_list:
