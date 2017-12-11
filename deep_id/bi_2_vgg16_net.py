@@ -644,7 +644,7 @@ class VGG16(base.NN):
 
 
     def test_i(self, i):
-        self.echo('  testing %d net ... ' % i)
+        self.echo('\nTesting %d net ... ' % i)
 
         self.reinit(i)
 
@@ -658,11 +658,13 @@ class VGG16(base.NN):
 
         self.__get_log_loss(i)
 
+        self.echo('\nInit variables ...')
         self.init_variables()
 
         # train_prob_list = self.__measure_prob(self.__train_data)
         # val_prob_list = self.__measure_prob(self.__val_data)
 
+        self.echo('\nStart measuring ... ')
         mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set_list[i])
         mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set_list[i])
 
