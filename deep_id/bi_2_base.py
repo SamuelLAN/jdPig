@@ -120,7 +120,7 @@ class NN:
 
         # self.sess = tf.Session()
 
-        self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
+        # self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
 
     # ******************************* 子类需要实现的接口 *******************************
 
