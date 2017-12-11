@@ -8,6 +8,7 @@ import re
 import sys
 import os
 import time
+import numpy as np
 from multiprocessing import Process
 from six.moves import cPickle as pickle
 from tensorflow.python.ops import control_flow_ops
@@ -589,7 +590,7 @@ class NN:
 
                 # 卷积层
                 if _type == 'conv':
-                    with tf.variable_scope(name):
+                    with tf.name_scope(name):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
                             if not 'W' in config else self.init_weight_w(config['W'], trainable)
@@ -600,7 +601,7 @@ class NN:
 
                 # 反卷积层 (上采样 transpose conv)
                 elif _type == 'tr_conv':
-                    with tf.variable_scope(name):
+                    with tf.name_scope(name):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['k_size'] + config['shape']) \
                             if not 'W' in config else self.init_weight_w(config['W'], trainable)
@@ -611,7 +612,7 @@ class NN:
 
                 # 全连接层
                 elif _type == 'fc':
-                    with tf.variable_scope(name):
+                    with tf.name_scope(name):
                         trainable = True if 'trainable' not in config or config['trainable'] else False
                         W = self.init_weight(config['shape']) if not 'W' in config \
                             else self.init_weight_w(config['W'], trainable)
@@ -640,7 +641,7 @@ class NN:
 
             # 卷积层
             if _type == 'conv':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
 
                     if 'bn' in config and config['bn']:
@@ -657,7 +658,7 @@ class NN:
 
             # 池化层
             elif _type == 'pool':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
@@ -668,7 +669,7 @@ class NN:
 
             # 全连接层
             elif _type == 'fc':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     x = tf.reshape(a, [-1, config['shape'][0]])
                     a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
 
@@ -677,12 +678,12 @@ class NN:
 
             # 训练的 dropout
             elif _type == 'dropout':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     a = self.dropout(a, dropout)
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
@@ -704,7 +705,7 @@ class NN:
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     a = tf.add(a, self.net[config['layer_index']])
 
             self.net.append(a)
@@ -729,7 +730,7 @@ class NN:
 
             # 卷积层
             if _type == 'conv':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
                     if 'bn' in config and config['bn']:
                         a = self.batch_normal(a, t_is_train)
@@ -739,7 +740,7 @@ class NN:
 
             # 池化层
             elif _type == 'pool':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     if 'pool_type' not in config or config['pool_type'] == 'max':
                         a = self.max_pool(a, config['k_size'])
                     else:
@@ -747,7 +748,7 @@ class NN:
 
             # 全连接层
             elif _type == 'fc':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     x = tf.reshape(a, [-1, config['shape'][0]])
                     a = tf.add(tf.matmul(x, self.WList[i]), self.bList[i])
 
@@ -756,7 +757,7 @@ class NN:
 
             # 反卷积层(上采样层)
             elif _type == 'tr_conv':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     if 'output_shape' in config:
                         output_shape = config['output_shape']
                     elif 'output_shape_index' in config:
@@ -778,7 +779,7 @@ class NN:
 
             # 将上一层的输出 与 第 layer_index 层的网络相加
             elif _type == 'add':
-                with tf.variable_scope(name):
+                with tf.name_scope(name):
                     a = tf.add(a, self.net[config['layer_index']])
 
             self.net.append(a)
@@ -846,13 +847,19 @@ class NN:
 
         axis = list(range(len(x_shape) - 1))
 
-        beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
-        gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
+        beta = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
+        gamma = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
 
-        moving_mean = self.get_variable('moving_mean', params_shape,
-                                        initializer=tf.zeros_initializer, trainable=False)
-        moving_variance = self.get_variable('moving_variance', params_shape,
-                                            initializer=tf.ones_initializer, trainable=False)
+        moving_mean = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
+        moving_variance = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
+
+        # beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
+        # gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
+        #
+        # moving_mean = self.get_variable('moving_mean', params_shape,
+        #                                 initializer=tf.zeros_initializer, trainable=False)
+        # moving_variance = self.get_variable('moving_variance', params_shape,
+        #                                     initializer=tf.ones_initializer, trainable=False)
 
         mean, variance = tf.nn.moments(x, axis)
 
@@ -873,7 +880,7 @@ class NN:
     def get_train_op(self, loss, learning_rate, global_step):
         tf.summary.scalar('loss', loss)  # 记录 loss 到 TensorBoard
 
-        with tf.variable_scope('optimizer'):
+        with tf.name_scope('optimizer'):
             optimizer = tf.train.GradientDescentOptimizer(learning_rate)
             return optimizer.minimize(loss, global_step=global_step)
 
@@ -893,11 +900,11 @@ class NN:
     ''' 正则化，默认采用 l2_loss 正则化 '''
     def regularize_trainable(self, loss, beta):
         trainable_var = tf.trainable_variables()
-        with tf.variable_scope('regularize'):
+        with tf.name_scope('regularize'):
             regularizer = 0.0
             for i, var in enumerate(trainable_var):
-                # if i == 0:
-                #     continue
+                if i == 0:
+                    continue
                 regularizer = tf.add( regularizer, tf.nn.l2_loss( tf.cast(var, tf.float32) ) )
         return tf.reduce_mean(loss + beta * regularizer)
 
