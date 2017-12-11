@@ -615,9 +615,9 @@ class VGG16(base.NN):
         for i in range(self.NUM_PIG):
             if i in except_list:
                 continue
-            if '2.7' not in sys.version and i < 10:
+            if '2.7' not in sys.version and i < 15:
                 continue
-            elif '2.7' in sys.version and i >= 10:
+            elif '2.7' in sys.version and i >= 15:
                 continue
             self.run_i(i)
 
