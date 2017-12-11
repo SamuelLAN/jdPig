@@ -279,7 +279,7 @@ class NN:
             b_list.append([name, b_value])
 
         with open(model_path, 'wb') as f:
-            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump([w_list, b_list, self.mean_x, self.std_x], f, 2)
 
         # self.echo('Finish saving model ')
 
