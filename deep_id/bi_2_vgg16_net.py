@@ -40,9 +40,14 @@ class VGG16(base.NN):
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
     DECAY_RATE = 0.00001  # 学习率 的 下降速率
 
-    REGULAR_BETA = [0.1, 0.1, 1.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+    REGULAR_BETA = [0.1, 0.1, 2.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
                     0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
+
+    CORRECT_WEIGHT = [0.9, 0.9, 0.8, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9,
+                      0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9]
+    INCORRECT_WEIGHT = [1.3, 1.3, 1.2, 1.3, 1.3, 1.3, 1.3, 1.2, 1.3, 1.3, 1.3, 1.3, 1.2, 1.3, 1.3, 1.3, 1.3, 1.2,
+                        1.3, 1.3, 1.3, 1.3, 1.2, 1.3, 1.3, 1.3, 1.3, 1.2, 1.3, 1.3]
 
     EPLISION = 0.00001
 
@@ -337,7 +342,7 @@ class VGG16(base.NN):
             self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), self.__size ) # 计算准确率
 
 
-    def __get_log_loss(self):
+    def __get_log_loss(self, pig_id):
         with tf.name_scope('log_loss'):
             labels = self.__label
             predict = tf.one_hot( tf.argmax(self.__output, 1), depth=self.NUM_CLASSES )
@@ -346,7 +351,7 @@ class VGG16(base.NN):
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
             # w = correct * 1.5 + incorrect * 0.8
-            w = correct * 0.9 + incorrect * 1.2
+            w = correct * self.CORRECT_WEIGHT[pig_id] + incorrect * self.INCORRECT_WEIGHT[pig_id]
             output = w * self.__output
 
             exp_x = tf.exp(self.__output)
@@ -433,10 +438,10 @@ class VGG16(base.NN):
         # 计算 loss
         self.get_loss()
 
-        self.__get_log_loss()
+        self.__get_log_loss(pig_id)
 
         # 正则化
-        self.__ch_loss_regular = self.regularize_trainable(self.__ch_log_loss, self.REGULAR_BETA)
+        self.__ch_loss_regular = self.regularize_trainable(self.__ch_log_loss, self.REGULAR_BETA[pig_id])
         # self.__loss_regular = self.regularize_trainable(self.__loss, self.REGULAR_BETA)
         # self.__log_loss_regular = self.regularize_trainable(self.__log_loss, self.REGULAR_BETA)
 
@@ -571,7 +576,7 @@ class VGG16(base.NN):
         self.rebuild_model()        # 重建模型
         self.get_loss()             # 重新 get loss
         self.__get_accuracy()
-        self.__get_log_loss()
+        self.__get_log_loss(pig_id)
 
         self.init_variables()       # 重新初始化变量
 
@@ -649,7 +654,7 @@ class VGG16(base.NN):
 
             self.__get_accuracy()
 
-            self.__get_log_loss()
+            self.__get_log_loss(i)
 
             self.init_variables()
 
