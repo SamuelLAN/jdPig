@@ -601,6 +601,8 @@ class VGG16(base.NN):
         for i in range(self.NUM_PIG):
             if i <= 1:
                 continue
+            if '2.7' not in sys.version and i < 10:
+                continue
             self.run_i(i)
 
             for ret in self.__result:
