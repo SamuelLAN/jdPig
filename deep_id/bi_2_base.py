@@ -928,11 +928,12 @@ class NN:
 
         mean, variance = tf.nn.moments(x, axis)
 
-        update_moving_mean = moving_averages.assign_moving_average(self.__moving_mean_list[name_scope], mean, self.BN_DECAY)
-        update_moving_variance = moving_averages.assign_moving_average(self.__moving_std_list[name_scope], variance, self.BN_DECAY)
+        with tf.variable_scope(name_scope, reuse=False):
+            update_moving_mean = moving_averages.assign_moving_average(self.__moving_mean_list[name_scope], mean, self.BN_DECAY)
+            update_moving_variance = moving_averages.assign_moving_average(self.__moving_std_list[name_scope], variance, self.BN_DECAY)
 
-        tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_mean)
-        tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_variance)
+            tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_mean)
+            tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_variance)
 
         mean, variance = control_flow_ops.cond(is_train, lambda : (mean, variance),
                                                lambda : (self.__moving_mean_list[name_scope], self.__moving_std_list[name_scope]))
