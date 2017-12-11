@@ -204,7 +204,7 @@ class NN:
             regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
         else:
             regularizer = None
-        collections = [tf.GraphKeys.VARIABLES, self.VARIABLE_COLLECTION]
+        collections = [tf.GraphKeys.GLOBAL_VARIABLES, self.VARIABLE_COLLECTION]
         return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
                                regularizer=regularizer, collections=collections, trainable=trainable)
 
@@ -719,6 +719,7 @@ class NN:
         self.echo('\nStart rebuilding model ...')
         self.net = []
         a = X
+        t_is_train = tf.convert_to_tensor(False, dtype='bool', name='is_train')
 
         model_len = len(self.MODEL)
         for i, config in enumerate(self.MODEL):
@@ -730,6 +731,9 @@ class NN:
             if _type == 'conv':
                 with tf.name_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
+                    if 'bn' in config and config['bn']:
+                        a = self.batch_normal(a, t_is_train)
+
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
