@@ -162,9 +162,7 @@ class NN:
 
         var_list = tf.trainable_variables()
         g_list = tf.global_variables()
-        bn_moving_vars = [g for g in g_list if 'moving_mean' in g.name]
-        bn_moving_vars += [g for g in g_list if 'moving_variance' in g.name]
-        var_list += bn_moving_vars
+        var_list += g_list
         self.saver = tf.train.Saver(var_list=var_list)
 
 
