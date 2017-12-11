@@ -413,19 +413,17 @@ class VGG16(base.NN):
         prob_list = []
 
         while True:
-            batch_x, batch_y = data_set.next_batch(self.BATCH_SIZE, False)
-            if not batch_x or not batch_y:
+            batch_x, _ = data_set.next_batch(self.BATCH_SIZE, False)
+            if not batch_x:
                 break
 
             batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
-            feed_dict = {self.__image: batch_x, self.__label: batch_y,
-                         self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
+            feed_dict = {self.__image: batch_x, self.__keep_prob: 1.0}
 
             prob = self.sess.run(self.__prob, feed_dict)
             prob_list.append(prob[:, 1])
 
             del batch_x
-            del batch_y
 
             count += 1
             progress = float(count) / times * 100
@@ -620,7 +618,9 @@ class VGG16(base.NN):
             #     continue
             # if '2.7' not in sys.version and i < 15:
             #     continue
-            if '2.7' in sys.version and i < 16:
+            if '2.7' in sys.version and i < 17:
+                continue
+            elif '2.7' not in sys.version and i >= 15:
                 continue
             self.run_i(i)
 

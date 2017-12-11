@@ -290,8 +290,8 @@ class TestData:
         random.shuffle(self.__data_list)
 
         self.__queue = queue.Queue()
-        self.__stop_thread = False
-        self.__thread = None
+        # self.__stop_thread = False
+        # self.__thread = None
 
         self.__cur_index = 0
 
@@ -525,35 +525,17 @@ class TestBData:
         self.__chang_dir()
 
         # 初始化变量
-        self.__data = {}
+        self.__data = []
 
         # 加载全部数据
         self.__load()
 
-        # 检查输入参数
-        start_ratio = min(max(0.0, start_ratio), 1.0)
-        end_ratio = min(max(0.0, end_ratio), 1.0)
-
-        for pig_id, pig_list in self.__data.items():
-            pig_len = len(pig_list)
-
-            # 根据比例计算数据的位置范围
-            start_index = int(pig_len * start_ratio)
-            end_index = int(pig_len * end_ratio)
-            new_pig_list = pig_list[start_index: end_index]
-
-            self.__data_list += new_pig_list
-
-        del self.__data
-
-        self.__data_len = len(self.__data_list)
-        random.shuffle(self.__data_list)
+        self.__data_len = len(self.__data)
 
         self.__queue = queue.Queue()
-        self.__stop_thread = False
-        self.__thread = None
 
         self.__cur_index = 0
+
 
     @staticmethod
     def __chang_dir():
@@ -563,8 +545,8 @@ class TestBData:
             os.chdir(cur_dir_path)
             sys.path.append(cur_dir_path)
 
-    ''' 加载数据 '''
 
+    ''' 加载数据 '''
     def __load(self):
         self.echo('Loading Test_B data ...')
         file_list = os.listdir(self.DATA_ROOT)
@@ -577,19 +559,14 @@ class TestBData:
             split_file_name = os.path.splitext(file_name)
             no_list = split_file_name[0].split('_')
 
-            if split_file_name[1].lower() != '.jpg' or int(no_list[-1]) == 1:
+            if split_file_name[1].lower() != '.jpg' or 'pig' not in split_file_name[0].lower() \
+                    or 'MACOSX' in split_file_name[0]:
                 continue
 
-            pig_id = int(split_file_name[0].split('_')[0]) - 1
+            pig_id = int(split_file_name[0].split('_')[0])
             file_path = os.path.join(self.DATA_ROOT, file_name)
 
-            if pig_id not in self.__data:
-                self.__data[pig_id] = []
-            self.__data[pig_id].append([split_file_name[0], file_path])
-
-        self.echo(' sorting data ... ')
-        for pig_id, pig_list in self.__data.items():
-            pig_list.sort(key=lambda x: x[0])
+            self.__data.append([pig_id, file_path])
 
         self.echo('\nFinish Loading\n')
 
@@ -622,7 +599,7 @@ class TestBData:
 
     @staticmethod
     def __get_x_y(img_path):
-        return Data.add_padding(img_path), TestData.__get_y(img_path)
+        return Data.add_padding(img_path), TestBData.__get_y(img_path)
 
     @staticmethod
     def __get_y(img_path):
@@ -691,14 +668,12 @@ class TestBData:
 
     def __read_img_list(self, img_list):
         X = []
-        Y = []
 
         for img_path in img_list:
             x, y = self.__get_x_y(img_path)
             X.append(x)
-            Y.append(y)
 
-        return np.array(X), np.array(Y)
+        return np.array(X)
 
     ''' 获取下个 batch '''
 
@@ -714,7 +689,7 @@ class TestBData:
             left_num = end_index - self.__data_len
             end_index = self.__data_len
 
-        _, path_list = zip(*self.__data_list[start_index: end_index])
+        _, path_list = zip(*self.__data[start_index: end_index])
 
         if not loop:
             self.__cur_index = end_index
@@ -732,7 +707,7 @@ class TestBData:
             else:
                 left_num = 0
 
-            _, left_path_list = zip(*self.__data_list[: end_index])
+            _, left_path_list = zip(*self.__data[: end_index])
             path_list += left_path_list
 
         self.__cur_index = end_index if end_index < self.__data_len else 0
@@ -740,7 +715,7 @@ class TestBData:
 
     def get_label_list(self):
         y = []
-        for _, img_path in self.__data_list:
+        for _, img_path in self.__data:
             y.append(self.__get_y(img_path))
         return np.array(y)
 
