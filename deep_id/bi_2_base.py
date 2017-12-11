@@ -291,31 +291,47 @@ class NN:
             b_value = self.sess.run(b)
             b_list.append([name, b_value])
 
+        self.echo('\nbeta_list')
         beta_list = []
         for name_scope, tensor in self.__beta_list.items():
             value = self.sess.run(tensor)
+            self.echo(name_scope)
+            self.echo(tensor)
+            self.echo(value)
             beta_list.append([name_scope, value])
 
+        self.echo('\ngamma_list')
         gamma_list = []
         for name_scope, tensor in self.__gamma_list.items():
             value = self.sess.run(tensor)
+            self.echo(name_scope)
+            self.echo(tensor)
+            self.echo(value)
             gamma_list.append([name_scope, value])
 
+        self.echo('\nmoving_mean_list')
         moving_mean_list = []
         for name_scope, tensor in self.__moving_mean_list.items():
             value = self.sess.run(tensor)
+            self.echo(name_scope)
+            self.echo(tensor)
+            self.echo(value)
             moving_mean_list.append([name_scope, value])
 
+        self.echo('\nmoving_std_list')
         moving_std_list = []
         for name_scope, tensor in self.__moving_std_list.items():
             value = self.sess.run(tensor)
+            self.echo(name_scope)
+            self.echo(tensor)
+            self.echo(value)
             moving_std_list.append([name_scope, value])
 
         with open(model_path, 'wb') as f:
             pickle.dump([w_list, b_list, self.mean_x, self.std_x,
                          beta_list, gamma_list, moving_mean_list, moving_std_list], f, 2)
 
-        # self.echo('Finish saving model ')
+        self.echo('Finish saving model ')
 
 
     def restore_model_w_b(self, _id):

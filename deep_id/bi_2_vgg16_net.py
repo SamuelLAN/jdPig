@@ -567,7 +567,6 @@ class VGG16(base.NN):
 
                     self.echo('%s  best  ' % echo_str, False)
                     self.save_model_w_b(pig_id)
-                    self.save_model()
                     # self.save_model()  # 保存模型
 
                 else:
@@ -888,7 +887,7 @@ class VGG16(base.NN):
 
 
 o_vgg = VGG16()
-# o_vgg.run()
+o_vgg.run()
 # o_vgg.test()
 # o_vgg.test_i(0)
-o_vgg.test_i_tf(0)
+# o_vgg.test_i_tf(0)
