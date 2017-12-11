@@ -83,10 +83,10 @@ class NN:
 
     ''' 析构函数 '''
     def __del__(self):
-        pass
-        # NN.kill_tensorboard_if_runing()
-        # self.tbProcess.join(10)
-        # self.tbProcess.terminate()
+        # pass
+        NN.kill_tensorboard_if_runing()
+        self.tbProcess.join(10)
+        self.tbProcess.terminate()
 
 
     ''' 初始化 '''
@@ -103,14 +103,14 @@ class NN:
         self.mean_x = 0
         self.std_x = 0.0001
 
-        # self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-        self.__start_time = '2017_12_11_23_10_21'
+        self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+        # self.__start_time = '2017_12_11_23_10_21'
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
 
         self.__summaryPath = ''
-        # self.__get_summary_path()
+        self.__get_summary_path()
 
         self.global_step = self.get_global_step()            # 记录全局训练状态的 global step
 
