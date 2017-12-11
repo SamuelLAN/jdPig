@@ -245,9 +245,6 @@ class VGG16(base.NN):
 
     ''' 自定义 初始化变量 过程 '''
     def init(self):
-        # 加载数据
-        self.load()
-
         # 输入 与 label
         self.__image = tf.placeholder(tf.float32, self.IMAGE_PH_SHAPE, name='X')
         self.__label = tf.placeholder(tf.float32, [None, self.NUM_CLASSES], name='y')
@@ -256,11 +253,20 @@ class VGG16(base.NN):
         # dropout 的 keep_prob
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
+        self.__train_set_list = []
+        self.__val_set_list = []
+
+        self.__train_size_list = []
+        self.__val_size_list = []
+
 
     def reinit(self, pig_id):
         self.net = []  # 存放每层网络的 feature map
         self.WList = []  # 存放权重矩阵的 list
         self.bList = []  # 存放偏置量的 list
+
+        # 加载数据
+        self.load_i(pig_id)
 
         # 常量
         self.__iter_per_epoch = int(self.__train_size_list[pig_id] // self.BATCH_SIZE)
@@ -278,19 +284,12 @@ class VGG16(base.NN):
 
 
     ''' 加载数据 '''
-    def load(self):
-        self.__train_set_list = []
-        self.__val_set_list = []
+    def load_i(self, _id):
+        self.__train_set_list.append(load.Data(_id, 0.0, 0.8, 'train'))
+        self.__val_set_list.append(load.Data(_id, 0.8, 1.0, 'validation'))
 
-        self.__train_size_list = []
-        self.__val_size_list = []
-
-        for i in range(self.NUM_PIG):
-            self.__train_set_list.append(load.Data(i, 0.0, 0.8, 'train'))
-            self.__val_set_list.append(load.Data(i, 0.8, 1.0, 'validation'))
-
-            self.__train_size_list.append(self.__train_set_list[i].get_size())
-            self.__val_size_list.append(self.__val_set_list[i].get_size())
+        self.__train_size_list.append(self.__train_set_list[_id].get_size())
+        self.__val_size_list.append(self.__val_set_list[_id].get_size())
 
 
     ''' 模型 '''
@@ -430,7 +429,6 @@ class VGG16(base.NN):
         self.echo('\nStart training %d net ... ' % pig_id)
 
         # self.get_summary_path(pig_id)
-
         self.reinit(pig_id)
 
         # 生成模型
