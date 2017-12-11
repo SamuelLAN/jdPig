@@ -291,40 +291,24 @@ class NN:
             b_value = self.sess.run(b)
             b_list.append([name, b_value])
 
-        self.echo('\nbeta_list')
         beta_list = []
         for name_scope, tensor in self.__beta_list.items():
             value = self.sess.run(tensor)
-            self.echo(name_scope)
-            self.echo(tensor)
-            self.echo(value)
             beta_list.append([name_scope, value])
 
-        self.echo('\ngamma_list')
         gamma_list = []
         for name_scope, tensor in self.__gamma_list.items():
             value = self.sess.run(tensor)
-            self.echo(name_scope)
-            self.echo(tensor)
-            self.echo(value)
             gamma_list.append([name_scope, value])
 
-        self.echo('\nmoving_mean_list')
         moving_mean_list = []
         for name_scope, tensor in self.__moving_mean_list.items():
             value = self.sess.run(tensor)
-            self.echo(name_scope)
-            self.echo(tensor)
-            self.echo(value)
             moving_mean_list.append([name_scope, value])
 
-        self.echo('\nmoving_std_list')
         moving_std_list = []
         for name_scope, tensor in self.__moving_std_list.items():
             value = self.sess.run(tensor)
-            self.echo(name_scope)
-            self.echo(tensor)
-            self.echo(value)
             moving_std_list.append([name_scope, value])
 
         with open(model_path, 'wb') as f:
@@ -951,6 +935,7 @@ class NN:
 
         update_moving_mean = moving_averages.assign_moving_average(self.__moving_mean_list[name_scope], mean, self.BN_DECAY)
         update_moving_variance = moving_averages.assign_moving_average(self.__moving_std_list[name_scope], variance, self.BN_DECAY)
+
         tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_mean)
         tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_variance)
 

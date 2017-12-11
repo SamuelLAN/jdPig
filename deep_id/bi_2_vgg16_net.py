@@ -314,15 +314,17 @@ class VGG16(base.NN):
             self.__loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=self.__output, labels=self.__label)
             )
-            print ('loss:')
-            print (self.__loss)
 
 
     ''' 获取 train_op '''
     def get_train_op(self, loss, learning_rate, global_step):
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(learning_rate)
-            return optimizer.minimize(loss, global_step=global_step)
+            optimizer_op = optimizer.minimize(loss, global_step=global_step)
+
+            batch_norm_updates = tf.get_collection(self.UPDATE_OPS_COLLECTION)
+            batch_norm_updates_op = tf.group(*batch_norm_updates)
+            return tf.group(optimizer_op, batch_norm_updates_op)
 
 
     ''' 将图片输出到 tensorboard '''
@@ -348,8 +350,6 @@ class VGG16(base.NN):
             correct = tf.equal(labels, predict) # 返回 predict 与 labels 相匹配的结果
 
             self.__accuracy = tf.divide( tf.reduce_sum( tf.cast(correct, tf.float32) ), self.__size ) # 计算准确率
-            print ('accuracy')
-            print (self.__accuracy)
 
 
     def __get_log_loss(self, pig_id):
@@ -368,9 +368,6 @@ class VGG16(base.NN):
             self.__prob = exp_x / tf.reduce_sum(exp_x, axis=0)
             # p = tf.maximum( tf.minimum( prob, 1 - 1e-15 ), 1e-15 )
             self.__log_loss = - tf.divide( tf.reduce_sum( tf.multiply(self.__label, tf.log(self.__prob)) ), self.__size )
-
-            print ('log_loss:')
-            print (self.__log_loss)
 
             exp_x = tf.exp(output)
             p = exp_x / tf.reduce_sum(exp_x, axis=0)
