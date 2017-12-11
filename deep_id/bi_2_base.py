@@ -905,12 +905,16 @@ class NN:
         axis = list(range(len(x_shape) - 1))
 
         if name_scope not in self.__beta_list:
+            self.echo('init beta ... ')
             self.__beta_list[name_scope] = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
         if name_scope not in self.__gamma_list:
+            self.echo('init gamma ... ')
             self.__gamma_list[name_scope] = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
         if name_scope not in self.__moving_mean_list:
+            self.echo('init moving_mean ... ')
             self.__moving_mean_list[name_scope] = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
         if name_scope not in self.__moving_std_list:
+            self.echo('init moving variance ... ')
             self.__moving_std_list[name_scope] = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
 
         beta = self.__beta_list[name_scope]
