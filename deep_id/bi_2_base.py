@@ -120,7 +120,7 @@ class NN:
 
         # self.sess = tf.Session()
 
-        # self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
+        self.saver = tf.train.Saver()                       # 初始化 saver; 用于之后保存 网络结构
 
     # ******************************* 子类需要实现的接口 *******************************
 
@@ -287,27 +287,23 @@ class NN:
 
         beta_list = []
         for name_scope, tensor in self.__beta_list.items():
-            name = b.name.split(':')[0]
             value = self.sess.run(tensor)
-            beta_list.append([name, value])
+            beta_list.append([name_scope, value])
 
         gamma_list = []
         for name_scope, tensor in self.__gamma_list.items():
-            name = b.name.split(':')[0]
             value = self.sess.run(tensor)
-            gamma_list.append([name, value])
+            gamma_list.append([name_scope, value])
 
         moving_mean_list = []
         for name_scope, tensor in self.__moving_mean_list.items():
-            name = b.name.split(':')[0]
             value = self.sess.run(tensor)
-            moving_mean_list.append([name, value])
+            moving_mean_list.append([name_scope, value])
 
         moving_std_list = []
         for name_scope, tensor in self.__moving_std_list.items():
-            name = b.name.split(':')[0]
             value = self.sess.run(tensor)
-            moving_std_list.append([name, value])
+            moving_std_list.append([name_scope, value])
 
         with open(model_path, 'wb') as f:
             pickle.dump([w_list, b_list, self.mean_x, self.std_x,
@@ -909,12 +905,16 @@ class NN:
         axis = list(range(len(x_shape) - 1))
 
         if name_scope not in self.__beta_list:
+            self.echo('init beta ... ')
             self.__beta_list[name_scope] = tf.Variable(np.zeros(params_shape), name='beta', dtype=tf.float32)
         if name_scope not in self.__gamma_list:
+            self.echo('init gamma ... ')
             self.__gamma_list[name_scope] = tf.Variable(np.ones(params_shape), name='gamma', dtype=tf.float32)
         if name_scope not in self.__moving_mean_list:
+            self.echo('init moving_mean ... ')
             self.__moving_mean_list[name_scope] = tf.Variable(np.zeros(params_shape), name='moving_mean', trainable=False, dtype=tf.float32)
         if name_scope not in self.__moving_std_list:
+            self.echo('init moving variance ... ')
             self.__moving_std_list[name_scope] = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
 
         beta = self.__beta_list[name_scope]
