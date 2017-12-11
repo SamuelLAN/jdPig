@@ -255,11 +255,11 @@ class VGG16(base.NN):
         # dropout 的 keep_prob
         self.__keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
-        self.__train_set_list = []
-        self.__val_set_list = []
+        self.__train_set_list = [None for i in range(self.NUM_PIG)]
+        self.__val_set_list = [None for i in range(self.NUM_PIG)]
 
-        self.__train_size_list = []
-        self.__val_size_list = []
+        self.__train_size_list = [0 for i in range(self.NUM_PIG)]
+        self.__val_size_list = [0 for i in range(self.NUM_PIG)]
 
 
     def reinit(self, pig_id):
@@ -287,11 +287,11 @@ class VGG16(base.NN):
 
     ''' 加载数据 '''
     def load_i(self, _id):
-        self.__train_set_list.append(load.Data(_id, 0.0, 0.8, 'train'))
-        self.__val_set_list.append(load.Data(_id, 0.8, 1.0, 'validation'))
+        self.__train_set_list[_id] = load.Data(_id, 0.0, 0.8, 'train')
+        self.__val_set_list[_id] = load.Data(_id, 0.8, 1.0, 'validation')
 
-        self.__train_size_list.append(self.__train_set_list[_id].get_size())
-        self.__val_size_list.append(self.__val_set_list[_id].get_size())
+        self.__train_size_list[_id] = self.__train_set_list[_id].get_size()
+        self.__val_size_list[_id] = self.__val_set_list[_id].get_size()
 
 
     ''' 模型 '''
