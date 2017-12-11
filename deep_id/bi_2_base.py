@@ -202,13 +202,14 @@ class NN:
 
 
     def get_variable(self, name, shape, initializer, weight_decay=0.0, dtype='float', trainable=True):
-        if weight_decay > 0:
-            regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
-        else:
-            regularizer = None
-        collections = [tf.GraphKeys.GLOBAL_VARIABLES, self.VARIABLE_COLLECTION]
-        return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
-                               regularizer=regularizer,collections=collections, trainable=trainable)
+        with tf.variable_scope('regularizer', reuse=False):
+            if weight_decay > 0:
+                regularizer = tf.contrib.layers.l2_regularizer(weight_decay)
+            else:
+                regularizer = None
+            collections = [tf.GraphKeys.GLOBAL_VARIABLES, self.VARIABLE_COLLECTION]
+            return tf.get_variable(name, shape=shape, initializer=initializer, dtype=dtype,
+                                   regularizer=regularizer,collections=collections, trainable=trainable)
 
 
     ''' 获取全局的训练 step '''
