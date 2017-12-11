@@ -729,6 +729,8 @@ class NN:
         self.net = []
         a = X
 
+        t_is_train = tf.convert_to_tensor(False, dtype='bool', name='is_train')
+
         model_len = len(self.MODEL)
         for i, config in enumerate(self.MODEL):
             _type = config['type'].lower()
@@ -739,6 +741,10 @@ class NN:
             if _type == 'conv':
                 with tf.variable_scope(name):
                     a = tf.add(self.conv2d(a, self.WList[i]), self.bList[i])
+
+                    if 'bn' in config and config['bn']:
+                        a = self.batch_normal(a, t_is_train)
+
                     if not 'activate' in config or config['activate']:
                         a = self.activate(a)
 
