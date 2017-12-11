@@ -384,8 +384,14 @@ class VGG16(base.NN):
 
             batch_x = (batch_x - self.mean_x) / (self.std_x + self.EPLISION)
 
+            self.echo('batch_x:')
+            self.echo(batch_x.shape)
+
             feed_dict = {self.__image: batch_x, self.__label: batch_y,
                          self.__size: batch_y.shape[0], self.__keep_prob: 1.0}
+
+            self.echo('feed_dict ')
+
             # loss, log_loss, ch_log_loss, accuracy = self.sess.run([self.__loss, self.__log_loss, self.__ch_log_loss, self.__accuracy], feed_dict)
             loss, log_loss, accuracy = self.sess.run([self.__loss, self.__log_loss, self.__accuracy], feed_dict)
             mean_loss += loss
