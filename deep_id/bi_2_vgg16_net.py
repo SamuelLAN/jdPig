@@ -884,7 +884,7 @@ class VGG16(base.NN):
 
 
 o_vgg = VGG16()
-o_vgg.run()
+# o_vgg.run()
 # o_vgg.test()
-# o_vgg.test_i(0)
+o_vgg.test_i(0)
 # o_vgg.test_i_tf(0)
