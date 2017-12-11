@@ -37,7 +37,7 @@ class VGG16(base.NN):
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
-    BASE_LEARNING_RATE = 0.0002  # 初始 学习率
+    BASE_LEARNING_RATE = 0.0001  # 初始 学习率
     DECAY_RATE = 0.0001  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.1  # 正则化的 beta 参数
@@ -332,7 +332,7 @@ class VGG16(base.NN):
             incorrect = tf.cast( tf.not_equal(labels, predict), tf.float32 )
 
             # w = correct * 1.5 + incorrect * 0.8
-            w = correct * 0.8 + incorrect * 1.3
+            w = correct * 0.9 + incorrect * 1.3
             output = w * self.__output
 
             exp_x = tf.exp(self.__output)
