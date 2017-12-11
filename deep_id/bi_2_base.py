@@ -159,7 +159,13 @@ class NN:
     ''' 初始化所有变量 '''
     def init_variables(self):
         self.sess.run(tf.global_variables_initializer())
-        self.saver = tf.train.Saver()
+
+        var_list = tf.trainable_variables()
+        g_list = tf.global_variables()
+        bn_moving_vars = [g for g in g_list if 'moving_mean' in g.name]
+        bn_moving_vars += [g for g in g_list if 'moving_variance' in g.name]
+        var_list += bn_moving_vars
+        self.saver = tf.train.Saver(var_list=var_list)
 
 
     ''' 初始化权重矩阵 '''

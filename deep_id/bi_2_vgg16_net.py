@@ -658,6 +658,38 @@ class VGG16(base.NN):
 
         self.reinit(i)
 
+        self.__image = self.get_variable_by_name('X')
+        self.__label = self.get_variable_by_name('y')
+        self.__size = self.get_variable_by_name('size')
+        self.__keep_prob = self.get_variable_by_name('keep_prob')
+
+        self.__loss = self.get_variable_by_name('loss/Mean')
+        self.__log_loss = self.get_variable_by_name('log_logss/Neg')
+        self.__accuracy = self.get_variable_by_name('accuracy/truediv')
+
+        self.__train_set_list[i].start_thread()
+        self.__val_set_list[i].start_thread()
+
+        mean_train_accuracy, mean_train_loss, mean_train_log_loss = self.__measure(self.__train_set_list[i])
+        mean_val_accuracy, mean_val_loss, mean_val_log_loss = self.__measure(self.__val_set_list[i])
+
+        self.__train_set_list[i].stop()
+        self.__val_set_list[i].stop()
+
+        self.echo('\n*************************************************')
+        self.echo('net: %d  train_accuracy: %.6f  train_loss: %.6f  train_log_loss: %.6f  ' % (i,
+                                                                                               mean_train_accuracy,
+                                                                                               mean_train_loss,
+                                                                                               mean_train_log_loss))
+        self.echo('net: %d  val_accuracy: %.6f  val_loss: %.6f  val_log_loss: %.6f  ' % (i,
+                                                                                         mean_val_accuracy,
+                                                                                         mean_val_loss,
+                                                                                         mean_val_log_loss))
+        self.echo('*********************************')
+
+        self.sess.close()
+
+        self.echo('Finish testing ')
 
 
 
@@ -857,3 +889,4 @@ o_vgg = VGG16()
 o_vgg.run()
 # o_vgg.test()
 # o_vgg.test_i(0)
+# o_vgg.test_i_tf(0)
