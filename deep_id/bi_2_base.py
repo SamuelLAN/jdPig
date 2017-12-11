@@ -103,8 +103,8 @@ class NN:
         self.mean_x = 0
         self.std_x = 0.0001
 
-        self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-        # self.__start_time = '2017_12_11_16_22_26'
+        # self.__start_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+        self.__start_time = '2017_12_11_18_35_50'
 
         self.modelPath = ''
         self.get_model_path()                             # 生成存放模型的文件夹 与 路径
