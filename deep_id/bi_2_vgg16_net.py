@@ -658,14 +658,14 @@ class VGG16(base.NN):
 
         self.restore_model()
 
-        self.__image = self.get_variable_by_name('X')
-        self.__label = self.get_variable_by_name('y')
-        self.__size = self.get_variable_by_name('size')
-        self.__keep_prob = self.get_variable_by_name('keep_prob')
+        self.__image = self.get_variable_by_name('X:0')
+        self.__label = self.get_variable_by_name('y:0')
+        self.__size = self.get_variable_by_name('size:0')
+        self.__keep_prob = self.get_variable_by_name('keep_prob:0')
 
-        self.__loss = self.get_variable_by_name('loss/Mean')
-        self.__log_loss = self.get_variable_by_name('log_logss/Neg')
-        self.__accuracy = self.get_variable_by_name('accuracy/truediv')
+        self.__loss = self.get_variable_by_name('loss/Mean:0')
+        self.__log_loss = self.get_variable_by_name('log_logss/Neg:0')
+        self.__accuracy = self.get_variable_by_name('accuracy/truediv:0')
 
         self.__train_set_list[i].start_thread()
         self.__val_set_list[i].start_thread()
