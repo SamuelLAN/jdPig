@@ -31,7 +31,7 @@ class VGG16(base.NN):
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 2  # 输出的类别
 
-    NUM_PIG = 25
+    NUM_PIG = 30
 
     IMAGE_SHAPE = [224, 224]
     IMAGE_PIXELS = IMAGE_SHAPE[0] * IMAGE_SHAPE[1]
