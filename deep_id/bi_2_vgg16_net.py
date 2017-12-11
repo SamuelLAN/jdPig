@@ -26,7 +26,7 @@ class VGG16(base.NN):
     MODEL_NAME = 'vgg_16_30'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
-    EPOCH_TIMES = 18  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 10  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 2  # 输出的类别
@@ -884,7 +884,7 @@ class VGG16(base.NN):
 
 
 o_vgg = VGG16()
-# o_vgg.run()
+o_vgg.run()
 # o_vgg.test()
-o_vgg.test_i(0)
+# o_vgg.test_i(0)
 # o_vgg.test_i_tf(0)
