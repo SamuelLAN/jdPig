@@ -26,7 +26,7 @@ class VGG16(base.NN):
     MODEL_NAME = 'vgg_16_30'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
-    EPOCH_TIMES = 30  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 18  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 2  # 输出的类别
@@ -53,7 +53,7 @@ class VGG16(base.NN):
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
 
-    MAX_VAL_ACCURACY_DECR_TIMES = 7  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 5  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [
@@ -594,10 +594,11 @@ class VGG16(base.NN):
 
     def run(self):
         self.__result = [
-            [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769]
+            [0, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769],
+            [1, 0.953552, 0.193088, 2.319002, 0.944293, 0.233021, 2.353769],
         ]
         for i in range(self.NUM_PIG):
-            if i <= 0:
+            if i <= 1:
                 continue
             self.run_i(i)
 
