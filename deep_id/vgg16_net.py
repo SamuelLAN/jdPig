@@ -26,7 +26,7 @@ class VGG16(base.NN):
     MODEL_NAME = 'vgg_16'  # 模型的名称
 
     BATCH_SIZE = 16 # 迭代的 epoch 次数
-    EPOCH_TIMES = 20  # 随机梯度下降的 batch 大小
+    EPOCH_TIMES = 100  # 随机梯度下降的 batch 大小
 
     NUM_CHANNEL = 3  # 输入图片为 3 通道，彩色
     NUM_CLASSES = 30  # 输出的类别
@@ -36,7 +36,7 @@ class VGG16(base.NN):
     IMAGE_PH_SHAPE = [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUM_CHANNEL]  # image 的 placeholder 的 shape
 
     BASE_LEARNING_RATE = 0.0001  # 初始 学习率
-    DECAY_RATE = 0.001  # 学习率 的 下降速率
+    DECAY_RATE = 0.0005  # 学习率 的 下降速率
 
     REGULAR_BETA = 0.02  # 正则化的 beta 参数
     KEEP_PROB = 0.5  # dropout 的 keep_prob
@@ -51,7 +51,7 @@ class VGG16(base.NN):
 
     VGG_MODEL = vgg.VGG.load()  # 加载 VGG 模型
 
-    MAX_VAL_ACCURACY_DECR_TIMES = 30  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
+    MAX_VAL_ACCURACY_DECR_TIMES = 15  # 校验集 val_accuracy 连续 100 次没有降低，则 early stop
 
     ''' 模型的配置；采用了 VGG16 模型的 FCN '''
     MODEL = [

@@ -910,29 +910,16 @@ class NN:
         if name_scope not in self.__moving_std_list:
             self.__moving_std_list[name_scope] = tf.Variable(np.ones(params_shape), name='moving_variance', trainable=False, dtype=tf.float32)
 
-        beta = self.__beta_list[name_scope]
-        gamma = self.__gamma_list[name_scope]
-        moving_mean = self.__moving_mean_list[name_scope]
-        moving_variance = self.__moving_std_list[name_scope]
-
-        # beta = self.get_variable('beta', params_shape, initializer=tf.zeros_initializer)
-        # gamma = self.get_variable('gamma', params_shape, initializer=tf.ones_initializer)
-        #
-        # moving_mean = self.get_variable('moving_mean', params_shape,
-        #                                 initializer=tf.zeros_initializer, trainable=False)
-        # moving_variance = self.get_variable('moving_variance', params_shape,
-        #                                     initializer=tf.ones_initializer, trainable=False)
-
         mean, variance = tf.nn.moments(x, axis)
 
-        update_moving_mean = moving_averages.assign_moving_average(moving_mean, mean, self.BN_DECAY)
-        update_moving_variance = moving_averages.assign_moving_average(moving_variance, variance, self.BN_DECAY)
+        update_moving_mean = moving_averages.assign_moving_average(self.__moving_mean_list[name_scope], mean, self.BN_DECAY)
+        update_moving_variance = moving_averages.assign_moving_average(self.__moving_std_list[name_scope], variance, self.BN_DECAY)
         tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_mean)
         tf.add_to_collection(self.UPDATE_OPS_COLLECTION, update_moving_variance)
 
         mean, variance = control_flow_ops.cond(is_train, lambda : (mean, variance),
-                                               lambda : (moving_mean, moving_variance))
-        x = tf.nn.batch_normalization(x, mean, variance, beta, gamma, self.BN_EPSILON)
+                                               lambda : (self.__moving_mean_list[name_scope], self.__moving_std_list[name_scope]))
+        x = tf.nn.batch_normalization(x, mean, variance, self.__beta_list[name_scope], self.__gamma_list[name_scope], self.BN_EPSILON)
 
         return x
 
